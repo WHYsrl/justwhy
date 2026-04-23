@@ -554,9 +554,9 @@ function showSpinner(){
   const it=lang==='it';
   const wfc=document.getElementById('wfContent');
   wfc.innerHTML=`<div class="wf-spinner">
-    <div class="wf-game-hint" id="gameHint">${it?'Clicca sulle stelle per creare costellazioni':'Click stars to build constellations'}</div>
+    <div class="wf-game-hint" id="gameHint">${it?'Cattura i nodi prima che svaniscano!':'Catch the nodes before they vanish!'}</div>
     <canvas id="spinCvs" width="400" height="400" style="cursor:crosshair;touch-action:none"></canvas>
-    <div class="wf-game-hud"><div>${it?'Costellazioni':'Constellations'}: <span id="gScore">0</span></div><div>${it?'Stelle connesse':'Stars linked'}: <span id="gLinks">0</span></div></div>
+    <div class="wf-game-hud"><div>${it?'Punti':'Score'}: <span id="gScore">0</span></div><div>Combo: <span id="gCombo">x1</span></div><div>${it?'Mancati':'Missed'}: <span id="gMissed">0</span></div></div>
     <div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div>
     <div class="wf-spinner-sub" id="spinSub">1/${msgs.length}</div>
   </div>`;
@@ -571,109 +571,105 @@ function showSpinner(){
   const W=CSS_W,H=CSS_H;
   const AC=[200,255,0];
 
-  // --- Stars ---
-  const STAR_COUNT=50;
-  const stars=[];
-  for(let i=0;i<STAR_COUNT;i++){
-    stars.push({
-      x:30+Math.random()*(W-60), y:30+Math.random()*(H-60),
-      size:1.2+Math.random()*2.5, brightness:0.3+Math.random()*0.7,
-      twinkle:Math.random()*Math.PI*2, twinkleSpeed:1+Math.random()*3,
-      selected:false, hovered:false,
-      vx:(Math.random()-0.5)*0.15, vy:(Math.random()-0.5)*0.15
-    });
+  // --- Game state ---
+  let score=0, combo=1, missed=0, t=0;
+  let spawnInterval=2.2; // seconds between spawns, decreases over time
+  let lastSpawn=0;
+  const nodes=[];   // active targets
+  const particles=[]; // explosion/trail particles
+  const bgStars=[];  // ambient background stars
+  const trails=[];   // cursor trail
+  let mx=W/2,my=H/2;
+
+  // Background stars
+  for(let i=0;i<60;i++){
+    bgStars.push({x:Math.random()*W,y:Math.random()*H,size:0.3+Math.random()*1.2,
+      alpha:0.1+Math.random()*0.3,twinkle:Math.random()*Math.PI*2,speed:0.5+Math.random()*2});
   }
 
-  // --- Game state ---
-  let selectedStar=null;
-  const links=[]; // {a,b,age}
-  const constellations=[]; // arrays of connected star indices
-  let score=0, totalLinks=0;
-  const sparkles=[]; // visual feedback
+  // Spawn a target node
+  function spawnNode(){
+    const margin=50;
+    const types=['normal','fast','big','chain'];
+    const typeWeights=[0.5,0.2,0.15,0.15];
+    let r=Math.random(),cumul=0,type='normal';
+    for(let i=0;i<types.length;i++){cumul+=typeWeights[i];if(r<cumul){type=types[i];break;}}
 
-  // --- Mouse ---
-  let mx=0,my=0,mActive=false;
+    const n={
+      x:margin+Math.random()*(W-margin*2),
+      y:margin+Math.random()*(H-margin*2),
+      type,
+      life:type==='fast'?1.8:type==='big'?3.5:type==='chain'?2.5:2.8,
+      maxLife:0, // set below
+      size:type==='big'?22:type==='fast'?10:14,
+      points:type==='fast'?30:type==='big'?15:type==='chain'?20:10,
+      hit:false, phase:Math.random()*Math.PI*2,
+      ringAngle:Math.random()*Math.PI*2,
+      // chain type: spawns a child on hit
+      chainCount:type==='chain'?2:0
+    };
+    n.maxLife=n.life;
+    nodes.push(n);
+  }
+
+  // Explode particles on hit
+  function explode(x,y,count,color){
+    for(let i=0;i<count;i++){
+      const ang=Math.random()*Math.PI*2;
+      const spd=2+Math.random()*5;
+      particles.push({x,y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+        life:1,decay:0.015+Math.random()*0.02,size:1+Math.random()*3,color});
+    }
+  }
+
   function getPos(e){
     const r=cvs.getBoundingClientRect();
     const touch=e.touches?e.touches[0]:e;
     return{x:(touch.clientX-r.left)*(W/r.width),y:(touch.clientY-r.top)*(H/r.height)};
   }
-  function findStar(x,y){
-    let best=null,bestD=25;
-    stars.forEach((s,i)=>{
-      const d=Math.sqrt((s.x-x)**2+(s.y-y)**2);
-      if(d<bestD){bestD=d;best=i;}
-    });
-    return best;
-  }
-
-  function onMove(e){
-    const p=getPos(e);mx=p.x;my=p.y;mActive=true;
-    stars.forEach(s=>s.hovered=false);
-    const hi=findStar(mx,my);
-    if(hi!==null)stars[hi].hovered=true;
-  }
-  function onLeave(){mActive=false;stars.forEach(s=>s.hovered=false);}
+  function onMove(e){const p=getPos(e);mx=p.x;my=p.y;
+    trails.push({x:mx,y:my,life:1});}
+  function onLeave(){}
 
   function onClick(e){
     const p=getPos(e.touches?e.touches[0]||e.changedTouches[0]:e);
-    const clicked=findStar(p.x,p.y);
-    if(clicked===null){selectedStar=null;stars.forEach(s=>s.selected=false);return;}
-
-    if(selectedStar===null||selectedStar===clicked){
-      // Select first star
-      stars.forEach(s=>s.selected=false);
-      stars[clicked].selected=true;
-      selectedStar=clicked;
-    }else{
-      // Connect two stars
-      const exists=links.some(l=>(l.a===selectedStar&&l.b===clicked)||(l.a===clicked&&l.b===selectedStar));
-      if(!exists){
-        links.push({a:selectedStar,b:clicked,age:0,glow:1});
-        totalLinks++;
-        // Sparkle effect along the line
-        const sa=stars[selectedStar],sb=stars[clicked];
-        for(let i=0;i<12;i++){
-          const t2=Math.random();
-          sparkles.push({
-            x:sa.x+(sb.x-sa.x)*t2, y:sa.y+(sb.y-sa.y)*t2,
-            vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2,
-            life:1, size:1+Math.random()*2
-          });
-        }
-        // Check if this forms a new constellation (3+ connected stars in a group)
-        updateConstellations();
-        document.getElementById('gLinks').textContent=totalLinks;
-        document.getElementById('gScore').textContent=score;
-      }
-      // Chain: clicked becomes new selection
-      stars.forEach(s=>s.selected=false);
-      stars[clicked].selected=true;
-      selectedStar=clicked;
-    }
-  }
-
-  function updateConstellations(){
-    // Build adjacency
-    const adj=new Map();
-    stars.forEach((_,i)=>adj.set(i,new Set()));
-    links.forEach(l=>{adj.get(l.a).add(l.b);adj.get(l.b).add(l.a);});
-    // Find connected components
-    const visited=new Set();
-    const groups=[];
-    stars.forEach((_,i)=>{
-      if(visited.has(i)||adj.get(i).size===0)return;
-      const group=[];
-      const queue=[i];
-      while(queue.length){
-        const n=queue.shift();
-        if(visited.has(n))continue;
-        visited.add(n);group.push(n);
-        adj.get(n).forEach(nb=>{if(!visited.has(nb))queue.push(nb);});
-      }
-      if(group.length>=3)groups.push(group);
+    // Find closest unhit node within hit radius
+    let bestI=-1,bestD=999;
+    nodes.forEach((n,i)=>{
+      if(n.hit)return;
+      const d=Math.sqrt((n.x-p.x)**2+(n.y-p.y)**2);
+      const hitR=n.size*1.5;
+      if(d<hitR&&d<bestD){bestD=d;bestI=i;}
     });
-    score=groups.length;
+    if(bestI>=0){
+      const n=nodes[bestI];
+      n.hit=true;
+      const pts=n.points*combo;
+      score+=pts;
+      combo=Math.min(combo+1,12);
+      // Particle explosion
+      const col=n.type==='fast'?[255,100,100]:n.type==='big'?[100,200,255]:n.type==='chain'?[255,200,50]:AC;
+      explode(n.x,n.y,15+combo*2,col);
+      // Score popup
+      particles.push({x:n.x,y:n.y-10,vx:0,vy:-1.5,life:1,decay:0.02,size:0,
+        color:AC,text:'+'+pts,isText:true});
+      // Chain spawn
+      if(n.chainCount>0){
+        for(let c=0;c<n.chainCount;c++){
+          const cn={x:n.x+(Math.random()-0.5)*80,y:n.y+(Math.random()-0.5)*80,
+            type:'normal',life:2,maxLife:2,size:12,points:15,hit:false,
+            phase:Math.random()*Math.PI*2,ringAngle:Math.random()*Math.PI*2,chainCount:0};
+          cn.x=Math.max(40,Math.min(W-40,cn.x));
+          cn.y=Math.max(40,Math.min(H-40,cn.y));
+          nodes.push(cn);
+        }
+      }
+      document.getElementById('gScore').textContent=score;
+      document.getElementById('gCombo').textContent='x'+combo;
+    }else{
+      // Clicked empty space — small penalty particles
+      explode(p.x,p.y,5,[100,100,100]);
+    }
   }
 
   cvs.addEventListener('mousemove',onMove);
@@ -681,94 +677,132 @@ function showSpinner(){
   cvs.addEventListener('touchmove',e=>{e.preventDefault();onMove(e);},{passive:false});
   cvs.addEventListener('touchend',onLeave);
   cvs.addEventListener('click',onClick);
-  cvs.addEventListener('touchstart',e=>{if(e.touches.length===1)onClick(e);});
+  cvs.addEventListener('touchstart',e=>{if(e.touches.length===1){onMove(e);onClick(e);}});
 
-  let t=0;
   function frame(){
     t+=0.016;
     ctx.clearRect(0,0,W,H);
 
-    // Subtle background nebula
-    const neb=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.6);
-    neb.addColorStop(0,'rgba(200,255,0,0.015)');
-    neb.addColorStop(0.5,'rgba(200,255,0,0.005)');
-    neb.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=neb;ctx.fillRect(0,0,W,H);
+    // Increase difficulty over time
+    spawnInterval=Math.max(0.7, 2.2-t*0.015);
 
-    // Drift stars gently
-    stars.forEach(s=>{
-      s.x+=s.vx;s.y+=s.vy;
-      if(s.x<20||s.x>W-20)s.vx*=-1;
-      if(s.y<20||s.y>H-20)s.vy*=-1;
-    });
-
-    // --- Draw links ---
-    links.forEach(l=>{
-      l.age+=0.016;
-      l.glow=Math.max(0.4,l.glow*0.995);
-      const a=stars[l.a],b=stars[l.b];
-      const pulse=0.6+0.4*Math.sin(t*2+l.age*3);
-      // Gradient line
-      const grd=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
-      const alpha=l.glow*pulse*0.7;
-      grd.addColorStop(0,`rgba(${AC[0]},${AC[1]},${AC[2]},${alpha})`);
-      grd.addColorStop(0.5,`rgba(${AC[0]},${AC[1]},${AC[2]},${alpha*1.3})`);
-      grd.addColorStop(1,`rgba(${AC[0]},${AC[1]},${AC[2]},${alpha})`);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-      ctx.strokeStyle=grd;ctx.lineWidth=1.5+pulse*0.5;ctx.stroke();
-    });
-
-    // --- Draw selection line (from selected to mouse) ---
-    if(selectedStar!==null&&mActive){
-      const s=stars[selectedStar];
-      ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(mx,my);
-      ctx.strokeStyle='rgba(200,255,0,0.25)';ctx.lineWidth=1;
-      ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+    // Spawn nodes
+    if(t-lastSpawn>spawnInterval){
+      spawnNode();
+      lastSpawn=t;
+      // Sometimes double spawn at higher difficulty
+      if(t>15&&Math.random()>0.6)spawnNode();
     }
 
-    // --- Draw stars ---
-    stars.forEach((s,i)=>{
-      const tw=0.5+0.5*Math.sin(t*s.twinkleSpeed+s.twinkle);
-      const alpha=s.brightness*tw;
-      const isActive=s.selected||s.hovered;
-      const sz=isActive?s.size*2:s.size;
-
-      // Outer glow
-      if(isActive||alpha>0.5){
-        const glR=isActive?sz*8:sz*4;
-        const glA=isActive?0.2:alpha*0.06;
-        const gl=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,glR);
-        gl.addColorStop(0,`rgba(${AC[0]},${AC[1]},${AC[2]},${glA})`);
-        gl.addColorStop(1,'rgba(200,255,0,0)');
-        ctx.fillStyle=gl;ctx.beginPath();ctx.arc(s.x,s.y,glR,0,Math.PI*2);ctx.fill();
-      }
-
-      // Star cross rays (when bright or hovered)
-      if(isActive){
-        ctx.strokeStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},0.4)`;
-        ctx.lineWidth=0.5;
-        const rLen=sz*5;
-        ctx.beginPath();ctx.moveTo(s.x-rLen,s.y);ctx.lineTo(s.x+rLen,s.y);ctx.stroke();
-        ctx.beginPath();ctx.moveTo(s.x,s.y-rLen);ctx.lineTo(s.x,s.y+rLen);ctx.stroke();
-      }
-
-      // Core
-      ctx.beginPath();ctx.arc(s.x,s.y,sz,0,Math.PI*2);
-      ctx.fillStyle=isActive
-        ?`rgba(${AC[0]},${AC[1]},${AC[2]},1)`
-        :`rgba(255,255,255,${alpha*0.8})`;
-      ctx.fill();
+    // --- Background stars ---
+    bgStars.forEach(s=>{
+      const a=s.alpha*(0.5+0.5*Math.sin(t*s.speed+s.twinkle));
+      ctx.beginPath();ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill();
     });
 
-    // --- Sparkles ---
-    for(let i=sparkles.length-1;i>=0;i--){
-      const sp=sparkles[i];
-      sp.x+=sp.vx;sp.y+=sp.vy;sp.vx*=0.95;sp.vy*=0.95;
-      sp.life-=0.02;
-      if(sp.life<=0){sparkles.splice(i,1);continue;}
-      ctx.beginPath();ctx.arc(sp.x,sp.y,sp.size*sp.life,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},${sp.life*0.9})`;
+    // --- Cursor trail ---
+    for(let i=trails.length-1;i>=0;i--){
+      const tr=trails[i];tr.life-=0.06;
+      if(tr.life<=0){trails.splice(i,1);continue;}
+      ctx.beginPath();ctx.arc(tr.x,tr.y,2*tr.life,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},${tr.life*0.4})`;ctx.fill();
+    }
+    if(trails.length>40)trails.splice(0,trails.length-40);
+
+    // --- Update & draw nodes ---
+    for(let i=nodes.length-1;i>=0;i--){
+      const n=nodes[i];
+      if(n.hit){
+        // Shrink and remove
+        n.size*=0.85;
+        if(n.size<1){nodes.splice(i,1);}
+        continue;
+      }
+      n.life-=0.016;
+      if(n.life<=0){
+        // Missed!
+        missed++;combo=1;
+        document.getElementById('gMissed').textContent=missed;
+        document.getElementById('gCombo').textContent='x1';
+        explode(n.x,n.y,8,[100,50,50]);
+        nodes.splice(i,1);continue;
+      }
+
+      const lifeRatio=n.life/n.maxLife;
+      const pulse=0.7+0.3*Math.sin(t*6+n.phase);
+      const urgency=lifeRatio<0.3?1:0;
+
+      // Color by type
+      let col=AC;
+      if(n.type==='fast')col=[255,100,100];
+      else if(n.type==='big')col=[100,200,255];
+      else if(n.type==='chain')col=[255,200,50];
+
+      // Outer ring (countdown)
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.size+6,0,Math.PI*2*lifeRatio);
+      ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${0.4+urgency*0.4})`;
+      ctx.lineWidth=2;ctx.stroke();
+
+      // Rotating inner ring
+      n.ringAngle+=0.03;
+      ctx.save();ctx.translate(n.x,n.y);ctx.rotate(n.ringAngle);
+      ctx.beginPath();ctx.arc(0,0,n.size+2,-0.5,0.5);
+      ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${pulse*0.5})`;
+      ctx.lineWidth=1.5;ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,n.size+2,Math.PI-0.5,Math.PI+0.5);
+      ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},${pulse*0.5})`;
+      ctx.stroke();ctx.restore();
+
+      // Glow
+      const gl=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.size*2.5);
+      gl.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},${pulse*0.15})`);
+      gl.addColorStop(1,`rgba(${col[0]},${col[1]},${col[2]},0)`);
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(n.x,n.y,n.size*2.5,0,Math.PI*2);ctx.fill();
+
+      // Core
+      ctx.beginPath();ctx.arc(n.x,n.y,n.size*lifeRatio*0.5+n.size*0.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${pulse*(0.6+urgency*0.4)})`;
       ctx.fill();
+
+      // Urgency flash
+      if(urgency&&Math.sin(t*15)>0){
+        ctx.beginPath();ctx.arc(n.x,n.y,n.size+10,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},0.3)`;
+        ctx.lineWidth=1;ctx.stroke();
+      }
+    }
+
+    // --- Particles ---
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i];
+      p.x+=p.vx;p.y+=p.vy;
+      p.vx*=0.96;p.vy*=0.96;
+      p.life-=p.decay;
+      if(p.life<=0){particles.splice(i,1);continue;}
+      if(p.isText){
+        ctx.font=`bold ${12+combo}px var(--d)`;
+        ctx.fillStyle=`rgba(${p.color[0]},${p.color[1]},${p.color[2]},${p.life})`;
+        ctx.textAlign='center';ctx.fillText(p.text,p.x,p.y);
+      }else{
+        ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);
+        ctx.fillStyle=`rgba(${p.color[0]},${p.color[1]},${p.color[2]},${p.life*0.8})`;
+        ctx.fill();
+      }
+    }
+
+    // --- Combo meter bar ---
+    if(combo>1){
+      const barW=W*0.6;const barH=3;const barX=(W-barW)/2;const barY=H-15;
+      ctx.fillStyle='rgba(255,255,255,0.05)';
+      ctx.fillRect(barX,barY,barW,barH);
+      const fill=Math.min(1,(combo-1)/11);
+      const grd=ctx.createLinearGradient(barX,0,barX+barW*fill,0);
+      grd.addColorStop(0,`rgba(${AC[0]},${AC[1]},${AC[2]},0.6)`);
+      grd.addColorStop(1,`rgba(${AC[0]},${AC[1]},${AC[2]},1)`);
+      ctx.fillStyle=grd;
+      ctx.fillRect(barX,barY,barW*fill,barH);
     }
 
     spinRaf=requestAnimationFrame(frame);

@@ -391,33 +391,46 @@ The headline should be max 6 words, bold, no punctuation. The subtitle max 20 wo
 // --- Project Image Generation (OpenAI gpt-image-2) ---
 
 // Step 1: Use GPT to craft a detailed, project-specific image prompt
-async function buildImagePrompt(briefData) {
+async function buildImagePrompt(briefData, workflow) {
   try {
+    // Summarize workflow phases for the image prompt
+    let workflowSummary = '';
+    if (workflow && Array.isArray(workflow)) {
+      const phases = workflow.map(p => `${p.title}: ${p.description || ''} (tools: ${(p.tools||[]).join(', ')})`).join('\n');
+      workflowSummary = `\n\nPROPOSED SOLUTION (workflow phases):\n${phases}`;
+    }
+
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_KEY}` },
       body: JSON.stringify({
         model: 'gpt-5.4-mini',
-        messages: [{ role: 'user', content: `You are a world-class art director. Write a single image-generation prompt (max 250 words) for a hero visual that represents this specific project:
+        messages: [{ role: 'user', content: `You are a world-class art director at a creative technology studio. Write a single image-generation prompt (max 300 words) for a hero visual that represents the FINAL DELIVERABLE of this specific project — what the end result will look like in action.
 
-Client/Brand: ${briefData.company || 'not specified'}
-Sector: ${briefData.sector || 'not specified'}
-Goal: ${briefData.goal || 'not specified'}
-Motivation: ${briefData.why || 'not specified'}
-Description: ${briefData.description || 'not specified'}
-Target audience: ${briefData.target || 'not specified'}
+CLIENT BRIEF:
+- Client/Brand: ${briefData.company || 'not specified'}
+- Sector: ${briefData.sector || 'not specified'}
+- Goal: ${briefData.goal || 'not specified'}
+- Motivation: ${briefData.why || 'not specified'}
+- Description: ${briefData.description || 'not specified'}
+- Target audience: ${briefData.target || 'not specified'}
+${workflowSummary}
 
-Requirements:
-- The image must visually tell the story of THIS specific project — not a generic tech visual
-- Include concrete visual elements that represent the client's industry and the project deliverable (e.g. a virtual showroom for luxury, an interactive installation for retail, a game interface for gamification)
-- ${briefData.company ? `Prominently feature the "${briefData.company}" brand name/logo as elegant typography integrated into the scene` : 'No text in the image'}
-- Dark background (#050505), with electric lime (#c8ff00) as accent color for highlights, glows, UI elements
-- Cinematic lighting, ultra high quality, photorealistic materials
-- The composition should feel like a premium project presentation or pitch deck hero image
-- Include environmental context: if it's retail show a store, if it's an event show a venue, if it's digital show screens/devices in context
+CRITICAL REQUIREMENTS:
+- The image must show the FINAL PRODUCT in use — the actual deliverable being experienced by real people in a real environment
+- If the solution is a VR experience, show someone wearing a headset in the right venue with the content visible
+- If it's an interactive installation, show it in a physical space with people engaging
+- If it's a web/app, show it on devices in the context where the target audience would use it
+- If it's a game, show the game interface with players
+- If it's an AI system, show the interface/dashboard in use
+- The technologies from the workflow (${workflow ? workflow.flatMap(p=>p.tools||[]).filter((v,i,a)=>a.indexOf(v)===i).join(', ') : 'various'}) should be evident in the visual — show their output, not logos
+- ${briefData.company ? `The "${briefData.company}" brand must appear naturally in the scene (on screens, signage, UI, or product)` : 'No text in the image'}
+- Dark, premium aesthetic: near-black background (#050505), electric lime (#c8ff00) for UI accents and highlights
+- Cinematic lighting, photorealistic, shot like a premium case study photograph
+- The image should make the client say "YES, this is exactly what I want"
 
 Respond ONLY with the prompt text, nothing else.` }],
-        max_completion_tokens: 400,
+        max_completion_tokens: 500,
         temperature: 0.8,
       }),
     });
@@ -457,12 +470,12 @@ async function fetchClientLogo(websiteUrl) {
 }
 
 // Step 3: Generate the project image
-async function generateProjectImage(briefData) {
+async function generateProjectImage(briefData, workflow) {
   if (!OPENAI_KEY) return null;
   try {
-    // Build smart prompt + fetch logo in parallel
+    // Build smart prompt (using workflow) + fetch logo in parallel
     const [smartPrompt, logoData] = await Promise.all([
-      buildImagePrompt(briefData),
+      buildImagePrompt(briefData, workflow),
       fetchClientLogo(briefData.website)
     ]);
 
@@ -585,12 +598,20 @@ app.post('/api/workflow', chatRateLimit, async (req, res) => {
   try {
     const { sector, goal, why: whyReason, service, company, website, description, kpi, target, budget, lang } = req.body;
 
-    const wfPrompt = `You are a creative technology strategist at WHY, a Rome-based studio specializing in 3D Real Time, Immersive Video, XR, Phygital Activations, Instant Games, and AI Systems.
+    const wfPrompt = `You are a senior creative technology strategist at WHY (justwhy.it), a Rome-based creative technology studio.
 
-A potential client has submitted a project brief:
+WHY's capabilities (use ONLY what's relevant — never list them all):
+- 3D Real Time: Unreal Engine 5, Unity, Three.js, WebGL, Blender — virtual showrooms, configurators, digital twins, real-time architectural viz
+- Immersive Video: 360° video, spatial video, volumetric capture, interactive documentary — brand films, virtual tours, training
+- XR (AR/VR/MR): Meta Quest, Apple Vision Pro, WebXR, ARKit/ARCore — immersive experiences, try-on, spatial computing
+- Phygital Activations: sensors, projection mapping, interactive installations, LED walls, IoT — events, retail, exhibitions
+- Instant Games: HTML5 games, playable ads, gamification platforms — engagement, loyalty, branded entertainment
+- AI Systems: LLM integration, computer vision, generative AI, recommendation engines, chatbots — automation, personalization, content generation
+
+A potential client submitted this brief:
 - Sector: ${sector || 'not specified'}
-- Goal: ${goal || 'not specified'}
-- Why (motivation): ${whyReason || 'not specified'}
+- Goal/Service needed: ${goal || 'not specified'}
+- Why (their motivation): ${whyReason || 'not specified'}
 - Company: ${company || 'not specified'}
 - Website: ${website || 'not specified'}
 - Project description: ${description || 'not specified'}
@@ -598,38 +619,41 @@ A potential client has submitted a project brief:
 - Target audience: ${target || 'not specified'}
 - Budget range: ${budget || 'not specified'}
 
-Generate a proposed project workflow as a JSON array of phases. Each phase has:
-- "id": sequential number
-- "title": phase name (${lang === 'it' ? 'in Italian' : 'in English'})
-- "duration": estimated duration (e.g. "2 weeks")
-- "description": one sentence (${lang === 'it' ? 'in Italian' : 'in English'})
-- "deliverables": array of 2-3 deliverable names
-- "tools": array of 1-3 technologies/tools WHY would use
+THINK carefully about what this client actually needs. Then generate a workflow as a JSON array.
 
-Create 4-6 phases. Be specific to their sector and needs. Use WHY's actual tech stack.
-Respond ONLY with the JSON array, no markdown, no explanation.`;
+RULES:
+1. Use 3 to 7 phases depending on project complexity. A simple landing page needs 3, a complex XR experience might need 7. Match the scope.
+2. Phase titles must be PROJECT-SPECIFIC, not generic. Instead of "Discovery & Analysis", say "Luxury Brand Immersion & Audience Mapping" or "Game Mechanics Design & Prototype". Make each title tell a story.
+3. "tools" — list ONLY the specific technologies relevant to THIS phase. A branding phase uses Figma, not Unreal. A 3D phase uses Blender/UE5, not Google Analytics.
+4. "description" — be concrete and specific to their industry. Reference their actual product/service, their audience, their KPI.
+5. "deliverables" — name real, tangible outputs. Not "Report" but "Competitive UX Audit of top 5 ${sector || ''} competitors" or "Interactive prototype with 3 user flows".
+6. DO NOT include technologies WHY doesn't use for this type of project. If the project is a website, don't mention Unreal Engine. If it's a VR experience, don't mention Google Analytics.
+7. Duration must be realistic for the scope.
 
-    // Run workflow generation and image generation in parallel
-    const [openaiRes, projectImage] = await Promise.all([
-      fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-5.4',
-          messages: [{ role: 'user', content: wfPrompt }],
-          max_completion_tokens: 1000,
-          temperature: 0.7,
-        }),
+Each phase: { "id": number, "title": string, "duration": string, "description": string (${lang === 'it' ? 'in Italian' : 'in English'}), "deliverables": [2-3 items], "tools": [1-3 relevant tools] }
+
+All text in ${lang === 'it' ? 'Italian' : 'English'}.
+Respond ONLY with the JSON array.`;
+
+    // Step 1: Generate workflow first
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-5.4',
+        messages: [{ role: 'user', content: wfPrompt }],
+        max_completion_tokens: 1500,
+        temperature: 0.8,
       }),
-      generateProjectImage({ sector, goal, why: whyReason, company, website, description, target, service })
-    ]);
+    });
 
     if (!openaiRes.ok) {
       console.error('OpenAI workflow error:', await openaiRes.text());
       const wf = generateFallbackWorkflow(sector, service, lang);
+      const projectImage = await generateProjectImage({ sector, goal, why: whyReason, company, website, description, target, service }, wf);
       await saveSubmission(wf, projectImage);
       return res.json({ workflow: wf, image: projectImage });
     }
@@ -639,10 +663,12 @@ Respond ONLY with the JSON array, no markdown, no explanation.`;
     const match = text.match(/\[[\s\S]*\]/);
     if (match) {
       const wf = JSON.parse(match[0]);
+      // Step 2: Generate image using BOTH brief AND workflow output
+      const projectImage = await generateProjectImage({ sector, goal, why: whyReason, company, website, description, target, service }, wf);
       await saveSubmission(wf, projectImage);
       res.json({ workflow: wf, image: projectImage });
     } else {
-      await saveSubmission(null, projectImage);
+      await saveSubmission(null, null);
       res.status(500).json({ error: 'Failed to parse workflow' });
     }
   } catch (e) {
