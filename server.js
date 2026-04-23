@@ -386,12 +386,139 @@ The headline should be max 6 words, bold, no punctuation. The subtitle max 20 wo
   }
 });
 
-// --- Project Image Generation (OpenAI gpt-image-1) ---
-async function generateProjectImage(sector, goal, description, service) {
+// --- Project Image Generation (OpenAI gpt-image-2) ---
+
+// Step 1: Use GPT to craft a detailed, project-specific image prompt
+async function buildImagePrompt(briefData) {
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_KEY}` },
+      body: JSON.stringify({
+        model: 'gpt-5.4-mini',
+        messages: [{ role: 'user', content: `You are a world-class art director. Write a single image-generation prompt (max 250 words) for a hero visual that represents this specific project:
+
+Client/Brand: ${briefData.company || 'not specified'}
+Sector: ${briefData.sector || 'not specified'}
+Goal: ${briefData.goal || 'not specified'}
+Motivation: ${briefData.why || 'not specified'}
+Description: ${briefData.description || 'not specified'}
+Target audience: ${briefData.target || 'not specified'}
+
+Requirements:
+- The image must visually tell the story of THIS specific project — not a generic tech visual
+- Include concrete visual elements that represent the client's industry and the project deliverable (e.g. a virtual showroom for luxury, an interactive installation for retail, a game interface for gamification)
+- ${briefData.company ? `Prominently feature the "${briefData.company}" brand name/logo as elegant typography integrated into the scene` : 'No text in the image'}
+- Dark background (#050505), with electric lime (#c8ff00) as accent color for highlights, glows, UI elements
+- Cinematic lighting, ultra high quality, photorealistic materials
+- The composition should feel like a premium project presentation or pitch deck hero image
+- Include environmental context: if it's retail show a store, if it's an event show a venue, if it's digital show screens/devices in context
+
+Respond ONLY with the prompt text, nothing else.` }],
+        max_completion_tokens: 400,
+        temperature: 0.8,
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content?.trim() || null;
+  } catch (e) {
+    console.error('Image prompt generation error:', e);
+    return null;
+  }
+}
+
+// Step 2: Try to fetch client logo from their website domain
+async function fetchClientLogo(websiteUrl) {
+  if (!websiteUrl) return null;
+  try {
+    // Extract domain from URL
+    let domain = websiteUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '');
+    if (!domain || domain.length < 3) return null;
+
+    // Try Clearbit Logo API (free, no auth needed, returns PNG)
+    const logoUrl = `https://logo.clearbit.com/${domain}?size=400`;
+    const res = await fetch(logoUrl, { redirect: 'follow' });
+    if (!res.ok) return null;
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('image')) return null;
+
+    const buffer = await res.arrayBuffer();
+    const b64 = Buffer.from(buffer).toString('base64');
+    const mime = contentType.includes('svg') ? 'image/svg+xml' : contentType.includes('png') ? 'image/png' : 'image/jpeg';
+    return { dataUrl: `data:${mime};base64,${b64}`, b64, mime };
+  } catch (e) {
+    console.error('Logo fetch error:', e);
+    return null;
+  }
+}
+
+// Step 3: Generate the project image
+async function generateProjectImage(briefData) {
   if (!OPENAI_KEY) return null;
   try {
-    const prompt = `A sophisticated, dark-themed concept visualization for a creative technology project. The project is in the ${sector || 'technology'} sector, with the goal of "${goal || 'innovation'}". ${description ? 'Project: ' + description.slice(0, 200) : ''} Style: cinematic, moody, dark background (#050505), accent highlights in electric lime (#c8ff00), abstract and futuristic. No text, no logos, no words. Ultra high quality, photorealistic lighting.`;
+    // Build smart prompt + fetch logo in parallel
+    const [smartPrompt, logoData] = await Promise.all([
+      buildImagePrompt(briefData),
+      fetchClientLogo(briefData.website)
+    ]);
 
+    const finalPrompt = smartPrompt || `A sophisticated concept visualization for a ${briefData.sector || 'technology'} project by ${briefData.company || 'a client'}. Goal: ${briefData.goal || 'innovation'}. ${briefData.description ? briefData.description.slice(0, 300) : ''} Dark background (#050505), electric lime (#c8ff00) accents. Cinematic, photorealistic, ultra high quality.`;
+
+    console.log('Image prompt:', finalPrompt.slice(0, 120) + '...');
+    if (logoData) console.log('Client logo fetched successfully');
+
+    // If we have a logo, use the edits endpoint to compose it into the scene
+    if (logoData && !logoData.mime.includes('svg')) {
+      try {
+        const FormData = (await import('node:buffer')).Buffer ? null : null;
+        // Use multipart form for edits endpoint
+        const boundary = '----WHYBoundary' + Date.now();
+        const imagePart = Buffer.from(logoData.b64, 'base64');
+
+        // Build multipart body
+        const parts = [];
+        const addField = (name, value) => {
+          parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`));
+        };
+        const addFile = (name, filename, contentType, data) => {
+          parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"; filename="${filename}"\r\nContent-Type: ${contentType}\r\n\r\n`));
+          parts.push(data);
+          parts.push(Buffer.from('\r\n'));
+        };
+
+        addField('model', 'gpt-image-2');
+        addField('prompt', `${finalPrompt}\n\nIMPORTANT: Integrate the provided logo image naturally and prominently into the scene — place it as a glowing, elegant brand mark within the composition.`);
+        addField('size', '1536x1024');
+        addField('quality', 'medium');
+        addFile('image[]', 'logo.png', logoData.mime, imagePart);
+        parts.push(Buffer.from(`--${boundary}--\r\n`));
+
+        const body = Buffer.concat(parts);
+
+        const editRes = await fetch('https://api.openai.com/v1/images/edits', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_KEY}`,
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          },
+          body,
+        });
+
+        if (editRes.ok) {
+          const editData = await editRes.json();
+          const b64 = editData.data?.[0]?.b64_json;
+          if (b64) return `data:image/png;base64,${b64}`;
+        } else {
+          console.error('Image edit with logo failed:', await editRes.text(), '— falling back to generation');
+        }
+      } catch (editErr) {
+        console.error('Logo compositing error:', editErr, '— falling back to generation');
+      }
+    }
+
+    // Fallback: standard generation (no logo image, but brand name in prompt)
     const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -400,7 +527,7 @@ async function generateProjectImage(sector, goal, description, service) {
       },
       body: JSON.stringify({
         model: 'gpt-image-2',
-        prompt,
+        prompt: finalPrompt,
         n: 1,
         size: '1536x1024',
         quality: 'medium',
@@ -495,7 +622,7 @@ Respond ONLY with the JSON array, no markdown, no explanation.`;
           temperature: 0.7,
         }),
       }),
-      generateProjectImage(sector, goal, description, service)
+      generateProjectImage({ sector, goal, why: whyReason, company, website, description, target, service })
     ]);
 
     if (!openaiRes.ok) {
