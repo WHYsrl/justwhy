@@ -22,7 +22,8 @@ html,body{margin:0;background:var(--bk);color:var(--wh);font-family:var(--f);ove
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
 nav.scr{background:rgba(5,5,5,.92);backdrop-filter:blur(30px)}
-.nl{font-family:var(--d);font-size:1.5rem;font-weight:700;letter-spacing:.2em;color:var(--wh);text-decoration:none}
+.nl{text-decoration:none;display:flex;align-items:center}
+.nl img{height:28px;width:auto}
 .nk{display:flex;gap:2.5rem;align-items:center;list-style:none}
 .nk a{color:var(--g3);text-decoration:none;font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:color .3s}
 .nk a:hover{color:var(--ac)}
@@ -39,7 +40,8 @@ section{padding:10rem 3rem}
 .st{font-family:var(--d);font-size:clamp(2rem,4.5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;margin-bottom:2rem}
 
 /* HERO */
-#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:1px solid var(--g2)}
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:1px solid var(--g2);position:relative;overflow:hidden}
+.hero-bg-logo{position:absolute;right:-5%;top:50%;transform:translateY(-50%);width:55vw;max-width:700px;opacity:.04;pointer-events:none;user-select:none}
 .hc{max-width:900px;padding:0 2rem}
 .hp{font-size:.75rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--ac);margin-bottom:2rem}
 .ht{font-family:var(--d);font-size:clamp(3.5rem,9vw,8rem);font-weight:800;line-height:.9;letter-spacing:-.04em;margin-bottom:2rem}
@@ -140,13 +142,17 @@ section{padding:10rem 3rem}
 .wf-spinner-msg{font-size:.9rem;color:var(--g4);transition:opacity .3s}
 .wf-spinner-sub{font-size:.7rem;color:var(--g3);margin-top:.5rem;letter-spacing:.1em}
 @keyframes fu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-.wf-phase{border-left:2px solid var(--ac);padding:1.2rem 0 1.2rem 1.5rem;position:relative;text-align:left;opacity:0;animation:fu .5s forwards}
-.wf-phase::before{content:'';position:absolute;left:-5px;top:1.2rem;width:8px;height:8px;border-radius:50%;background:var(--ac)}
-.wf-phase h4{font-family:var(--d);font-size:1rem;font-weight:600;margin-bottom:.2rem}
-.wf-phase .dur{font-size:.65rem;color:var(--ac);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
-.wf-phase p{font-size:.8rem;color:var(--g4);line-height:1.5;margin-bottom:.4rem}
+/* Workflow — horizontal scroll */
+.wf-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:1px;background:var(--g2);margin-top:2rem}
+.wf-track::-webkit-scrollbar{display:none}
+.wf-phase{flex:0 0 min(85vw,340px);scroll-snap-align:start;background:var(--bk);padding:2rem;text-align:left;opacity:0;animation:fu .5s forwards;position:relative;border-top:2px solid var(--ac)}
+.wf-phase .num{font-family:var(--d);font-size:2.5rem;font-weight:800;color:var(--g2);margin-bottom:.5rem}
+.wf-phase h4{font-family:var(--d);font-size:1rem;font-weight:600;margin-bottom:.3rem}
+.wf-phase .dur{font-size:.65rem;color:var(--ac);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+.wf-phase p{font-size:.8rem;color:var(--g4);line-height:1.5;margin-bottom:.6rem}
 .wf-phase .tools{display:flex;flex-wrap:wrap;gap:.25rem}
 .wf-phase .tools span{font-size:.55rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .4rem;border:1px solid var(--g2);color:var(--g3)}
+.wf-hint{font-size:.7rem;color:var(--g3);text-align:center;margin-top:1rem;letter-spacing:.05em}
 
 /* CONTACT */
 #contact{text-align:center;padding:8rem 3rem}
@@ -155,6 +161,8 @@ section{padding:10rem 3rem}
 .cm{font-size:.82rem;color:var(--g3);line-height:2}.cm a{color:var(--g3);text-decoration:none;transition:color .3s}.cm a:hover{color:var(--ac)}
 
 footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--g3)}
+footer img{height:20px;opacity:.4}
+.wf-logo{display:block;width:80px;margin:0 auto 2rem;opacity:.3}
 
 /* CHAT */
 #chtgl{position:fixed;bottom:2rem;right:2rem;z-index:1100;width:52px;height:52px;border-radius:50%;background:var(--ac);color:var(--bk);border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .4s;box-shadow:0 4px 20px rgba(200,255,0,.15)}
@@ -187,12 +195,13 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </head>
 <body>
 
-<nav id="nav"><a href="#hero" class="nl">WHY</a>
+<nav id="nav"><a href="#hero" class="nl"><img src="img/logo-white.png" alt="WHY"></a>
   <ul class="nk" id="nk"><li><a href="#services" data-i18n="nav.services">Services</a></li><li><a href="#work" data-i18n="nav.work">Work</a></li><li><a href="#team" data-i18n="nav.team">Team</a></li><li><a href="#brief" data-i18n="nav.brief">Start a project</a></li><li><button class="ls" id="lsB" onclick="toggleLang()">IT</button></li></ul>
   <button class="mb" id="mbB" onclick="togMob()"><span></span><span></span><span></span></button>
 </nav>
 
 <section id="hero">
+  <img src="img/logo-white.png" alt="" class="hero-bg-logo">
   <div class="hc">
     <p class="hp" data-i18n="hero.pre">Creative Technology Studio</p>
     <h1 class="ht" data-i18n="hero.title">Ideas into<br><em>Systems</em></h1>
@@ -271,12 +280,13 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
   </div>
 </section>
 
-<footer><span>&copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
+<footer><span><img src="img/logo-white.png" alt="WHY"> &nbsp; &copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
 
 <!-- WORKFLOW OVERLAY -->
 <div id="wf-overlay">
   <button class="wf-close" onclick="closeWf()">&times;</button>
   <div class="wf-wrap">
+    <img src="img/logo-white.png" alt="WHY" class="wf-logo">
     <p class="sl">Your workflow</p>
     <h2 class="st" id="wfTitle">Here's how we'd build it together.</h2>
     <div id="wfContent"></div>
@@ -364,7 +374,11 @@ async function bfSubmit(){
     const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sector:bf.sector,service:bf.service,company:document.getElementById('bfCo').value,website:document.getElementById('bfUrl').value,description:document.getElementById('bfDesc').value,lang})});
     const d=await r.json();stopSpinner();
     const wfc=document.getElementById('wfContent');
-    if(d.workflow){wfc.innerHTML=d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.2}s"><div class="dur">${lang==='it'?'Fase':'Phase'} ${p.id} — ${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');document.getElementById('wfCta').innerHTML=`<a href="mailto:info@justwhy.it" class="hcta">${lang==='it'?'Parliamone →':'Let\'s talk →'}</a>`;}
+    if(d.workflow){
+      const swipeHint=lang==='it'?'← Scorri per esplorare le fasi →':'← Swipe to explore phases →';
+      wfc.innerHTML=`<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${swipeHint}</p>`;
+      document.getElementById('wfCta').innerHTML=`<a href="mailto:info@justwhy.it" class="hcta">${lang==='it'?'Parliamone →':'Let\'s talk →'}</a>`;
+    }
     else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }

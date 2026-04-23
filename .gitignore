@@ -8,3 +8,6 @@ data/content.backup-*.json
 # Company docs (non servono nel repo del sito)
 *.pdf
 *.docx
+
+# Exclude root-level logo originals (copies live in img/)
+/logowhy_*.png
