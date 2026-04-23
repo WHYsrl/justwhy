@@ -163,7 +163,10 @@ section{padding:10rem 3rem;position:relative;z-index:1}
 .wf-close{position:fixed;top:2rem;right:2rem;background:rgba(200,255,0,.05);border:1px solid rgba(200,255,0,.2);color:var(--ac);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:all .3s;z-index:2001}
 .wf-close:hover{background:rgba(200,255,0,.1);border-color:var(--ac)}
 .wf-spinner{text-align:center;padding:2rem 0;display:flex;flex-direction:column;align-items:center}
-.wf-spinner canvas{display:block;margin:0 auto 1.5rem}
+.wf-spinner canvas{display:block;margin:0 auto 1rem;border-radius:12px;border:1px solid rgba(200,255,0,.1)}
+.wf-game-hud{display:flex;gap:2rem;justify-content:center;margin-bottom:1rem;font-size:.75rem;letter-spacing:.1em;color:var(--g4)}
+.wf-game-hud span{color:var(--ac);font-weight:700}
+.wf-game-hint{font-size:.7rem;color:var(--g3);margin-bottom:1rem;font-style:italic}
 .wf-spinner-msg{font-size:1rem;color:var(--wh);transition:opacity .3s;font-weight:500}
 .wf-spinner-sub{font-size:.7rem;color:var(--ac);margin-top:.5rem;letter-spacing:.15em;font-weight:600}
 @keyframes fu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
@@ -548,8 +551,15 @@ let spinInt=null,spinRaf=null,spinCleanup=null;
 
 function showSpinner(){
   const msgs=spinMsgs[lang]||spinMsgs.en;let idx=0;
+  const it=lang==='it';
   const wfc=document.getElementById('wfContent');
-  wfc.innerHTML=`<div class="wf-spinner"><canvas id="spinCvs" width="400" height="400" style="cursor:pointer;touch-action:none"></canvas><div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div><div class="wf-spinner-sub" id="spinSub">1/${msgs.length}</div></div>`;
+  wfc.innerHTML=`<div class="wf-spinner">
+    <div class="wf-game-hint" id="gameHint">${it?'Clicca sulle stelle per creare costellazioni':'Click stars to build constellations'}</div>
+    <canvas id="spinCvs" width="400" height="400" style="cursor:crosshair;touch-action:none"></canvas>
+    <div class="wf-game-hud"><div>${it?'Costellazioni':'Constellations'}: <span id="gScore">0</span></div><div>${it?'Stelle connesse':'Stars linked'}: <span id="gLinks">0</span></div></div>
+    <div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div>
+    <div class="wf-spinner-sub" id="spinSub">1/${msgs.length}</div>
+  </div>`;
 
   const cvs=document.getElementById('spinCvs');if(!cvs)return;
   const ctx=cvs.getContext('2d');
@@ -558,225 +568,208 @@ function showSpinner(){
   cvs.width=CSS_W*dpr;cvs.height=CSS_H*dpr;
   cvs.style.width=CSS_W+'px';cvs.style.height=CSS_H+'px';
   ctx.scale(dpr,dpr);
-  const W=CSS_W,H=CSS_H,CX=W/2,CY=H/2;
+  const W=CSS_W,H=CSS_H;
   const AC=[200,255,0];
 
-  // --- Mouse / touch state ---
-  let mx=CX,my=CY,mActive=false;
-  const MOUSE_PULL=90;   // attraction radius
-  const MOUSE_FORCE=0.12;
+  // --- Stars ---
+  const STAR_COUNT=50;
+  const stars=[];
+  for(let i=0;i<STAR_COUNT;i++){
+    stars.push({
+      x:30+Math.random()*(W-60), y:30+Math.random()*(H-60),
+      size:1.2+Math.random()*2.5, brightness:0.3+Math.random()*0.7,
+      twinkle:Math.random()*Math.PI*2, twinkleSpeed:1+Math.random()*3,
+      selected:false, hovered:false,
+      vx:(Math.random()-0.5)*0.15, vy:(Math.random()-0.5)*0.15
+    });
+  }
 
+  // --- Game state ---
+  let selectedStar=null;
+  const links=[]; // {a,b,age}
+  const constellations=[]; // arrays of connected star indices
+  let score=0, totalLinks=0;
+  const sparkles=[]; // visual feedback
+
+  // --- Mouse ---
+  let mx=0,my=0,mActive=false;
   function getPos(e){
     const r=cvs.getBoundingClientRect();
     const touch=e.touches?e.touches[0]:e;
     return{x:(touch.clientX-r.left)*(W/r.width),y:(touch.clientY-r.top)*(H/r.height)};
   }
-  function onMove(e){const p=getPos(e);mx=p.x;my=p.y;mActive=true;}
-  function onLeave(){mActive=false;mx=CX;my=CY;}
+  function findStar(x,y){
+    let best=null,bestD=25;
+    stars.forEach((s,i)=>{
+      const d=Math.sqrt((s.x-x)**2+(s.y-y)**2);
+      if(d<bestD){bestD=d;best=i;}
+    });
+    return best;
+  }
+
+  function onMove(e){
+    const p=getPos(e);mx=p.x;my=p.y;mActive=true;
+    stars.forEach(s=>s.hovered=false);
+    const hi=findStar(mx,my);
+    if(hi!==null)stars[hi].hovered=true;
+  }
+  function onLeave(){mActive=false;stars.forEach(s=>s.hovered=false);}
+
+  function onClick(e){
+    const p=getPos(e.touches?e.touches[0]||e.changedTouches[0]:e);
+    const clicked=findStar(p.x,p.y);
+    if(clicked===null){selectedStar=null;stars.forEach(s=>s.selected=false);return;}
+
+    if(selectedStar===null||selectedStar===clicked){
+      // Select first star
+      stars.forEach(s=>s.selected=false);
+      stars[clicked].selected=true;
+      selectedStar=clicked;
+    }else{
+      // Connect two stars
+      const exists=links.some(l=>(l.a===selectedStar&&l.b===clicked)||(l.a===clicked&&l.b===selectedStar));
+      if(!exists){
+        links.push({a:selectedStar,b:clicked,age:0,glow:1});
+        totalLinks++;
+        // Sparkle effect along the line
+        const sa=stars[selectedStar],sb=stars[clicked];
+        for(let i=0;i<12;i++){
+          const t2=Math.random();
+          sparkles.push({
+            x:sa.x+(sb.x-sa.x)*t2, y:sa.y+(sb.y-sa.y)*t2,
+            vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2,
+            life:1, size:1+Math.random()*2
+          });
+        }
+        // Check if this forms a new constellation (3+ connected stars in a group)
+        updateConstellations();
+        document.getElementById('gLinks').textContent=totalLinks;
+        document.getElementById('gScore').textContent=score;
+      }
+      // Chain: clicked becomes new selection
+      stars.forEach(s=>s.selected=false);
+      stars[clicked].selected=true;
+      selectedStar=clicked;
+    }
+  }
+
+  function updateConstellations(){
+    // Build adjacency
+    const adj=new Map();
+    stars.forEach((_,i)=>adj.set(i,new Set()));
+    links.forEach(l=>{adj.get(l.a).add(l.b);adj.get(l.b).add(l.a);});
+    // Find connected components
+    const visited=new Set();
+    const groups=[];
+    stars.forEach((_,i)=>{
+      if(visited.has(i)||adj.get(i).size===0)return;
+      const group=[];
+      const queue=[i];
+      while(queue.length){
+        const n=queue.shift();
+        if(visited.has(n))continue;
+        visited.add(n);group.push(n);
+        adj.get(n).forEach(nb=>{if(!visited.has(nb))queue.push(nb);});
+      }
+      if(group.length>=3)groups.push(group);
+    });
+    score=groups.length;
+  }
+
   cvs.addEventListener('mousemove',onMove);
   cvs.addEventListener('mouseleave',onLeave);
   cvs.addEventListener('touchmove',e=>{e.preventDefault();onMove(e);},{passive:false});
   cvs.addEventListener('touchend',onLeave);
-
-  // --- Click / tap: spawn burst + toggle frozen connections ---
-  const frozenLinks=[];  // permanent glowing connections
-  const bursts=[];       // click explosion particles
-  function onClick(e){
-    const p=getPos(e.touches?e.touches[0]||e.changedTouches[0]:e);
-    // Burst particles
-    const count=12+Math.floor(Math.random()*8);
-    for(let i=0;i<count;i++){
-      const ang=Math.random()*Math.PI*2;
-      const spd=1.5+Math.random()*4;
-      bursts.push({x:p.x,y:p.y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
-        life:1,decay:0.012+Math.random()*0.015,size:1.5+Math.random()*2});
-    }
-    // Freeze/unfreeze nearest connections: find two closest particles to click
-    const sorted=[...allPos].sort((a,b)=>{
-      const da=(a.x-p.x)**2+(a.y-p.y)**2,db=(b.x-p.x)**2+(b.y-p.y)**2;return da-db;
-    });
-    if(sorted.length>=2){
-      const a=sorted[0],b=sorted[1];
-      // Check if this link already frozen — toggle it off
-      const existIdx=frozenLinks.findIndex(l=>
-        (l.ai===a.idx&&l.bi===b.idx)||(l.ai===b.idx&&l.bi===a.idx));
-      if(existIdx>=0){frozenLinks.splice(existIdx,1);}
-      else{frozenLinks.push({ai:a.idx,bi:b.idx,birth:t,alpha:1});}
-    }
-  }
   cvs.addEventListener('click',onClick);
   cvs.addEventListener('touchstart',e=>{if(e.touches.length===1)onClick(e);});
 
-  // --- Particles ---
-  const N=90;
-  const CONN_DIST=60;
-  const pts=[];
-  for(let i=0;i<N;i++){
-    const baseR=25+Math.random()*130;
-    const angle=Math.random()*Math.PI*2;
-    const speed=(0.12+Math.random()*0.45)*(Math.random()>.5?1:-1);
-    const drift=0.3+Math.random()*0.8;
-    const driftSpeed=0.4+Math.random()*1.8;
-    const size=0.8+Math.random()*2.2;
-    pts.push({baseR,angle,speed,drift,driftSpeed,size,
-      pulse:Math.random()*Math.PI*2,brightness:0.25+Math.random()*0.75,
-      phaseOff:Math.random()*Math.PI*2,
-      // interactive displacement
-      dx:0,dy:0});
-  }
-
-  // Thinking nodes
-  const nodes=[];
-  for(let i=0;i<7;i++){
-    const baseR=15+Math.random()*100;
-    const angle=Math.random()*Math.PI*2;
-    const speed=(0.06+Math.random()*0.18)*(Math.random()>.5?1:-1);
-    nodes.push({baseR,angle,speed,size:2.5+Math.random()*2.5,
-      pulse:Math.random()*Math.PI*2,dx:0,dy:0});
-  }
-
   let t=0;
-  let allPos=[];  // shared for click detection
-
   function frame(){
     t+=0.016;
     ctx.clearRect(0,0,W,H);
-    allPos=[];
 
-    // Update particles
-    pts.forEach((p,i)=>{
-      p.angle+=p.speed*0.016;
-      const r=p.baseR+Math.sin(t*p.driftSpeed+p.phaseOff)*p.drift*15;
-      let x=CX+Math.cos(p.angle)*r;
-      let y=CY+Math.sin(p.angle)*r;
+    // Subtle background nebula
+    const neb=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.6);
+    neb.addColorStop(0,'rgba(200,255,0,0.015)');
+    neb.addColorStop(0.5,'rgba(200,255,0,0.005)');
+    neb.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=neb;ctx.fillRect(0,0,W,H);
 
-      // Mouse attraction / repulsion
-      if(mActive){
-        const ddx=mx-x,ddy=my-y;
-        const dist=Math.sqrt(ddx*ddx+ddy*ddy);
-        if(dist<MOUSE_PULL&&dist>1){
-          const force=MOUSE_FORCE*(1-dist/MOUSE_PULL);
-          p.dx+=(ddx/dist)*force;
-          p.dy+=(ddy/dist)*force;
-        }
-      }
-      // Dampen displacement
-      p.dx*=0.92;p.dy*=0.92;
-      x+=p.dx;y+=p.dy;
-
-      const alpha=p.brightness*(0.35+0.65*Math.abs(Math.sin(t*1.2+p.pulse)));
-      allPos.push({x,y,alpha,size:p.size,isNode:false,idx:i});
+    // Drift stars gently
+    stars.forEach(s=>{
+      s.x+=s.vx;s.y+=s.vy;
+      if(s.x<20||s.x>W-20)s.vx*=-1;
+      if(s.y<20||s.y>H-20)s.vy*=-1;
     });
 
-    nodes.forEach((nd,ni)=>{
-      nd.angle+=nd.speed*0.016;
-      const r=nd.baseR+Math.sin(t*0.8+nd.pulse)*14;
-      let x=CX+Math.cos(nd.angle)*r;
-      let y=CY+Math.sin(nd.angle)*r;
-
-      if(mActive){
-        const ddx=mx-x,ddy=my-y;
-        const dist=Math.sqrt(ddx*ddx+ddy*ddy);
-        if(dist<MOUSE_PULL*1.3&&dist>1){
-          const force=MOUSE_FORCE*1.5*(1-dist/(MOUSE_PULL*1.3));
-          nd.dx+=(ddx/dist)*force;
-          nd.dy+=(ddy/dist)*force;
-        }
-      }
-      nd.dx*=0.9;nd.dy*=0.9;
-      x+=nd.dx;y+=nd.dy;
-
-      const alpha=0.7+0.3*Math.sin(t*2+nd.pulse);
-      allPos.push({x,y,alpha,size:nd.size,isNode:true,idx:N+ni});
-    });
-
-    // --- Mouse glow on canvas ---
-    if(mActive){
-      const mg=ctx.createRadialGradient(mx,my,0,mx,my,MOUSE_PULL);
-      mg.addColorStop(0,'rgba(200,255,0,0.06)');
-      mg.addColorStop(0.5,'rgba(200,255,0,0.02)');
-      mg.addColorStop(1,'rgba(200,255,0,0)');
-      ctx.fillStyle=mg;ctx.beginPath();ctx.arc(mx,my,MOUSE_PULL,0,Math.PI*2);ctx.fill();
-    }
-
-    // --- Dynamic connections ---
-    for(let i=0;i<allPos.length;i++){
-      for(let j=i+1;j<allPos.length;j++){
-        const a=allPos[i],b=allPos[j];
-        const dx=a.x-b.x,dy=a.y-b.y;
-        const dist=Math.sqrt(dx*dx+dy*dy);
-        // Extend connection range near mouse
-        let cd=CONN_DIST;
-        if(mActive){
-          const mda=Math.sqrt((a.x-mx)**2+(a.y-my)**2);
-          const mdb=Math.sqrt((b.x-mx)**2+(b.y-my)**2);
-          if(mda<MOUSE_PULL||mdb<MOUSE_PULL) cd=CONN_DIST*1.6;
-        }
-        if(dist<cd){
-          const strength=1-dist/cd;
-          const pulse=Math.sin(t*3+i*0.5)*0.5+0.5;
-          const nearMouse=mActive&&(Math.sqrt((a.x-mx)**2+(a.y-my)**2)<MOUSE_PULL*0.8||Math.sqrt((b.x-mx)**2+(b.y-my)**2)<MOUSE_PULL*0.8);
-          const alpha=strength*(nearMouse?0.45:0.2)*(a.isNode||b.isNode?1.5:0.6)*pulse;
-          ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-          ctx.strokeStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},${alpha})`;
-          ctx.lineWidth=strength*(nearMouse?2:1.2);
-          ctx.stroke();
-        }
-      }
-    }
-
-    // --- Frozen connections (from clicks) ---
-    frozenLinks.forEach(l=>{
-      const a=allPos.find(p=>p.idx===l.ai);
-      const b=allPos.find(p=>p.idx===l.bi);
-      if(!a||!b)return;
-      const age=t-l.birth;
-      const glow=0.5+0.3*Math.sin(age*4);
+    // --- Draw links ---
+    links.forEach(l=>{
+      l.age+=0.016;
+      l.glow=Math.max(0.4,l.glow*0.995);
+      const a=stars[l.a],b=stars[l.b];
+      const pulse=0.6+0.4*Math.sin(t*2+l.age*3);
+      // Gradient line
+      const grd=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+      const alpha=l.glow*pulse*0.7;
+      grd.addColorStop(0,`rgba(${AC[0]},${AC[1]},${AC[2]},${alpha})`);
+      grd.addColorStop(0.5,`rgba(${AC[0]},${AC[1]},${AC[2]},${alpha*1.3})`);
+      grd.addColorStop(1,`rgba(${AC[0]},${AC[1]},${AC[2]},${alpha})`);
       ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-      ctx.strokeStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},${glow})`;
-      ctx.lineWidth=2.5;ctx.stroke();
-      // Bright dots at endpoints
-      [a,b].forEach(p=>{
-        ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);
-        ctx.fillStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},${glow})`;ctx.fill();
-      });
+      ctx.strokeStyle=grd;ctx.lineWidth=1.5+pulse*0.5;ctx.stroke();
     });
 
-    // --- Burst particles ---
-    for(let i=bursts.length-1;i>=0;i--){
-      const b=bursts[i];
-      b.x+=b.vx;b.y+=b.vy;
-      b.vx*=0.96;b.vy*=0.96;
-      b.life-=b.decay;
-      if(b.life<=0){bursts.splice(i,1);continue;}
-      ctx.beginPath();ctx.arc(b.x,b.y,b.size*b.life,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},${b.life*0.8})`;
-      ctx.fill();
+    // --- Draw selection line (from selected to mouse) ---
+    if(selectedStar!==null&&mActive){
+      const s=stars[selectedStar];
+      ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(mx,my);
+      ctx.strokeStyle='rgba(200,255,0,0.25)';ctx.lineWidth=1;
+      ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
     }
 
-    // --- Draw particles ---
-    allPos.forEach(p=>{
-      if(p.isNode){
-        const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*6);
-        grd.addColorStop(0,`rgba(${AC[0]},${AC[1]},${AC[2]},${p.alpha*0.15})`);
-        grd.addColorStop(1,'rgba(200,255,0,0)');
-        ctx.fillStyle=grd;
-        ctx.beginPath();ctx.arc(p.x,p.y,p.size*6,0,Math.PI*2);ctx.fill();
+    // --- Draw stars ---
+    stars.forEach((s,i)=>{
+      const tw=0.5+0.5*Math.sin(t*s.twinkleSpeed+s.twinkle);
+      const alpha=s.brightness*tw;
+      const isActive=s.selected||s.hovered;
+      const sz=isActive?s.size*2:s.size;
+
+      // Outer glow
+      if(isActive||alpha>0.5){
+        const glR=isActive?sz*8:sz*4;
+        const glA=isActive?0.2:alpha*0.06;
+        const gl=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,glR);
+        gl.addColorStop(0,`rgba(${AC[0]},${AC[1]},${AC[2]},${glA})`);
+        gl.addColorStop(1,'rgba(200,255,0,0)');
+        ctx.fillStyle=gl;ctx.beginPath();ctx.arc(s.x,s.y,glR,0,Math.PI*2);ctx.fill();
       }
-      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-      ctx.fillStyle=p.isNode
-        ?`rgba(${AC[0]},${AC[1]},${AC[2]},${p.alpha})`
-        :`rgba(255,255,255,${p.alpha*0.6})`;
+
+      // Star cross rays (when bright or hovered)
+      if(isActive){
+        ctx.strokeStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},0.4)`;
+        ctx.lineWidth=0.5;
+        const rLen=sz*5;
+        ctx.beginPath();ctx.moveTo(s.x-rLen,s.y);ctx.lineTo(s.x+rLen,s.y);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(s.x,s.y-rLen);ctx.lineTo(s.x,s.y+rLen);ctx.stroke();
+      }
+
+      // Core
+      ctx.beginPath();ctx.arc(s.x,s.y,sz,0,Math.PI*2);
+      ctx.fillStyle=isActive
+        ?`rgba(${AC[0]},${AC[1]},${AC[2]},1)`
+        :`rgba(255,255,255,${alpha*0.8})`;
       ctx.fill();
     });
 
-    // --- Center breathing glow ---
-    const cAlpha=0.04+0.03*Math.sin(t*1.5);
-    const cGrd=ctx.createRadialGradient(CX,CY,0,CX,CY,90);
-    cGrd.addColorStop(0,`rgba(${AC[0]},${AC[1]},${AC[2]},${cAlpha})`);
-    cGrd.addColorStop(1,'rgba(200,255,0,0)');
-    ctx.fillStyle=cGrd;
-    ctx.beginPath();ctx.arc(CX,CY,90,0,Math.PI*2);ctx.fill();
+    // --- Sparkles ---
+    for(let i=sparkles.length-1;i>=0;i--){
+      const sp=sparkles[i];
+      sp.x+=sp.vx;sp.y+=sp.vy;sp.vx*=0.95;sp.vy*=0.95;
+      sp.life-=0.02;
+      if(sp.life<=0){sparkles.splice(i,1);continue;}
+      ctx.beginPath();ctx.arc(sp.x,sp.y,sp.size*sp.life,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${AC[0]},${AC[1]},${AC[2]},${sp.life*0.9})`;
+      ctx.fill();
+    }
 
     spinRaf=requestAnimationFrame(frame);
   }
@@ -790,7 +783,6 @@ function showSpinner(){
     if(sub)sub.textContent=`${idx+1}/${msgs.length}`;
   },2500);
 
-  // Store cleanup refs
   spinCleanup={cvs,onMove,onLeave,onClick};
 }
 
@@ -1037,124 +1029,126 @@ load();
   const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
   camera.position.z=50;
 
-  // Mouse tracking
-  const mouse={x:0,y:0,wx:0,wy:0,active:false};
+  // --- Simplex-like noise for organic motion ---
+  function hash(x,y){const n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n);}
+  function smoothNoise(x,y){
+    const ix=Math.floor(x),iy=Math.floor(y);
+    const fx=x-ix,fy=y-iy;
+    const sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
+    const a=hash(ix,iy),b=hash(ix+1,iy),c=hash(ix,iy+1),d=hash(ix+1,iy+1);
+    return a+(b-a)*sx+(c-a)*sy+(d-a-c-b+a)*sx*sy;
+  }
+  function fbm(x,y){return smoothNoise(x,y)*0.5+smoothNoise(x*2,y*2)*0.3+smoothNoise(x*4,y*4)*0.2;}
+
+  // Mouse
+  const mouse={wx:0,wy:0,active:false,smoothX:0,smoothY:0};
   const raycaster=new THREE.Raycaster();
   const mouseVec=new THREE.Vector2();
 
-  // --- Ambient floating particles ---
-  const PCOUNT=150;
+  // --- Particles ---
+  const PCOUNT=160;
   const pGeo=new THREE.BufferGeometry();
   const positions=new Float32Array(PCOUNT*3);
-  const velocities=[];
+  const pData=[]; // per-particle organic params
   for(let i=0;i<PCOUNT;i++){
     positions[i*3]=(Math.random()-0.5)*100;
     positions[i*3+1]=(Math.random()-0.5)*60;
-    positions[i*3+2]=(Math.random()-0.5)*30-5;
-    velocities.push({
-      x:(Math.random()-0.5)*0.025,
-      y:(Math.random()-0.5)*0.025,
-      z:(Math.random()-0.5)*0.01
+    positions[i*3+2]=(Math.random()-0.5)*20-5;
+    pData.push({
+      homeX:positions[i*3], homeY:positions[i*3+1], homeZ:positions[i*3+2],
+      phase:Math.random()*Math.PI*2,
+      speed:0.3+Math.random()*0.7,
+      orbitR:0, orbitAngle:Math.random()*Math.PI*2, orbitSpeed:1+Math.random()*2,
+      vx:0, vy:0, vz:0
     });
   }
   pGeo.setAttribute('position',new THREE.BufferAttribute(positions,3));
 
   const pMat=new THREE.PointsMaterial({
-    color:0xc8ff00,
-    size:0.55,
-    transparent:true,
-    opacity:0.6,
-    blending:THREE.AdditiveBlending,
-    depthWrite:false
+    color:0xc8ff00, size:0.6, transparent:true, opacity:0.6,
+    blending:THREE.AdditiveBlending, depthWrite:false
   });
-  const particles=new THREE.Points(pGeo,pMat);
-  scene.add(particles);
+  scene.add(new THREE.Points(pGeo,pMat));
 
-  // --- Proximity connection lines ---
+  // --- Proximity lines ---
+  const maxLines=600;
   const lineGeo=new THREE.BufferGeometry();
-  const maxLines=500;
   const linePos=new Float32Array(maxLines*6);
-  const lineColors=new Float32Array(maxLines*6);
+  const lineCol=new Float32Array(maxLines*6);
   lineGeo.setAttribute('position',new THREE.BufferAttribute(linePos,3));
-  lineGeo.setAttribute('color',new THREE.BufferAttribute(lineColors,3));
+  lineGeo.setAttribute('color',new THREE.BufferAttribute(lineCol,3));
   const lineMat=new THREE.LineBasicMaterial({
-    vertexColors:true,transparent:true,opacity:0.35,
+    vertexColors:true,transparent:true,opacity:0.4,
     blending:THREE.AdditiveBlending,depthWrite:false
   });
-  const lines=new THREE.LineSegments(lineGeo,lineMat);
-  scene.add(lines);
+  scene.add(new THREE.LineSegments(lineGeo,lineMat));
 
-  // --- Persistent user-created connections (click/tap plexus) ---
-  // Each bond = {a, b, strength} where a,b are particle indices
+  // --- User bond lines (click-created networks) ---
   const bonds=[];
-  const MAX_BONDS=200;
-  const bondLineGeo=new THREE.BufferGeometry();
+  const MAX_BONDS=250;
+  const bondGeo=new THREE.BufferGeometry();
   const bondPos=new Float32Array(MAX_BONDS*6);
-  const bondColors=new Float32Array(MAX_BONDS*6);
-  bondLineGeo.setAttribute('position',new THREE.BufferAttribute(bondPos,3));
-  bondLineGeo.setAttribute('color',new THREE.BufferAttribute(bondColors,3));
+  const bondCol=new Float32Array(MAX_BONDS*6);
+  bondGeo.setAttribute('position',new THREE.BufferAttribute(bondPos,3));
+  bondGeo.setAttribute('color',new THREE.BufferAttribute(bondCol,3));
   const bondMat=new THREE.LineBasicMaterial({
-    vertexColors:true,transparent:true,opacity:0.6,
+    vertexColors:true,transparent:true,opacity:0.7,
     blending:THREE.AdditiveBlending,depthWrite:false
   });
-  const bondLines=new THREE.LineSegments(bondLineGeo,bondMat);
-  scene.add(bondLines);
+  scene.add(new THREE.LineSegments(bondGeo,bondMat));
 
-  // --- Mouse glow light ---
+  // --- Mouse glow ---
   const mouseLight=new THREE.PointLight(0xc8ff00,0,80,1.8);
   mouseLight.position.set(0,0,12);
   scene.add(mouseLight);
 
-  // --- Click: create plexus connections near cursor ---
+  // --- Click: create organic network cluster ---
   function createConnections(wx,wy){
     const posArr=pGeo.attributes.position.array;
-    // Find particles near the click point
     const nearby=[];
     for(let i=0;i<PCOUNT;i++){
-      const dx=posArr[i*3]-wx, dy=posArr[i*3+1]-wy;
+      const dx=posArr[i*3]-wx,dy=posArr[i*3+1]-wy;
       const d=Math.sqrt(dx*dx+dy*dy);
-      if(d<18) nearby.push({idx:i,dist:d});
+      if(d<22)nearby.push({idx:i,dist:d});
     }
     nearby.sort((a,b)=>a.dist-b.dist);
-    const pick=nearby.slice(0,Math.min(8,nearby.length));
+    const pick=nearby.slice(0,Math.min(10,nearby.length));
     if(pick.length<2)return;
-
-    // Connect each picked particle to 2-3 others in the group
     let added=0;
-    for(let i=0;i<pick.length&&added<6;i++){
-      for(let j=i+1;j<pick.length&&added<6;j++){
-        const a=pick[i].idx, b=pick[j].idx;
-        // Check if bond already exists
+    for(let i=0;i<pick.length&&added<8;i++){
+      for(let j=i+1;j<pick.length&&added<8;j++){
+        if(Math.random()>0.5)continue; // random skip for organic feel
+        const a=pick[i].idx,b=pick[j].idx;
         const exists=bonds.some(bd=>(bd.a===a&&bd.b===b)||(bd.a===b&&bd.b===a));
         if(!exists){
-          bonds.push({a,b,strength:1.0,age:0});
+          bonds.push({a,b,str:1,age:0,pulse:Math.random()*Math.PI*2});
           added++;
-          if(bonds.length>MAX_BONDS) bonds.shift();
+          if(bonds.length>MAX_BONDS)bonds.shift();
         }
       }
     }
-
-    // Brief glow pulse on creation
-    mouseLight.intensity=6;
+    // Also pull nearby particles toward each other organically
+    pick.forEach(p=>{
+      pData[p.idx].orbitR=3+Math.random()*5;
+      pData[p.idx].orbitAngle=Math.atan2(posArr[p.idx*3+1]-wy,posArr[p.idx*3]-wx);
+    });
+    mouseLight.intensity=8;
   }
 
-  // --- Event listeners ---
+  // --- Events ---
   function updateMouse(cx,cy){
-    mouse.x=(cx/window.innerWidth)*2-1;
-    mouse.y=-(cy/window.innerHeight)*2+1;
-    mouseVec.set(mouse.x,mouse.y);
+    const mx=(cx/window.innerWidth)*2-1;
+    const my=-(cy/window.innerHeight)*2+1;
+    mouseVec.set(mx,my);
     raycaster.setFromCamera(mouseVec,camera);
-    const plane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
     const pt=new THREE.Vector3();
-    raycaster.ray.intersectPlane(plane,pt);
+    raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,0,1),0),pt);
     if(pt){mouse.wx=pt.x;mouse.wy=pt.y;}
     mouse.active=true;
   }
-
   window.addEventListener('mousemove',e=>updateMouse(e.clientX,e.clientY));
-  window.addEventListener('touchmove',e=>{
-    if(e.touches.length>0)updateMouse(e.touches[0].clientX,e.touches[0].clientY);
-  },{passive:true});
+  window.addEventListener('touchmove',e=>{if(e.touches.length>0)updateMouse(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+  window.addEventListener('mouseleave',()=>{mouse.active=false;});
 
   function isInteractive(el){
     if(!el)return false;
@@ -1177,86 +1171,119 @@ load();
     renderer.setSize(window.innerWidth,window.innerHeight);
   });
 
-  // --- Animation loop ---
+  // --- Animate ---
   const clock=new THREE.Clock();
   function animate(){
     requestAnimationFrame(animate);
     const t=clock.getElapsedTime();
     const posArr=pGeo.attributes.position.array;
 
-    // Animate particles — gentle float + mouse attraction
+    // Smooth mouse position
+    if(mouse.active){
+      mouse.smoothX+=(mouse.wx-mouse.smoothX)*0.06;
+      mouse.smoothY+=(mouse.wy-mouse.smoothY)*0.06;
+    }
+
+    // --- Organic particle movement ---
     for(let i=0;i<PCOUNT;i++){
       const ix=i*3;
-      let px=posArr[ix], py=posArr[ix+1], pz=posArr[ix+2];
+      const d=pData[i];
+      let px=posArr[ix],py=posArr[ix+1],pz=posArr[ix+2];
 
-      px+=velocities[i].x;
-      py+=velocities[i].y;
-      pz+=velocities[i].z;
+      // Flow field from noise — creates organic currents
+      const noiseScale=0.035;
+      const angle=fbm(px*noiseScale+t*0.08, py*noiseScale)*Math.PI*4;
+      const flowStrength=0.06*d.speed;
+      d.vx+=Math.cos(angle)*flowStrength;
+      d.vy+=Math.sin(angle)*flowStrength;
 
-      if(px>55)px=-55; if(px<-55)px=55;
-      if(py>35)py=-35; if(py<-35)py=35;
+      // Gentle vertical drift
+      d.vy+=Math.sin(t*0.3+d.phase)*0.003;
 
-      // Mouse attraction
+      // Very gentle home pull to prevent all particles drifting away
+      d.vx+=(d.homeX-px)*0.0003;
+      d.vy+=(d.homeY-py)*0.0003;
+
+      // Mouse interaction — orbit around cursor instead of converging
       if(mouse.active){
-        const dx=mouse.wx-px, dy=mouse.wy-py;
+        const dx=mouse.smoothX-px,dy=mouse.smoothY-py;
         const dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist<25&&dist>0.5){
-          const force=0.02*(1-dist/25);
-          px+=dx*force;
-          py+=dy*force;
+
+        if(dist<30&&dist>1){
+          const influence=1-dist/30;
+          // Tangential force (orbit) — perpendicular to radius
+          const tx=-dy/dist, ty=dx/dist;
+          d.vx+=tx*0.08*influence*d.speed;
+          d.vy+=ty*0.08*influence*d.speed;
+
+          // Slight radial force — keep at sweet-spot distance (8-15 units)
+          const idealDist=8+i%8;
+          const radialForce=(dist-idealDist)*0.004*influence;
+          d.vx+=dx/dist*radialForce;
+          d.vy+=dy/dist*radialForce;
+
+          // Z-axis breathing near mouse
+          d.vz+=Math.sin(t*2+d.phase)*0.01*influence;
         }
       }
 
-      // Bonded particles attract each other gently (keeps networks cohesive)
-      for(let b=0;b<bonds.length;b++){
-        const bond=bonds[b];
-        let other=-1;
-        if(bond.a===i)other=bond.b;
-        else if(bond.b===i)other=bond.a;
-        if(other>=0){
-          const ox=posArr[other*3], oy=posArr[other*3+1];
-          const ddx=ox-px, ddy=oy-py;
-          const dd=Math.sqrt(ddx*ddx+ddy*ddy);
-          if(dd>15&&dd<60){
-            const pull=0.003*bond.strength;
-            px+=ddx*pull;
-            py+=ddy*pull;
-          }
-        }
+      // Decay orbit radius from clicks
+      if(d.orbitR>0){
+        d.orbitAngle+=d.orbitSpeed*0.03;
+        d.orbitR*=0.995;
+        if(d.orbitR<0.1)d.orbitR=0;
       }
+
+      // Damping
+      d.vx*=0.94; d.vy*=0.94; d.vz*=0.92;
+      px+=d.vx; py+=d.vy; pz+=(d.vz||0);
+
+      // Soft boundary (organic bounce, not hard wrap)
+      if(Math.abs(px)>55) d.vx-=px*0.005;
+      if(Math.abs(py)>35) d.vy-=py*0.005;
+      if(Math.abs(pz)>15) d.vz=-(pz)*0.02;
 
       posArr[ix]=px; posArr[ix+1]=py; posArr[ix+2]=pz;
     }
     pGeo.attributes.position.needsUpdate=true;
 
-    // Particle glow pulse
-    pMat.opacity=0.45+Math.sin(t*0.8)*0.15;
+    // Pulse
+    pMat.opacity=0.5+Math.sin(t*0.6)*0.15;
 
-    // Mouse light follow
+    // Mouse light
     if(mouse.active){
-      mouseLight.position.x+=(mouse.wx-mouseLight.position.x)*0.1;
-      mouseLight.position.y+=(mouse.wy-mouseLight.position.y)*0.1;
-      const targetInt=mouse.active?3:0;
-      mouseLight.intensity+=(targetInt-mouseLight.intensity)*0.06;
+      mouseLight.position.x+=(mouse.smoothX-mouseLight.position.x)*0.08;
+      mouseLight.position.y+=(mouse.smoothY-mouseLight.position.y)*0.08;
+      mouseLight.intensity+=(3.5-mouseLight.intensity)*0.04;
+    }else{
+      mouseLight.intensity*=0.97;
     }
 
-    // --- Proximity connection lines ---
+    // --- Proximity lines ---
     let li=0;
     const lpa=lineGeo.attributes.position.array;
     const lca=lineGeo.attributes.color.array;
-    const connectDist=14;
+    const cDist=15;
     for(let i=0;i<PCOUNT&&li<maxLines;i++){
       for(let j=i+1;j<PCOUNT&&li<maxLines;j++){
         const ax=posArr[i*3],ay=posArr[i*3+1],az=posArr[i*3+2];
         const bx=posArr[j*3],by=posArr[j*3+1],bz=posArr[j*3+2];
         const d=Math.sqrt((ax-bx)**2+(ay-by)**2+(az-bz)**2);
-        if(d<connectDist){
-          const alpha=1-d/connectDist;
+        if(d<cDist){
+          const alpha=1-d/cDist;
+          // Near mouse = brighter
+          let boost=1;
+          if(mouse.active){
+            const mda=Math.sqrt((ax-mouse.smoothX)**2+(ay-mouse.smoothY)**2);
+            const mdb=Math.sqrt((bx-mouse.smoothX)**2+(by-mouse.smoothY)**2);
+            if(mda<20||mdb<20) boost=2;
+          }
           const ci=li*6;
           lpa[ci]=ax;lpa[ci+1]=ay;lpa[ci+2]=az;
           lpa[ci+3]=bx;lpa[ci+4]=by;lpa[ci+5]=bz;
-          lca[ci]=0.78*alpha;lca[ci+1]=1*alpha;lca[ci+2]=0;
-          lca[ci+3]=0.78*alpha;lca[ci+4]=1*alpha;lca[ci+5]=0;
+          const c=alpha*boost;
+          lca[ci]=0.78*c;lca[ci+1]=1*c;lca[ci+2]=0;
+          lca[ci+3]=0.78*c;lca[ci+4]=1*c;lca[ci+5]=0;
           li++;
         }
       }
@@ -1266,33 +1293,43 @@ load();
     lineGeo.attributes.color.needsUpdate=true;
     lineGeo.setDrawRange(0,li*2);
 
-    // --- User-created bond lines ---
-    const bpa=bondLineGeo.attributes.position.array;
-    const bca=bondLineGeo.attributes.color.array;
+    // --- Bond lines (user-created networks) ---
+    const bpa=bondGeo.attributes.position.array;
+    const bca=bondGeo.attributes.color.array;
     let bi=0;
     for(let b=bonds.length-1;b>=0;b--){
       const bond=bonds[b];
-      bond.age+=0.001;
-      // Bonds slowly fade over time (~60s lifetime)
-      bond.strength=Math.max(0,1-bond.age/1.2);
-      if(bond.strength<=0){bonds.splice(b,1);continue;}
+      bond.age+=0.0008;
+      bond.str=Math.max(0,1-bond.age/1.5);
+      if(bond.str<=0){bonds.splice(b,1);continue;}
       if(bi>=MAX_BONDS)continue;
+
+      // Bonded particles gently attract
       const ax=posArr[bond.a*3],ay=posArr[bond.a*3+1],az=posArr[bond.a*3+2];
       const bx=posArr[bond.b*3],by=posArr[bond.b*3+1],bz=posArr[bond.b*3+2];
+      const ddx=bx-ax,ddy=by-ay;
+      const dd=Math.sqrt(ddx*ddx+ddy*ddy);
+      if(dd>5&&dd<50){
+        const pull=0.004*bond.str;
+        pData[bond.a].vx+=ddx*pull;
+        pData[bond.a].vy+=ddy*pull;
+        pData[bond.b].vx-=ddx*pull;
+        pData[bond.b].vy-=ddy*pull;
+      }
+
       const ci=bi*6;
       bpa[ci]=ax;bpa[ci+1]=ay;bpa[ci+2]=az;
       bpa[ci+3]=bx;bpa[ci+4]=by;bpa[ci+5]=bz;
-      // Brighter green for user bonds, pulsing
-      const pulse=0.7+Math.sin(t*2+bond.age*10)*0.3;
-      const s=bond.strength*pulse;
-      bca[ci]=0.78*s;bca[ci+1]=1*s;bca[ci+2]=0.1*s;
-      bca[ci+3]=0.78*s;bca[ci+4]=1*s;bca[ci+5]=0.1*s;
+      const pulse=0.6+Math.sin(t*3+bond.pulse)*0.4;
+      const s=bond.str*pulse;
+      bca[ci]=0.78*s;bca[ci+1]=1*s;bca[ci+2]=0.15*s;
+      bca[ci+3]=0.78*s;bca[ci+4]=1*s;bca[ci+5]=0.15*s;
       bi++;
     }
     for(let k=bi*6;k<MAX_BONDS*6;k++){bpa[k]=0;bca[k]=0;}
-    bondLineGeo.attributes.position.needsUpdate=true;
-    bondLineGeo.attributes.color.needsUpdate=true;
-    bondLineGeo.setDrawRange(0,bi*2);
+    bondGeo.attributes.position.needsUpdate=true;
+    bondGeo.attributes.color.needsUpdate=true;
+    bondGeo.setDrawRange(0,bi*2);
 
     renderer.render(scene,camera);
   }
