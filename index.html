@@ -19,8 +19,8 @@ html,body{margin:0;background:var(--bk);color:var(--wh);font-family:var(--f);ove
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
 nav.scr{background:rgba(5,5,5,.92);backdrop-filter:blur(30px)}
 .nl{text-decoration:none;display:flex;align-items:center}
-.nl img{height:52px;width:auto;transition:all .3s;filter:brightness(3) contrast(1.3)}
-nav.scr .nl img{height:38px}
+.nl img{height:65px;width:auto;transition:all .3s;filter:invert(1)}
+nav.scr .nl img{height:46px}
 .nk{display:flex;gap:2.5rem;align-items:center;list-style:none}
 .nk a{color:var(--g3);text-decoration:none;font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:color .3s}
 .nk a:hover{color:var(--ac)}
@@ -37,7 +37,7 @@ section{padding:10rem 3rem}
 
 /* HERO */
 #hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:1px solid var(--g2);position:relative;overflow:hidden}
-.hero-bg-logo{position:absolute;right:-8%;top:50%;transform:translateY(-50%);width:65vw;max-width:850px;opacity:.12;pointer-events:none;filter:brightness(3) contrast(1.3)}
+/* hero bg logo removed */
 .hc{max-width:900px;padding:0 2rem;position:relative;z-index:1}
 .hp{font-size:.75rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--ac);margin-bottom:2rem}
 .ht{font-family:var(--d);font-size:clamp(3.5rem,9vw,8rem);font-weight:800;line-height:.9;letter-spacing:-.04em;margin-bottom:2rem}
@@ -184,13 +184,12 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 </head>
 <body>
 
-<nav id="nav"><a href="#hero" class="nl"><img src="img/logo-white.png" alt="WHY"></a>
+<nav id="nav"><a href="#hero" class="nl"><img src="img/logo-black.png" alt="WHY"></a>
   <ul class="nk" id="nk"><li><a href="#services" data-i18n="nav.services">Services</a></li><li><a href="#work" data-i18n="nav.work">Work</a></li><li><a href="#team" data-i18n="nav.team">Team</a></li><li><a href="#brief" data-i18n="nav.brief">Start a project</a></li><li><button class="ls" id="lsB" onclick="toggleLang()">IT</button></li></ul>
   <button class="mb" id="mbB" onclick="togMob()"><span></span><span></span><span></span></button>
 </nav>
 
 <section id="hero">
-  <img src="img/logo-white.png" alt="" class="hero-bg-logo">
   <div class="hc">
     <p class="hp" data-i18n="hero.pre">Creative Technology Studio</p>
     <h1 class="ht" data-i18n="hero.title">Ideas into<br><em>Systems</em></h1>
