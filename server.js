@@ -282,7 +282,7 @@ app.post('/api/chat', chatRateLimit, async (req, res) => {
         'Authorization': `Bearer ${OPENAI_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5.4-mini',
         messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-10)],
         stream: true,
         max_tokens: 500,
@@ -374,7 +374,7 @@ The headline should be max 6 words, bold, no punctuation. The subtitle max 20 wo
         'Authorization': `Bearer ${OPENAI_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5.4-mini',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 100,
         temperature: 0.8,
@@ -394,6 +394,68 @@ The headline should be max 6 words, bold, no punctuation. The subtitle max 20 wo
   } catch(e) {
     console.error('Personalize error:', e);
     res.json({ headline: null, subtitle: null });
+  }
+});
+
+// --- Workflow Generation (GPT-5.4 full) ---
+app.post('/api/workflow', chatRateLimit, async (req, res) => {
+  if (!OPENAI_KEY) {
+    return res.status(503).json({ error: 'AI not configured' });
+  }
+
+  try {
+    const { sector, service, company, website, description, lang } = req.body;
+
+    const prompt = `You are a creative technology strategist at WHY, a Rome-based studio specializing in 3D Real Time, Immersive Video, XR, Phygital Activations, Instant Games, and AI Systems.
+
+A potential client has submitted a project brief:
+- Sector: ${sector || 'not specified'}
+- Service interest: ${service || 'not specified'}
+- Company: ${company || 'not specified'}
+- Website: ${website || 'not specified'}
+- Project description: ${description || 'not specified'}
+
+Generate a proposed project workflow as a JSON array of phases. Each phase has:
+- "id": sequential number
+- "title": phase name (${lang === 'it' ? 'in Italian' : 'in English'})
+- "duration": estimated duration (e.g. "2 weeks")
+- "description": one sentence (${lang === 'it' ? 'in Italian' : 'in English'})
+- "deliverables": array of 2-3 deliverable names
+- "tools": array of 1-3 technologies/tools WHY would use
+
+Create 4-6 phases. Be specific to their sector and needs. Use WHY's actual tech stack.
+Respond ONLY with the JSON array, no markdown, no explanation.`;
+
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-5.4',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1000,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!openaiRes.ok) {
+      console.error('OpenAI workflow error:', await openaiRes.text());
+      return res.status(502).json({ error: 'AI service error' });
+    }
+
+    const data = await openaiRes.json();
+    const text = data.choices?.[0]?.message?.content || '';
+    const match = text.match(/\[[\s\S]*\]/);
+    if (match) {
+      res.json({ workflow: JSON.parse(match[0]) });
+    } else {
+      res.status(500).json({ error: 'Failed to parse workflow' });
+    }
+  } catch (e) {
+    console.error('Workflow error:', e);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
