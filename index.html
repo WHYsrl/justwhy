@@ -1043,20 +1043,17 @@ load();
   const mouseVec=new THREE.Vector2();
 
   // --- Ambient floating particles ---
-  const PCOUNT=120;
+  const PCOUNT=150;
   const pGeo=new THREE.BufferGeometry();
   const positions=new Float32Array(PCOUNT*3);
   const velocities=[];
-  const basePositions=[];
   for(let i=0;i<PCOUNT;i++){
-    const x=(Math.random()-0.5)*100;
-    const y=(Math.random()-0.5)*60;
-    const z=(Math.random()-0.5)*40-10;
-    positions[i*3]=x; positions[i*3+1]=y; positions[i*3+2]=z;
-    basePositions.push({x,y,z});
+    positions[i*3]=(Math.random()-0.5)*100;
+    positions[i*3+1]=(Math.random()-0.5)*60;
+    positions[i*3+2]=(Math.random()-0.5)*30-5;
     velocities.push({
-      x:(Math.random()-0.5)*0.02,
-      y:(Math.random()-0.5)*0.02,
+      x:(Math.random()-0.5)*0.025,
+      y:(Math.random()-0.5)*0.025,
       z:(Math.random()-0.5)*0.01
     });
   }
@@ -1064,73 +1061,87 @@ load();
 
   const pMat=new THREE.PointsMaterial({
     color:0xc8ff00,
-    size:0.3,
+    size:0.55,
     transparent:true,
-    opacity:0.35,
+    opacity:0.6,
     blending:THREE.AdditiveBlending,
     depthWrite:false
   });
   const particles=new THREE.Points(pGeo,pMat);
   scene.add(particles);
 
-  // --- Connection lines between nearby particles ---
+  // --- Proximity connection lines ---
   const lineGeo=new THREE.BufferGeometry();
-  const maxLines=300;
+  const maxLines=500;
   const linePos=new Float32Array(maxLines*6);
   const lineColors=new Float32Array(maxLines*6);
   lineGeo.setAttribute('position',new THREE.BufferAttribute(linePos,3));
   lineGeo.setAttribute('color',new THREE.BufferAttribute(lineColors,3));
   const lineMat=new THREE.LineBasicMaterial({
-    vertexColors:true,transparent:true,opacity:0.15,
+    vertexColors:true,transparent:true,opacity:0.35,
     blending:THREE.AdditiveBlending,depthWrite:false
   });
   const lines=new THREE.LineSegments(lineGeo,lineMat);
   scene.add(lines);
 
+  // --- Persistent user-created connections (click/tap plexus) ---
+  // Each bond = {a, b, strength} where a,b are particle indices
+  const bonds=[];
+  const MAX_BONDS=200;
+  const bondLineGeo=new THREE.BufferGeometry();
+  const bondPos=new Float32Array(MAX_BONDS*6);
+  const bondColors=new Float32Array(MAX_BONDS*6);
+  bondLineGeo.setAttribute('position',new THREE.BufferAttribute(bondPos,3));
+  bondLineGeo.setAttribute('color',new THREE.BufferAttribute(bondColors,3));
+  const bondMat=new THREE.LineBasicMaterial({
+    vertexColors:true,transparent:true,opacity:0.6,
+    blending:THREE.AdditiveBlending,depthWrite:false
+  });
+  const bondLines=new THREE.LineSegments(bondLineGeo,bondMat);
+  scene.add(bondLines);
+
   // --- Mouse glow light ---
-  const mouseLight=new THREE.PointLight(0xc8ff00,0,60,2);
-  mouseLight.position.set(0,0,10);
+  const mouseLight=new THREE.PointLight(0xc8ff00,0,80,1.8);
+  mouseLight.position.set(0,0,12);
   scene.add(mouseLight);
 
-  // --- Click burst system ---
-  const bursts=[];
-  function createBurst(wx,wy){
-    const count=35+Math.floor(Math.random()*20);
-    const geo=new THREE.BufferGeometry();
-    const pos=new Float32Array(count*3);
-    const vel=[];
-    for(let i=0;i<count;i++){
-      pos[i*3]=wx; pos[i*3+1]=wy; pos[i*3+2]=0;
-      const angle=Math.random()*Math.PI*2;
-      const speed=0.3+Math.random()*0.8;
-      const phi=(Math.random()-0.5)*Math.PI;
-      vel.push({
-        x:Math.cos(angle)*Math.cos(phi)*speed,
-        y:Math.sin(angle)*Math.cos(phi)*speed,
-        z:Math.sin(phi)*speed*0.5
-      });
+  // --- Click: create plexus connections near cursor ---
+  function createConnections(wx,wy){
+    const posArr=pGeo.attributes.position.array;
+    // Find particles near the click point
+    const nearby=[];
+    for(let i=0;i<PCOUNT;i++){
+      const dx=posArr[i*3]-wx, dy=posArr[i*3+1]-wy;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<18) nearby.push({idx:i,dist:d});
     }
-    geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-    const mat=new THREE.PointsMaterial({
-      color:0xc8ff00,size:0.6,transparent:true,opacity:1,
-      blending:THREE.AdditiveBlending,depthWrite:false
-    });
-    const pts=new THREE.Points(geo,mat);
-    scene.add(pts);
+    nearby.sort((a,b)=>a.dist-b.dist);
+    const pick=nearby.slice(0,Math.min(8,nearby.length));
+    if(pick.length<2)return;
 
-    // Burst flash light
-    const flash=new THREE.PointLight(0xc8ff00,3,40,2);
-    flash.position.set(wx,wy,5);
-    scene.add(flash);
+    // Connect each picked particle to 2-3 others in the group
+    let added=0;
+    for(let i=0;i<pick.length&&added<6;i++){
+      for(let j=i+1;j<pick.length&&added<6;j++){
+        const a=pick[i].idx, b=pick[j].idx;
+        // Check if bond already exists
+        const exists=bonds.some(bd=>(bd.a===a&&bd.b===b)||(bd.a===b&&bd.b===a));
+        if(!exists){
+          bonds.push({a,b,strength:1.0,age:0});
+          added++;
+          if(bonds.length>MAX_BONDS) bonds.shift();
+        }
+      }
+    }
 
-    bursts.push({pts,mat,geo,vel,flash,life:1});
+    // Brief glow pulse on creation
+    mouseLight.intensity=6;
   }
 
   // --- Event listeners ---
   function updateMouse(cx,cy){
     mouse.x=(cx/window.innerWidth)*2-1;
     mouse.y=-(cy/window.innerHeight)*2+1;
-    // Convert to world coords
     mouseVec.set(mouse.x,mouse.y);
     raycaster.setFromCamera(mouseVec,camera);
     const plane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
@@ -1152,11 +1163,11 @@ load();
     if(el.closest('a,button,.bf-card,.sc,.wi,.hcta,#chtgl,details,summary'))return true;
     return false;
   }
-  window.addEventListener('click',e=>{if(!isInteractive(e.target))createBurst(mouse.wx,mouse.wy);});
+  window.addEventListener('click',e=>{if(!isInteractive(e.target))createConnections(mouse.wx,mouse.wy);});
   window.addEventListener('touchstart',e=>{
     if(e.touches.length>0&&!isInteractive(e.target)){
       updateMouse(e.touches[0].clientX,e.touches[0].clientY);
-      createBurst(mouse.wx,mouse.wy);
+      createConnections(mouse.wx,mouse.wy);
     }
   },{passive:true});
 
@@ -1171,7 +1182,6 @@ load();
   function animate(){
     requestAnimationFrame(animate);
     const t=clock.getElapsedTime();
-    const dt=Math.min(clock.getDelta(),0.05);
     const posArr=pGeo.attributes.position.array;
 
     // Animate particles — gentle float + mouse attraction
@@ -1179,23 +1189,39 @@ load();
       const ix=i*3;
       let px=posArr[ix], py=posArr[ix+1], pz=posArr[ix+2];
 
-      // Base drift
       px+=velocities[i].x;
       py+=velocities[i].y;
       pz+=velocities[i].z;
 
-      // Wrap around
       if(px>55)px=-55; if(px<-55)px=55;
       if(py>35)py=-35; if(py<-35)py=35;
 
-      // Mouse attraction (subtle)
+      // Mouse attraction
       if(mouse.active){
         const dx=mouse.wx-px, dy=mouse.wy-py;
         const dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist<20&&dist>0.5){
-          const force=0.015*(1-dist/20);
+        if(dist<25&&dist>0.5){
+          const force=0.02*(1-dist/25);
           px+=dx*force;
           py+=dy*force;
+        }
+      }
+
+      // Bonded particles attract each other gently (keeps networks cohesive)
+      for(let b=0;b<bonds.length;b++){
+        const bond=bonds[b];
+        let other=-1;
+        if(bond.a===i)other=bond.b;
+        else if(bond.b===i)other=bond.a;
+        if(other>=0){
+          const ox=posArr[other*3], oy=posArr[other*3+1];
+          const ddx=ox-px, ddy=oy-py;
+          const dd=Math.sqrt(ddx*ddx+ddy*ddy);
+          if(dd>15&&dd<60){
+            const pull=0.003*bond.strength;
+            px+=ddx*pull;
+            py+=ddy*pull;
+          }
         }
       }
 
@@ -1204,20 +1230,21 @@ load();
     pGeo.attributes.position.needsUpdate=true;
 
     // Particle glow pulse
-    pMat.opacity=0.25+Math.sin(t*0.8)*0.1;
+    pMat.opacity=0.45+Math.sin(t*0.8)*0.15;
 
     // Mouse light follow
     if(mouse.active){
-      mouseLight.position.x+=(mouse.wx-mouseLight.position.x)*0.08;
-      mouseLight.position.y+=(mouse.wy-mouseLight.position.y)*0.08;
-      mouseLight.intensity+=(2-mouseLight.intensity)*0.05;
+      mouseLight.position.x+=(mouse.wx-mouseLight.position.x)*0.1;
+      mouseLight.position.y+=(mouse.wy-mouseLight.position.y)*0.1;
+      const targetInt=mouse.active?3:0;
+      mouseLight.intensity+=(targetInt-mouseLight.intensity)*0.06;
     }
 
-    // Connection lines — connect nearby particles
+    // --- Proximity connection lines ---
     let li=0;
     const lpa=lineGeo.attributes.position.array;
     const lca=lineGeo.attributes.color.array;
-    const connectDist=12;
+    const connectDist=14;
     for(let i=0;i<PCOUNT&&li<maxLines;i++){
       for(let j=i+1;j<PCOUNT&&li<maxLines;j++){
         const ax=posArr[i*3],ay=posArr[i*3+1],az=posArr[i*3+2];
@@ -1228,43 +1255,44 @@ load();
           const ci=li*6;
           lpa[ci]=ax;lpa[ci+1]=ay;lpa[ci+2]=az;
           lpa[ci+3]=bx;lpa[ci+4]=by;lpa[ci+5]=bz;
-          // Green-ish tint
           lca[ci]=0.78*alpha;lca[ci+1]=1*alpha;lca[ci+2]=0;
           lca[ci+3]=0.78*alpha;lca[ci+4]=1*alpha;lca[ci+5]=0;
           li++;
         }
       }
     }
-    // Zero out remaining
     for(let k=li*6;k<maxLines*6;k++){lpa[k]=0;lca[k]=0;}
     lineGeo.attributes.position.needsUpdate=true;
     lineGeo.attributes.color.needsUpdate=true;
     lineGeo.setDrawRange(0,li*2);
 
-    // Update bursts
-    for(let b=bursts.length-1;b>=0;b--){
-      const burst=bursts[b];
-      burst.life-=0.018;
-      if(burst.life<=0){
-        scene.remove(burst.pts);
-        scene.remove(burst.flash);
-        burst.geo.dispose();burst.mat.dispose();
-        bursts.splice(b,1);
-        continue;
-      }
-      burst.mat.opacity=burst.life;
-      burst.flash.intensity=burst.life*3;
-      const bp=burst.geo.attributes.position.array;
-      for(let i=0;i<burst.vel.length;i++){
-        bp[i*3]+=burst.vel[i].x;
-        bp[i*3+1]+=burst.vel[i].y;
-        bp[i*3+2]+=burst.vel[i].z;
-        burst.vel[i].x*=0.97;
-        burst.vel[i].y*=0.97;
-        burst.vel[i].z*=0.97;
-      }
-      burst.geo.attributes.position.needsUpdate=true;
+    // --- User-created bond lines ---
+    const bpa=bondLineGeo.attributes.position.array;
+    const bca=bondLineGeo.attributes.color.array;
+    let bi=0;
+    for(let b=bonds.length-1;b>=0;b--){
+      const bond=bonds[b];
+      bond.age+=0.001;
+      // Bonds slowly fade over time (~60s lifetime)
+      bond.strength=Math.max(0,1-bond.age/1.2);
+      if(bond.strength<=0){bonds.splice(b,1);continue;}
+      if(bi>=MAX_BONDS)continue;
+      const ax=posArr[bond.a*3],ay=posArr[bond.a*3+1],az=posArr[bond.a*3+2];
+      const bx=posArr[bond.b*3],by=posArr[bond.b*3+1],bz=posArr[bond.b*3+2];
+      const ci=bi*6;
+      bpa[ci]=ax;bpa[ci+1]=ay;bpa[ci+2]=az;
+      bpa[ci+3]=bx;bpa[ci+4]=by;bpa[ci+5]=bz;
+      // Brighter green for user bonds, pulsing
+      const pulse=0.7+Math.sin(t*2+bond.age*10)*0.3;
+      const s=bond.strength*pulse;
+      bca[ci]=0.78*s;bca[ci+1]=1*s;bca[ci+2]=0.1*s;
+      bca[ci+3]=0.78*s;bca[ci+4]=1*s;bca[ci+5]=0.1*s;
+      bi++;
     }
+    for(let k=bi*6;k<MAX_BONDS*6;k++){bpa[k]=0;bca[k]=0;}
+    bondLineGeo.attributes.position.needsUpdate=true;
+    bondLineGeo.attributes.color.needsUpdate=true;
+    bondLineGeo.setDrawRange(0,bi*2);
 
     renderer.render(scene,camera);
   }
