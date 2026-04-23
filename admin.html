@@ -170,6 +170,7 @@ textarea { min-height: 100px; resize: vertical; }
       <a href="#" onclick="showSection('contactReqs')" data-section="contactReqs">Contact Requests</a>
       <a href="#" onclick="showSection('aicontext')" data-section="aicontext">AI Context</a>
       <div class="sidebar-label">Settings</div>
+      <a href="#" onclick="showSection('privacy')" data-section="privacy">Privacy Policy</a>
       <a href="#" onclick="showSection('onboarding')" data-section="onboarding">Onboarding</a>
       <a href="#" onclick="showSection('settings')" data-section="settings">Settings</a>
     </div>
@@ -249,7 +250,7 @@ function showSection(name) {
   const renderers = {
     hero: renderHero, manifesto: renderManifesto, services: renderServices,
     work: renderWork, team: renderTeam, contact: renderContact,
-    clients: renderClients, briefQuestions: renderBriefQuestions, submissions: renderSubmissions, contactReqs: renderContactReqs, aicontext: renderAIContext, onboarding: renderOnboarding, settings: renderSettings
+    clients: renderClients, briefQuestions: renderBriefQuestions, submissions: renderSubmissions, contactReqs: renderContactReqs, aicontext: renderAIContext, privacy: renderPrivacy, onboarding: renderOnboarding, settings: renderSettings
   };
   if (renderers[name]) renderers[name](area);
 }
@@ -384,6 +385,11 @@ function renderTeam(el) {
       ${field('Initials', `team.members.${i}.initials`)}
       ${field('Bio', `team.members.${i}.${editLang}.bio`, 'textarea')}
       ${field('Photo URL', `team.members.${i}.photo`)}
+      <label>Upload Photo</label>
+      <div style="display:flex;gap:1rem;align-items:center">
+        ${m.photo ? `<img src="${m.photo}" style="width:60px;height:60px;object-fit:cover;border:1px solid var(--border)">` : '<div style="width:60px;height:60px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--text2)">No photo</div>'}
+        <input type="file" accept="image/*" onchange="uploadTeamPhoto(${i},this)" style="font-size:.8rem">
+      </div>
     </div>`;
   });
   el.innerHTML = html;
@@ -504,6 +510,7 @@ async function renderSubmissions(el) {
           <div><strong>KPI:</strong> ${s.kpi || '—'}</div>
           <div><strong>Target:</strong> ${s.target || '—'}</div>
         </div>
+        ${s.workflow ? `<details style="margin-top:1rem"><summary style="cursor:pointer;font-size:.8rem;color:var(--accent)">AI Workflow Output</summary><div style="margin-top:.75rem;display:flex;flex-direction:column;gap:.5rem">${(Array.isArray(s.workflow)?s.workflow:[]).map(p=>`<div style="padding:.5rem .75rem;border-left:2px solid var(--accent);font-size:.8rem"><strong>${p.title||''}</strong> — ${p.duration||''}<br><span style="color:var(--text2)">${p.description||''}</span></div>`).join('')}</div></details>` : ''}
       </div>`).join('')}
     `;
   } catch(e) {
@@ -561,6 +568,18 @@ function renderAIContext(el) {
     </div>`;
 }
 
+function renderPrivacy(el) {
+  if (!content.privacy_policy) content.privacy_policy = { en: '', it: '' };
+  el.innerHTML = `
+    <h2>Privacy Policy</h2>
+    <p class="subtitle">HTML content shown when users click the privacy policy link. Write full HTML (h2, p, ul, etc.).</p>
+    ${langTabs("renderPrivacy(document.getElementById('contentArea'))")}
+    <div class="card">
+      <label>Privacy Policy (${editLang.toUpperCase()}) — HTML</label>
+      <textarea style="min-height:400px;font-family:monospace;font-size:.8rem" oninput="content.privacy_policy.${editLang}=this.value">${(content.privacy_policy[editLang] || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+    </div>`;
+}
+
 function renderSettings(el) {
   el.innerHTML = `
     <h2>Settings</h2>
@@ -579,6 +598,32 @@ function renderSettings(el) {
       <input type="password" id="newPass">
       <button class="btn btn-sm" onclick="changePassword()">Update Password</button>
     </div>`;
+}
+
+async function uploadTeamPhoto(memberIndex, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('File too large (max 2MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const dataUrl = e.target.result;
+    try {
+      const res = await fetch('/api/upload-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberIndex, dataUrl })
+      });
+      if (res.ok) {
+        content.team.members[memberIndex].photo = dataUrl;
+        renderTeam(document.getElementById('contentArea'));
+        const toast = document.getElementById('saveToast');
+        toast.textContent = 'Photo uploaded ✓';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      } else { alert('Upload failed'); }
+    } catch(e) { alert('Upload error'); }
+  };
+  reader.readAsDataURL(file);
 }
 
 async function changePassword() {

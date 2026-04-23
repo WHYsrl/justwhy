@@ -60,6 +60,7 @@ async function initDB() {
       sector TEXT,
       goal TEXT,
       why TEXT,
+      message TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
@@ -494,10 +495,10 @@ app.get('/api/submissions', requireAuth, async (req, res) => {
 // --- Contact Requests ---
 app.post('/api/contact-request', chatRateLimit, async (req, res) => {
   try {
-    const { name, email, mode, channel, contact, sector, goal, why } = req.body;
+    const { name, email, mode, channel, contact, sector, goal, why, message } = req.body;
     await pool.query(
-      'INSERT INTO contact_requests (name, email, mode, channel, contact, sector, goal, why) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
-      [name, email, mode, channel, contact, sector, goal, why]
+      'INSERT INTO contact_requests (name, email, mode, channel, contact, sector, goal, why, message) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+      [name, email, mode, channel, contact, sector, goal, why, message]
     );
     res.json({ success: true });
   } catch(e) {
@@ -521,6 +522,28 @@ app.delete('/api/submissions/:id', requireAuth, async (req, res) => {
     res.json({ success: true });
   } catch(e) {
     res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// --- Team photo upload (base64 stored in content) ---
+app.post('/api/upload-photo', requireAuth, express.json({ limit: '5mb' }), async (req, res) => {
+  try {
+    const { memberIndex, dataUrl } = req.body;
+    if (typeof memberIndex !== 'number' || !dataUrl) return res.status(400).json({ error: 'Invalid data' });
+    // Save photo data URL directly into the team member's photo field
+    const { rows } = await pool.query('SELECT data FROM content WHERE id = $1', ['main']);
+    if (!rows.length) return res.status(404).json({ error: 'No content' });
+    const content = rows[0].data;
+    if (content.team?.members?.[memberIndex]) {
+      content.team.members[memberIndex].photo = dataUrl;
+      await pool.query('UPDATE content SET data = $1, updated_at = NOW() WHERE id = $2', [JSON.stringify(content), 'main']);
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ error: 'Member not found' });
+    }
+  } catch(e) {
+    console.error('Upload error:', e);
+    res.status(500).json({ error: 'Upload failed' });
   }
 });
 

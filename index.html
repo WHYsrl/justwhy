@@ -170,6 +170,17 @@ section{padding:10rem 3rem}
 .ctm-success{text-align:center;padding:2rem 0}
 .ctm-success h3{color:var(--ac);margin-bottom:1rem}
 .ctm-success p{color:var(--g4);font-size:.9rem;line-height:1.6}
+/* Privacy overlay */
+#privacyOverlay{position:fixed;inset:0;z-index:4000;background:rgba(5,5,5,.97);display:none;overflow-y:auto;animation:fu .3s forwards}
+#privacyOverlay.open{display:block}
+.priv-wrap{max-width:700px;margin:0 auto;padding:6rem 2rem}
+.priv-wrap h2{font-family:var(--d);font-size:1.5rem;margin-bottom:1.5rem}
+.priv-wrap p,.priv-wrap li{font-size:.85rem;color:var(--g4);line-height:1.7;margin-bottom:1rem}
+.priv-close{position:fixed;top:2rem;right:2rem;background:0;border:1px solid var(--g2);color:var(--g3);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;z-index:4001;transition:all .3s}
+.priv-close:hover{border-color:var(--ac);color:var(--ac)}
+/* General contact modal */
+#genCtModal{position:fixed;inset:0;z-index:3000;background:rgba(5,5,5,.95);display:none;align-items:center;justify-content:center;animation:fu .4s forwards}
+#genCtModal.open{display:flex}
 
 #contact{text-align:center;padding:8rem 3rem}
 .ce{font-family:var(--d);font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;color:var(--wh);text-decoration:none;display:inline-block;margin:1rem 0;transition:all .4s}
@@ -271,7 +282,7 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 
 <section id="team"><div class="rv"><p class="sl" data-i18n="team.label">The team</p><h2 class="st" data-i18n="team.title">25 years of convergence between creativity and technology.</h2></div><div class="tg" id="tGrid"></div></section>
 
-<section id="contact"><div class="rv"><p class="sl" data-i18n="contact.label">Get in touch</p><a href="mailto:info@justwhy.it" class="ce" id="cEmail">info@justwhy.it</a><div class="cm" id="cMeta"><p>WHY srl — Roma, Italia</p><p><a href="https://justwhy.it">justwhy.it</a></p></div></div></section>
+<section id="contact"><div class="rv" style="text-align:center"><p class="sl" data-i18n="contact.label">Get in touch</p><a href="mailto:info@justwhy.it" class="ce" id="cEmail">info@justwhy.it</a><div class="cm" id="cMeta"><p>WHY srl — Roma, Italia</p><p><a href="https://justwhy.it">justwhy.it</a></p></div><div style="margin-top:2rem"><button class="hcta" onclick="openGenCt()" style="border:0;cursor:pointer" data-i18n="contact.cta">Contact us</button></div></div></section>
 
 <footer><span><img src="img/logo-white.png" alt="WHY"> &nbsp; &copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
 
@@ -288,15 +299,15 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 
       <span class="ctm-label" id="ctmModeLabel">Meeting type</span>
       <div class="ctm-options" id="ctmMode">
-        <div class="ctm-opt" onclick="selCtm(this,'ctMode','call')">Video call</div>
-        <div class="ctm-opt" onclick="selCtm(this,'ctMode','meeting')">In-person meeting</div>
+        <div class="ctm-opt" onclick="selCtm(this,'mode','call')">Video call</div>
+        <div class="ctm-opt" onclick="selCtm(this,'mode','meeting')">In-person meeting</div>
       </div>
 
       <span class="ctm-label" id="ctmChannelLabel">Preferred contact method</span>
       <div class="ctm-options" id="ctmChannel">
-        <div class="ctm-opt" onclick="selCtm(this,'ctChannel','email')">Email</div>
-        <div class="ctm-opt" onclick="selCtm(this,'ctChannel','phone')">Phone</div>
-        <div class="ctm-opt" onclick="selCtm(this,'ctChannel','whatsapp')">WhatsApp</div>
+        <div class="ctm-opt" onclick="selCtm(this,'channel','email')">Email</div>
+        <div class="ctm-opt" onclick="selCtm(this,'channel','phone')">Phone</div>
+        <div class="ctm-opt" onclick="selCtm(this,'channel','whatsapp')">WhatsApp</div>
       </div>
 
       <span class="ctm-label" id="ctmContactLabel">Your contact</span>
@@ -304,7 +315,7 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 
       <label class="ctm-privacy">
         <input type="checkbox" id="ctmPrivacy" onchange="checkCtmReady()">
-        <span id="ctmPrivacyText">I agree to the processing of my personal data in accordance with the <a href="#" onclick="event.preventDefault()">Privacy Policy</a>.</span>
+        <span id="ctmPrivacyText">I agree to the processing of my personal data in accordance with the <a href="#" onclick="event.preventDefault();showPrivacy()">Privacy Policy</a>.</span>
       </label>
 
       <button class="ctm-submit" id="ctmSubmit" onclick="submitCt()" disabled>Confirm →</button>
@@ -313,6 +324,38 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
       <h3 id="ctmSuccessTitle">Thank you!</h3>
       <p id="ctmSuccessMsg">We'll reach out soon to schedule your meeting. Looking forward to building something great together.</p>
     </div>
+  </div>
+</div>
+
+<!-- PRIVACY OVERLAY -->
+<div id="privacyOverlay">
+  <button class="priv-close" onclick="document.getElementById('privacyOverlay').classList.remove('open')">&times;</button>
+  <div class="priv-wrap"><div id="privacyContent"><h2>Privacy Policy</h2><p>Loading...</p></div></div>
+</div>
+
+<!-- GENERAL CONTACT MODAL -->
+<div id="genCtModal">
+  <div class="ctm-box">
+    <button class="ctm-close" onclick="closeGenCt()">&times;</button>
+    <div id="genCtForm">
+      <h3 id="genCtTitle">Contact us</h3>
+      <p class="ctm-sub" id="genCtSub">We'd love to hear from you.</p>
+      <div class="bf-form" style="margin:1.5rem 0">
+        <div class="bf-row"><div><label id="genCtNameL">First name</label><input id="genCtName"></div><div><label id="genCtSurnameL">Last name</label><input id="genCtSurname"></div></div>
+        <div><label>Email *</label><input id="genCtEmail" type="email" required></div>
+        <div><label id="genCtPhoneL">Phone (optional)</label><input id="genCtPhone" type="tel"></div>
+        <span class="ctm-label" id="genCtChannelL">Preferred contact method</span>
+        <div class="ctm-options" id="genCtChannel">
+          <div class="ctm-opt" onclick="selGenCt(this,'email')">Email</div>
+          <div class="ctm-opt" onclick="selGenCt(this,'phone')">Phone</div>
+          <div class="ctm-opt" onclick="selGenCt(this,'whatsapp')">WhatsApp</div>
+        </div>
+        <div><label id="genCtMsgL">Message</label><textarea id="genCtMsg" style="min-height:80px"></textarea></div>
+      </div>
+      <label class="ctm-privacy"><input type="checkbox" id="genCtPrivacy" onchange="checkGenCtReady()"><span id="genCtPrivText">I agree to the processing of my personal data in accordance with the <a href="#" onclick="event.preventDefault();showPrivacy()">Privacy Policy</a>.</span></label>
+      <button class="ctm-submit" id="genCtSubmit" onclick="submitGenCt()" disabled>Send →</button>
+    </div>
+    <div id="genCtSuccess" style="display:none" class="ctm-success"><h3 id="genCtSuccTitle">Thank you!</h3><p id="genCtSuccMsg">We'll get back to you shortly.</p></div>
   </div>
 </div>
 
@@ -373,7 +416,7 @@ async function load(){try{const r=await fetch('/api/content');D=await r.json();}
 
 function build(){
   if(!D)return;const l=lang;
-  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?','brief.q3':l==='it'?'Perché?':'Why?','brief.q4':l==='it'?'I dettagli':'The details','brief.name':l==='it'?'Il tuo nome':'Your name','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
+  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','contact.cta':l==='it'?'Contattaci':'Contact us','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?','brief.q3':l==='it'?'Perché?':'Why?','brief.q4':l==='it'?'I dettagli':'The details','brief.name':l==='it'?'Il tuo nome':'Your name','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
   document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(m[k])el.innerHTML=m[k];});
 
   const sv=D.services?.items||[];
@@ -509,8 +552,8 @@ function openCt(){
   document.getElementById('ctmContactLabel').textContent=it?'Il tuo contatto':'Your contact';
   document.getElementById('ctmContact').placeholder=it?'Email o numero di telefono':'Email or phone number';
   document.getElementById('ctmPrivacyText').innerHTML=it
-    ?'Acconsento al trattamento dei miei dati personali ai sensi della <a href="#" onclick="event.preventDefault()">Privacy Policy</a>.'
-    :'I agree to the processing of my personal data in accordance with the <a href="#" onclick="event.preventDefault()">Privacy Policy</a>.';
+    ?'Acconsento al trattamento dei miei dati personali ai sensi della <a href="#" onclick="event.preventDefault();showPrivacy()">Privacy Policy</a>.'
+    :'I agree to the processing of my personal data in accordance with the <a href="#" onclick="event.preventDefault();showPrivacy()">Privacy Policy</a>.';
   document.getElementById('ctmSubmit').textContent=it?'Conferma →':'Confirm →';
   // Mode labels
   const modeOpts=document.querySelectorAll('#ctmMode .ctm-opt');
@@ -565,6 +608,66 @@ async function submitCt(){
   document.getElementById('ctmSuccessMsg').textContent=it
     ?'Ti ricontatteremo presto per fissare il tuo appuntamento. Non vediamo l\'ora di costruire qualcosa di grande insieme.'
     :'We\'ll reach out soon to schedule your meeting. Looking forward to building something great together.';
+}
+
+// PRIVACY
+function showPrivacy(){
+  const ov=document.getElementById('privacyOverlay');
+  const ct=document.getElementById('privacyContent');
+  const pp=D?.privacy_policy;
+  if(pp && pp[lang]){ct.innerHTML=pp[lang];}
+  else{ct.innerHTML=lang==='it'?'<h2>Privacy Policy</h2><p>Informativa sulla privacy non ancora configurata. Contattaci per maggiori informazioni.</p>':'<h2>Privacy Policy</h2><p>Privacy policy not yet configured. Contact us for more information.</p>';}
+  ov.classList.add('open');
+}
+
+// GENERAL CONTACT MODAL
+let genCtChannel=null;
+function openGenCt(){
+  document.getElementById('genCtModal').classList.add('open');
+  document.getElementById('genCtForm').style.display='block';
+  document.getElementById('genCtSuccess').style.display='none';
+  genCtChannel=null;
+  document.querySelectorAll('#genCtChannel .ctm-opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('genCtPrivacy').checked=false;
+  document.getElementById('genCtSubmit').disabled=true;
+  ['genCtName','genCtSurname','genCtEmail','genCtPhone','genCtMsg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const it=lang==='it';
+  document.getElementById('genCtTitle').textContent=it?'Contattaci':'Contact us';
+  document.getElementById('genCtSub').textContent=it?'Ci piacerebbe sentirti.':'We\'d love to hear from you.';
+  document.getElementById('genCtNameL').textContent=it?'Nome':'First name';
+  document.getElementById('genCtSurnameL').textContent=it?'Cognome':'Last name';
+  document.getElementById('genCtPhoneL').textContent=it?'Telefono (opzionale)':'Phone (optional)';
+  document.getElementById('genCtChannelL').textContent=it?'Metodo di contatto preferito':'Preferred contact method';
+  document.getElementById('genCtMsgL').textContent=it?'Messaggio':'Message';
+  document.getElementById('genCtPrivText').innerHTML=it
+    ?'Acconsento al trattamento dei miei dati personali ai sensi della <a href="#" onclick="event.preventDefault();showPrivacy()">Privacy Policy</a>.'
+    :'I agree to the processing of my personal data in accordance with the <a href="#" onclick="event.preventDefault();showPrivacy()">Privacy Policy</a>.';
+  document.getElementById('genCtSubmit').textContent=it?'Invia →':'Send →';
+}
+function closeGenCt(){document.getElementById('genCtModal').classList.remove('open');}
+function selGenCt(el,val){el.parentElement.querySelectorAll('.ctm-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');genCtChannel=val;checkGenCtReady();}
+function checkGenCtReady(){
+  const ok=document.getElementById('genCtEmail').value.trim()&&document.getElementById('genCtPrivacy').checked;
+  document.getElementById('genCtSubmit').disabled=!ok;
+}
+document.getElementById('genCtEmail')?.addEventListener('input',checkGenCtReady);
+
+async function submitGenCt(){
+  try{
+    await fetch('/api/contact-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      name:(document.getElementById('genCtName').value+' '+document.getElementById('genCtSurname').value).trim(),
+      email:document.getElementById('genCtEmail').value,
+      mode:'general',channel:genCtChannel||'email',
+      contact:document.getElementById('genCtPhone').value||document.getElementById('genCtEmail').value,
+      sector:'',goal:'',why:'',
+      message:document.getElementById('genCtMsg').value
+    })});
+  }catch(e){}
+  document.getElementById('genCtForm').style.display='none';
+  const s=document.getElementById('genCtSuccess');s.style.display='block';
+  const it=lang==='it';
+  document.getElementById('genCtSuccTitle').textContent=it?'Grazie!':'Thank you!';
+  document.getElementById('genCtSuccMsg').textContent=it?'Ti ricontatteremo al più presto.':'We\'ll get back to you shortly.';
 }
 
 load();
