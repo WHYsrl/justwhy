@@ -31,15 +31,7 @@ html.lenis,html.lenis body{height:auto}
   z-index:1;
   overflow:hidden;
 }
-/* Each card stacks above the previous */
-.card:nth-child(1){z-index:10}
-.card:nth-child(2){z-index:11}
-.card:nth-child(3){z-index:12}
-.card:nth-child(4){z-index:13}
-.card:nth-child(5){z-index:14}
-.card:nth-child(6){z-index:15}
-.card:nth-child(7){z-index:16}
-.card:nth-child(8){z-index:17}
+/* z-index set inline per card — spacers break nth-child */
 
 /* Card inner — content area with padding */
 .card-inner{
@@ -213,7 +205,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 
 <!-- ====== CARD STACK ====== -->
 
-<div class="card active" id="hero" data-world="hero">
+<div class="card active" id="hero" data-world="hero" style="z-index:10">
   <div class="card-bg"></div>
   <div class="card-inner card-content" style="opacity:1;transform:none">
     <p class="hp" data-i18n="hero.pre">Creative Technology Studio</p>
@@ -225,7 +217,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </div>
 <div class="card-spacer"></div>
 
-<div class="card" id="manifesto" data-world="manifesto">
+<div class="card" id="manifesto" data-world="manifesto" style="z-index:11">
   <div class="card-bg"></div>
   <div class="card-inner card-content">
     <p class="sl" data-i18n="manifesto.label">Manifesto</p>
@@ -234,7 +226,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </div>
 <div class="card-spacer"></div>
 
-<div class="card" id="services" data-world="services">
+<div class="card" id="services" data-world="services" style="z-index:12">
   <div class="card-bg"></div>
   <div class="card-inner card-content">
     <p class="sl" data-i18n="services.label">What we do</p>
@@ -244,7 +236,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </div>
 <div class="card-spacer"></div>
 
-<div class="card" id="work" data-world="work">
+<div class="card" id="work" data-world="work" style="z-index:13">
   <div class="card-bg"></div>
   <div class="card-inner card-content">
     <p class="sl" data-i18n="work.label">Selected Work</p>
@@ -256,7 +248,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </div>
 <div class="card-spacer"></div>
 
-<div class="card" id="team" data-world="team">
+<div class="card" id="team" data-world="team" style="z-index:14">
   <div class="card-bg"></div>
   <div class="card-inner card-content">
     <p class="sl" data-i18n="team.label">The team</p>
@@ -266,7 +258,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </div>
 <div class="card-spacer"></div>
 
-<div class="card" id="brief" data-world="brief">
+<div class="card" id="brief" data-world="brief" style="z-index:15">
   <div class="card-bg"></div>
   <div class="card-inner card-content">
     <div class="bf-inner">
@@ -279,7 +271,7 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </div>
 <div class="card-spacer"></div>
 
-<div class="card" id="contact-card" data-world="contact">
+<div class="card" id="contact-card" data-world="contact" style="z-index:16">
   <div class="card-bg"></div>
   <div class="card-inner card-content">
     <p class="sl">Get in touch</p>
