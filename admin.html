@@ -334,7 +334,7 @@ function renderWork(el) {
   const items = content.work.items || [];
   let html = `
     <h2>Work / Portfolio</h2>
-    <p class="subtitle">Manage case studies. Add image URLs when ready.</p>
+    <p class="subtitle">Manage case studies with descriptions and image galleries.</p>
     ${langTabs("renderWork(document.getElementById('contentArea'))")}
     <div class="card">
       ${field('Section Label', `work.${editLang}.label`)}
@@ -342,13 +342,32 @@ function renderWork(el) {
     </div>`;
 
   items.forEach((item, i) => {
+    // Ensure en/it and gallery exist
+    if (!item.en) item.en = { description: '' };
+    if (!item.it) item.it = { description: '' };
+    if (!item.gallery) item.gallery = [];
+
     html += `<div class="card">
       <h3>${item.client} — ${item.title}</h3>
       ${field('Title', `work.items.${i}.title`)}
       ${field('Client', `work.items.${i}.client`)}
       ${field('Category (EN)', `work.items.${i}.category_en`)}
       ${field('Category (IT)', `work.items.${i}.category_it`)}
-      ${field('Image URL', `work.items.${i}.image`)}
+      ${field('Description (' + editLang.toUpperCase() + ')', `work.items.${i}.${editLang}.description`, 'textarea')}
+      <label>Cover Image</label>
+      <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem">
+        ${item.image ? `<img src="${item.image}" style="width:80px;height:60px;object-fit:cover;border:1px solid var(--border)">` : '<div style="width:80px;height:60px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--text2)">No image</div>'}
+        <input type="file" accept="image/*" onchange="uploadWorkImage(${i},'cover',this)" style="font-size:.8rem">
+      </div>
+      <label>Gallery Images</label>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem" id="workGallery${i}">
+        ${item.gallery.map((img, gi) => `<div style="position:relative;width:80px;height:60px;border:1px solid var(--border)">
+          <img src="${img}" style="width:100%;height:100%;object-fit:cover">
+          <button style="position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border:0;width:18px;height:18px;font-size:.7rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center" onclick="removeGalleryImg(${i},${gi})">✕</button>
+        </div>`).join('')}
+      </div>
+      <input type="file" accept="image/*" multiple onchange="uploadWorkImage(${i},'gallery',this)" style="font-size:.8rem;margin-bottom:1rem">
+      <div style="margin-top:.5rem"><button class="btn btn-sm btn-danger" onclick="removeWorkItem(${i})">Remove project</button></div>
     </div>`;
   });
 
@@ -396,16 +415,23 @@ function renderTeam(el) {
 }
 
 function renderContact(el) {
+  if (!content.contact[editLang]) content.contact[editLang] = { label: '', title: '', cta: '' };
+  if (!content.clients_label) content.clients_label = { en: 'Trusted by', it: 'Ci hanno scelto' };
   el.innerHTML = `
     <h2>Contact</h2>
     <p class="subtitle">Contact section details.</p>
     ${langTabs("renderContact(document.getElementById('contentArea'))")}
     <div class="card">
-      ${field('Label', `contact.${editLang}.label`)}
-      ${field('Title', `contact.${editLang}.title`)}
+      ${field('Section Label', `contact.${editLang}.label`)}
+      ${field('Section Title', `contact.${editLang}.title`)}
+      ${field('CTA Button Text', `contact.${editLang}.cta`)}
       ${field('Email', 'contact.email', 'email')}
       ${field('Company Name', 'contact.company')}
       ${field('Location', 'contact.location')}
+    </div>
+    <div class="card">
+      <h3>Clients Section Label</h3>
+      ${field('Clients Label (' + editLang.toUpperCase() + ')', `clients_label.${editLang}`)}
     </div>`;
 }
 
@@ -469,10 +495,30 @@ function renderBriefQuestions(el) {
       <button class="btn btn-sm btn-outline" onclick="content.brief_questions.${key}.${editLang}.push('New option');renderBriefQuestions(document.getElementById('contentArea'))">+ Add option</button>
     </div>`;
   };
+  // Ensure brief section labels exist
+  if (!content.brief) content.brief = { en: {}, it: {} };
+  if (!content.brief[editLang]) content.brief[editLang] = {};
+  const bfDefaults = editLang === 'it'
+    ? { label:'Inizia un progetto', title:'Costruiamo qualcosa insieme.', q1:'Qual è il tuo mondo?', q2:'Qual è il tuo obiettivo?', q3:'Perché?', q4:'I dettagli', name:'Il tuo nome', desc:'Descrizione del progetto', submit:'Genera workflow →' }
+    : { label:'Start a project', title:"Let's build something together.", q1:"What's your world?", q2:"What's your goal?", q3:'Why?', q4:'The details', name:'Your name', desc:'Project description', submit:'Generate workflow →' };
+  Object.keys(bfDefaults).forEach(k => { if (!content.brief[editLang][k]) content.brief[editLang][k] = bfDefaults[k]; });
+
   el.innerHTML = `
     <h2>Brief Questions</h2>
-    <p class="subtitle">Manage the options shown in each step of the project brief flow. "Other" is added automatically.</p>
+    <p class="subtitle">Manage the brief section labels and options. "Other" is added automatically.</p>
     ${langTabs("renderBriefQuestions(document.getElementById('contentArea'))")}
+    <div class="card">
+      <h3>Brief Section Labels (${editLang.toUpperCase()})</h3>
+      ${field('Section Label', `brief.${editLang}.label`)}
+      ${field('Section Title', `brief.${editLang}.title`)}
+      ${field('Step 1 Question', `brief.${editLang}.q1`)}
+      ${field('Step 2 Question', `brief.${editLang}.q2`)}
+      ${field('Step 3 Question', `brief.${editLang}.q3`)}
+      ${field('Step 4 Title', `brief.${editLang}.q4`)}
+      ${field('Name Label', `brief.${editLang}.name`)}
+      ${field('Description Label', `brief.${editLang}.desc`)}
+      ${field('Submit Button', `brief.${editLang}.submit`)}
+    </div>
     ${renderList('sectors', 'Step 1 — Sectors')}
     ${renderList('goals', 'Step 2 — Goals')}
     ${renderList('whys', 'Step 3 — Why')}
@@ -624,6 +670,46 @@ async function uploadTeamPhoto(memberIndex, input) {
     } catch(e) { alert('Upload error'); }
   };
   reader.readAsDataURL(file);
+}
+
+// Work image uploads
+function uploadWorkImage(itemIndex, type, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  let processed = 0;
+  files.forEach(file => {
+    if (file.size > 3 * 1024 * 1024) { alert('File too large (max 3MB): ' + file.name); processed++; return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      if (type === 'cover') {
+        content.work.items[itemIndex].image = dataUrl;
+      } else {
+        if (!content.work.items[itemIndex].gallery) content.work.items[itemIndex].gallery = [];
+        content.work.items[itemIndex].gallery.push(dataUrl);
+      }
+      processed++;
+      if (processed === files.length) {
+        renderWork(document.getElementById('contentArea'));
+        const toast = document.getElementById('saveToast');
+        toast.textContent = 'Image(s) added — remember to Save All ✓';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeGalleryImg(itemIndex, imgIndex) {
+  content.work.items[itemIndex].gallery.splice(imgIndex, 1);
+  renderWork(document.getElementById('contentArea'));
+}
+
+function removeWorkItem(itemIndex) {
+  if (!confirm('Remove this project?')) return;
+  content.work.items.splice(itemIndex, 1);
+  renderWork(document.getElementById('contentArea'));
 }
 
 async function changePassword() {

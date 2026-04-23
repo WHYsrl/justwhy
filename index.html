@@ -121,6 +121,32 @@ section{padding:10rem 3rem}
 .bf-dots span{width:8px;height:8px;border-radius:50%;background:var(--g2);transition:all .3s}
 .bf-dots span.act{background:var(--ac);width:24px;border-radius:4px}
 
+/* CASE HISTORY OVERLAY */
+#ch-overlay{position:fixed;inset:0;z-index:2000;background:var(--bk);overflow-y:auto;display:none;animation:fu .6s forwards}
+#ch-overlay.open{display:block}
+.ch-close{position:fixed;top:2rem;right:2rem;background:0;border:1px solid var(--g2);color:var(--g3);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:all .3s;z-index:2001}
+.ch-close:hover{border-color:var(--ac);color:var(--ac)}
+.ch-hero{min-height:50vh;display:flex;align-items:flex-end;padding:6rem 3rem 3rem;position:relative;overflow:hidden}
+.ch-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.3)}
+.ch-hero-content{position:relative;z-index:1;max-width:800px}
+.ch-hero-cat{font-size:.7rem;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:var(--ac);margin-bottom:.8rem}
+.ch-hero-title{font-family:var(--d);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1;letter-spacing:-.03em;margin-bottom:.5rem}
+.ch-hero-client{font-size:1rem;color:var(--g4);font-weight:400}
+.ch-body{max-width:800px;margin:0 auto;padding:4rem 3rem}
+.ch-desc{font-size:1.05rem;line-height:1.8;color:var(--g4);margin-bottom:3rem}
+.ch-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:3rem}
+.ch-tags span{font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .7rem;border:1px solid var(--g2);color:var(--g3)}
+.ch-gallery{display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:3rem}
+.ch-gallery img{width:100%;display:block;background:var(--g1)}
+.ch-gallery.multi{grid-template-columns:1fr 1fr}
+.ch-back{display:inline-flex;align-items:center;gap:.5rem;color:var(--g3);font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:color .3s;background:0;border:0;font-family:var(--f);padding:0}
+.ch-back:hover{color:var(--ac)}
+@media(max-width:768px){.ch-hero{min-height:40vh;padding:5rem 1.5rem 2rem}.ch-body{padding:2.5rem 1.5rem}.ch-gallery.multi{grid-template-columns:1fr}}
+
+/* BRIEF CLOSE BTN */
+.bf-close{position:absolute;top:1rem;right:1rem;background:0;border:1px solid var(--g2);color:var(--g3);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;transition:all .3s;z-index:10}
+.bf-close:hover{border-color:var(--ac);color:var(--ac)}
+
 /* WORKFLOW OVERLAY */
 #wf-overlay{position:fixed;inset:0;z-index:2000;background:var(--bk);overflow-y:auto;display:none;animation:fu .6s forwards}
 #wf-overlay.open{display:block}
@@ -237,7 +263,8 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 <section id="manifesto"><div class="rv"><p class="sl" data-i18n="manifesto.label">Manifesto</p><p class="mt" data-i18n="manifesto.text">Trends come and go. The metaverse, NFTs, the next big thing — they rise and fade. We don't chase technology. We ask <strong>why</strong>. Because when you start from the right question, you build systems that evolve, communicate, and last — no matter what comes next.</p></div></section>
 
 <!-- BRIEF — right after intro -->
-<section id="brief">
+<section id="brief" style="position:relative">
+  <button class="bf-close" onclick="closeBrief()" title="Close">&times;</button>
   <div class="bf-header rv"><p class="sl" data-i18n="brief.label">Start a project</p><h2 class="st" data-i18n="brief.title">Let's build something together.</h2></div>
   <div class="bf-track" id="bfTrack">
     <div class="bf-panel" id="bfP0"><div class="bf-panel-inner">
@@ -285,6 +312,18 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 <section id="contact"><div class="rv" style="text-align:center"><p class="sl" data-i18n="contact.label">Get in touch</p><a href="mailto:info@justwhy.it" class="ce" id="cEmail">info@justwhy.it</a><div class="cm" id="cMeta"><p>WHY srl — Roma, Italia</p><p><a href="https://justwhy.it">justwhy.it</a></p></div><div style="margin-top:2rem"><button class="hcta" onclick="openGenCt()" style="border:0;cursor:pointer" data-i18n="contact.cta">Contact us</button></div></div></section>
 
 <footer><span><img src="img/logo-white.png" alt="WHY"> &nbsp; &copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
+
+<!-- CASE HISTORY OVERLAY -->
+<div id="ch-overlay">
+  <button class="ch-close" onclick="closeCh()">&times;</button>
+  <div class="ch-hero"><div class="ch-hero-bg" id="chHeroBg"></div><div class="ch-hero-content"><p class="ch-hero-cat" id="chCat"></p><h1 class="ch-hero-title" id="chTitle"></h1><p class="ch-hero-client" id="chClient"></p></div></div>
+  <div class="ch-body">
+    <div class="ch-tags" id="chTags"></div>
+    <p class="ch-desc" id="chDesc"></p>
+    <div class="ch-gallery" id="chGallery"></div>
+    <button class="ch-back" onclick="closeCh()">← <span data-i18n="ch.back">Back to work</span></button>
+  </div>
+</div>
 
 <!-- WORKFLOW OVERLAY -->
 <div id="wf-overlay"><button class="wf-close" onclick="closeWf()">&times;</button><div class="wf-wrap"><div class="wf-wrap-header"><img src="img/logo-white.png" alt="WHY" class="wf-logo"><p class="sl">Your workflow</p><h2 class="st" id="wfTitle">Here's how we'd build it together.</h2></div><div id="wfContent"></div><div style="text-align:center;margin-top:3rem;max-width:700px;margin-left:auto;margin-right:auto" id="wfCta"></div></div></div>
@@ -416,14 +455,15 @@ async function load(){try{const r=await fetch('/api/content');D=await r.json();}
 
 function build(){
   if(!D)return;const l=lang;
-  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','contact.cta':l==='it'?'Contattaci':'Contact us','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?','brief.q3':l==='it'?'Perché?':'Why?','brief.q4':l==='it'?'I dettagli':'The details','brief.name':l==='it'?'Il tuo nome':'Your name','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
+  const bfCms=D.brief||{};const cl=D.clients_label||{};const ct=D.contact||{};
+  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':cl[l]||(l==='it'?'Ci hanno scelto':'Trusted by'),'team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':ct[l]?.label||(l==='it'?'Contatti':'Get in touch'),'contact.cta':ct[l]?.cta||(l==='it'?'Contattaci':'Contact us'),'brief.label':bfCms[l]?.label||(l==='it'?'Inizia un progetto':'Start a project'),'brief.title':bfCms[l]?.title||(l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.'),'brief.q1':bfCms[l]?.q1||(l==='it'?'Qual è il tuo mondo?':'What\'s your world?'),'brief.q2':bfCms[l]?.q2||(l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?'),'brief.q3':bfCms[l]?.q3||(l==='it'?'Perché?':'Why?'),'brief.q4':bfCms[l]?.q4||(l==='it'?'I dettagli':'The details'),'brief.name':bfCms[l]?.name||(l==='it'?'Il tuo nome':'Your name'),'brief.desc':bfCms[l]?.desc||(l==='it'?'Descrizione del progetto':'Project description'),'brief.submit':bfCms[l]?.submit||(l==='it'?'Genera workflow →':'Generate workflow →'),'nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':bfCms[l]?.label||(l==='it'?'Inizia un progetto':'Start a project')};
   document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(m[k])el.innerHTML=m[k];});
 
   const sv=D.services?.items||[];
   document.getElementById('sGrid').innerHTML=sv.map(s=>`<div class="sc rv"><div class="si2">${IC[s.icon]||IC.cube}</div><h3>${s[l].title}</h3><p>${s[l].desc}</p><div class="stg">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
 
   const wk=D.work?.items||[];const ck=l==='it'?'category_it':'category_en';
-  document.getElementById('wGrid').innerHTML=wk.map(w=>{const bg=w.image?`url(${w.image})`:`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;return `<div class="wi rv"><div class="wib" style="background:${bg};background-size:cover;background-position:center"></div><div class="wio"><span class="wic">${w[ck]}</span><h3 class="wit">${w.title}</h3><span class="wicl">${w.client}</span></div></div>`;}).join('');
+  document.getElementById('wGrid').innerHTML=wk.map((w,wi)=>{const bg=w.image?`url(${w.image})`:`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;return `<div class="wi rv" onclick="openCh(${wi})"><div class="wib" style="background:${bg};background-size:cover;background-position:center"></div><div class="wio"><span class="wic">${w[ck]}</span><h3 class="wit">${w.title}</h3><span class="wicl">${w.client}</span></div></div>`;}).join('');
 
   document.getElementById('cList').innerHTML=(D.clients||[]).map(c=>`<span>${c}</span>`).join('');
   document.getElementById('tGrid').innerHTML=(D.team?.members||[]).map(m=>`<div class="tm rv"><div class="tp">${m.photo?`<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">`:`<span class="tpl">${m.initials}</span>`}</div><h3>${m.name}</h3><p class="rl">${m.role}</p><p class="bio">${m[l].bio}</p></div>`).join('');
@@ -520,6 +560,43 @@ async function bfSubmit(){
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }
 function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
+
+// BRIEF CLOSE
+function closeBrief(){
+  const next=document.getElementById('services');
+  if(next){const navH=document.getElementById('nav').offsetHeight;window.scrollTo({top:next.getBoundingClientRect().top+window.scrollY-navH,behavior:'smooth'});}
+}
+
+// CASE HISTORY
+function openCh(idx){
+  const w=D?.work?.items?.[idx];if(!w)return;
+  const l=lang;const ck=l==='it'?'category_it':'category_en';
+  document.getElementById('chCat').textContent=w[ck]||'';
+  document.getElementById('chTitle').textContent=w.title||'';
+  document.getElementById('chClient').textContent=w.client||'';
+  const desc=w[l]?.description||w.en?.description||'';
+  document.getElementById('chDesc').textContent=desc;
+  // Hero bg
+  const heroBg=document.getElementById('chHeroBg');
+  if(w.image){heroBg.style.background=`url(${w.image}) center/cover`;}
+  else{heroBg.style.background=`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;}
+  heroBg.style.filter='brightness(.3)';
+  // Tags
+  const svc=D.services?.items||[];
+  const tagLabels=w.tags.map(t=>{const s=svc.find(sv=>sv.id===t);return s?s[l]?.title||s.en?.title||t:t;});
+  document.getElementById('chTags').innerHTML=tagLabels.map(t=>`<span>${t}</span>`).join('');
+  // Gallery
+  const gallery=w.gallery||[];
+  const gEl=document.getElementById('chGallery');
+  if(gallery.length){gEl.className='ch-gallery'+(gallery.length>1?' multi':'');gEl.innerHTML=gallery.map(img=>`<img src="${img}" alt="${w.title}">`).join('');}
+  else{gEl.innerHTML='';}
+  // Back button i18n
+  const backSpan=document.querySelector('#ch-overlay [data-i18n="ch.back"]');
+  if(backSpan)backSpan.textContent=l==='it'?'Torna ai lavori':'Back to work';
+  document.getElementById('ch-overlay').classList.add('open');
+  document.getElementById('ch-overlay').scrollTop=0;
+}
+function closeCh(){document.getElementById('ch-overlay').classList.remove('open');}
 
 function toggleLang(){lang=lang==='en'?'it':'en';document.documentElement.lang=lang;document.getElementById('lsB').textContent=lang==='en'?'IT':'EN';if(D)build();document.getElementById('chW').textContent=lang==='it'?'Ciao! Chiedimi quello che vuoi su WHY.':'Hi! Ask me anything about WHY.';}
 

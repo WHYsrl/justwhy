@@ -141,7 +141,10 @@
         "title": "Virtual Showroom",
         "client": "Bulgari",
         "tags": ["xr", "luxury"],
-        "gradient": ["#1a1a2e", "#16213e", "#0f3460"]
+        "gradient": ["#1a1a2e", "#16213e", "#0f3460"],
+        "en": { "description": "An immersive virtual showroom experience for Bulgari, blending luxury craftsmanship with cutting-edge XR technology. Visitors explore collections in a photorealistic 3D environment with spatial audio and interactive product discovery." },
+        "it": { "description": "Un'esperienza di showroom virtuale immersivo per Bulgari, che fonde l'artigianato del lusso con la tecnologia XR all'avanguardia. I visitatori esplorano le collezioni in un ambiente 3D fotorealistico con audio spaziale e scoperta interattiva dei prodotti." },
+        "gallery": []
       },
       {
         "id": "webuild",
@@ -150,7 +153,10 @@
         "title": "Digital Twin",
         "client": "Webuild",
         "tags": ["rt3d", "architecture"],
-        "gradient": ["#2d1b2e", "#1a1a2e", "#0d1b2a"]
+        "gradient": ["#2d1b2e", "#1a1a2e", "#0d1b2a"],
+        "en": { "description": "A real-time digital twin of major infrastructure projects for Webuild. Interactive 3D visualization of construction progress, enabling stakeholders to monitor, analyze, and communicate project milestones with cinematic-quality rendering." },
+        "it": { "description": "Un digital twin in tempo reale dei principali progetti infrastrutturali per Webuild. Visualizzazione 3D interattiva dell'avanzamento dei lavori, che permette agli stakeholder di monitorare, analizzare e comunicare le milestone di progetto con rendering di qualità cinematografica." },
+        "gallery": []
       },
       {
         "id": "dg",
@@ -159,7 +165,10 @@
         "title": "Interactive Retail",
         "client": "Dolce&Gabbana",
         "tags": ["phygital", "luxury"],
-        "gradient": ["#1b2d1b", "#1a2e1a", "#0d2a0d"]
+        "gradient": ["#1b2d1b", "#1a2e1a", "#0d2a0d"],
+        "en": { "description": "An IoT-driven phygital retail experience for Dolce&Gabbana flagship stores. Sensor-based installations that respond to customer presence, creating personalized digital narratives around products and collections." },
+        "it": { "description": "Un'esperienza retail phygital IoT-driven per i flagship store di Dolce&Gabbana. Installazioni basate su sensori che rispondono alla presenza del cliente, creando narrative digitali personalizzate attorno a prodotti e collezioni." },
+        "gallery": []
       },
       {
         "id": "fremantle",
@@ -168,7 +177,10 @@
         "title": "Virtual Production",
         "client": "Fremantle",
         "tags": ["video", "entertainment"],
-        "gradient": ["#2e2d1b", "#2e1a1a", "#2a0d0d"]
+        "gradient": ["#2e2d1b", "#2e1a1a", "#2a0d0d"],
+        "en": { "description": "Virtual production pipeline for Fremantle entertainment productions. LED wall environments, real-time camera tracking, and compositing workflows that merge physical talent with fully digital worlds." },
+        "it": { "description": "Pipeline di virtual production per le produzioni di intrattenimento Fremantle. Ambienti LED wall, camera tracking in tempo reale e workflow di compositing che fondono talento fisico con mondi completamente digitali." },
+        "gallery": []
       },
       {
         "id": "fastweb",
@@ -177,7 +189,10 @@
         "title": "Branded Game",
         "client": "Fastweb",
         "tags": ["games", "tech"],
-        "gradient": ["#0d1b2a", "#1b2d2d", "#1a2e2e"]
+        "gradient": ["#0d1b2a", "#1b2d2d", "#1a2e2e"],
+        "en": { "description": "A mobile-first branded game for Fastweb designed to drive engagement and brand awareness. Browser-based HTML5 game with gamification mechanics, leaderboards, and measurable conversion funnels." },
+        "it": { "description": "Un gioco brandizzato mobile-first per Fastweb progettato per aumentare engagement e brand awareness. Gioco HTML5 browser-based con meccaniche di gamification, classifiche e funnel di conversione misurabili." },
+        "gallery": []
       },
       {
         "id": "tedx",
@@ -186,7 +201,10 @@
         "title": "Generative Experience",
         "client": "TEDxRoma",
         "tags": ["ai", "entertainment"],
-        "gradient": ["#1a1a1a", "#2a2a2a", "#1a1a1a"]
+        "gradient": ["#1a1a1a", "#2a2a2a", "#1a1a1a"],
+        "en": { "description": "A generative AI-powered experience for TEDxRoma. Real-time content generation responding to speaker themes, creating unique visual narratives that evolve throughout the event and engage the audience beyond the stage." },
+        "it": { "description": "Un'esperienza generativa AI-powered per TEDxRoma. Generazione di contenuti in tempo reale che risponde ai temi dei relatori, creando narrative visive uniche che evolvono durante l'evento e coinvolgono il pubblico oltre il palco." },
+        "gallery": []
       }
     ]
   },
@@ -238,16 +256,46 @@
   "contact": {
     "en": {
       "label": "Get in touch",
-      "title": "Let's build something worth asking why."
+      "title": "Let's build something worth asking why.",
+      "cta": "Contact us"
     },
     "it": {
       "label": "Contatti",
-      "title": "Costruiamo qualcosa per cui vale la pena chiedersi perché."
+      "title": "Costruiamo qualcosa per cui vale la pena chiedersi perché.",
+      "cta": "Contattaci"
     },
     "email": "info@justwhy.it",
     "company": "WHY srl",
     "location": "Roma, Italia",
     "website": "justwhy.it"
+  },
+  "clients_label": {
+    "en": "Trusted by",
+    "it": "Ci hanno scelto"
+  },
+  "brief": {
+    "en": {
+      "label": "Start a project",
+      "title": "Let's build something together.",
+      "q1": "What's your world?",
+      "q2": "What's your goal?",
+      "q3": "Why?",
+      "q4": "The details",
+      "name": "Your name",
+      "desc": "Project description",
+      "submit": "Generate workflow →"
+    },
+    "it": {
+      "label": "Inizia un progetto",
+      "title": "Costruiamo qualcosa insieme.",
+      "q1": "Qual è il tuo mondo?",
+      "q2": "Qual è il tuo obiettivo?",
+      "q3": "Perché?",
+      "q4": "I dettagli",
+      "name": "Il tuo nome",
+      "desc": "Descrizione del progetto",
+      "submit": "Genera workflow →"
+    }
   },
   "onboarding": {
     "en": {
