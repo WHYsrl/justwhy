@@ -285,7 +285,7 @@ app.post('/api/chat', chatRateLimit, async (req, res) => {
         model: 'gpt-5.4-mini',
         messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-10)],
         stream: true,
-        max_tokens: 500,
+        max_completion_tokens: 500,
         temperature: 0.7,
       }),
     });
@@ -376,7 +376,7 @@ The headline should be max 6 words, bold, no punctuation. The subtitle max 20 wo
       body: JSON.stringify({
         model: 'gpt-5.4-mini',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 100,
+        max_completion_tokens: 100,
         temperature: 0.8,
       }),
     });
@@ -397,10 +397,25 @@ The headline should be max 6 words, bold, no punctuation. The subtitle max 20 wo
   }
 });
 
-// --- Workflow Generation (GPT-5.4 full) ---
+// --- Workflow Generation (GPT-5.4 full, with fallback) ---
+function generateFallbackWorkflow(sector, service, lang) {
+  const isIt = lang === 'it';
+  const svc = service || '3D Real Time';
+  return [
+    { id: 1, title: isIt ? 'Discovery & Analisi' : 'Discovery & Analysis', duration: isIt ? '1 settimana' : '1 week', description: isIt ? `Analisi del brand, del settore ${sector || ''} e degli obiettivi. Benchmark competitivo e definizione KPI.` : `Brand analysis, ${sector || ''} sector research and goal definition. Competitive benchmark and KPI setup.`, deliverables: ['Brief Document', 'Benchmark Report'], tools: ['Miro', 'Figma'] },
+    { id: 2, title: isIt ? 'Concept & Design' : 'Concept & Design', duration: isIt ? '2 settimane' : '2 weeks', description: isIt ? `Ideazione creativa e progettazione UX/UI per la soluzione ${svc}.` : `Creative ideation and UX/UI design for the ${svc} solution.`, deliverables: ['Moodboard', 'Wireframes', 'Design System'], tools: ['Figma', 'Blender', 'Midjourney'] },
+    { id: 3, title: isIt ? 'Sviluppo & Produzione' : 'Development & Production', duration: isIt ? '4-6 settimane' : '4-6 weeks', description: isIt ? `Sviluppo tecnico, produzione contenuti 3D/video, integrazione sistemi.` : `Technical development, 3D/video content production, system integration.`, deliverables: ['Alpha Build', 'Asset Library', 'Technical Docs'], tools: ['Unreal Engine 5', 'Three.js', 'Python'] },
+    { id: 4, title: isIt ? 'Testing & Ottimizzazione' : 'Testing & Optimization', duration: isIt ? '1 settimana' : '1 week', description: isIt ? `QA, test di performance, ottimizzazione cross-device e accessibilità.` : `QA, performance testing, cross-device optimization and accessibility.`, deliverables: ['QA Report', 'Performance Audit'], tools: ['BrowserStack', 'Lighthouse'] },
+    { id: 5, title: isIt ? 'Launch & Supporto' : 'Launch & Support', duration: isIt ? '1 settimana + ongoing' : '1 week + ongoing', description: isIt ? `Deployment, monitoraggio, formazione e supporto post-lancio.` : `Deployment, monitoring, training and post-launch support.`, deliverables: ['Launch Checklist', 'Analytics Dashboard', 'Training Session'], tools: ['Render', 'Google Analytics', 'Hotjar'] },
+  ];
+}
+
 app.post('/api/workflow', chatRateLimit, async (req, res) => {
+  const { sector, service, company, website, description, lang } = req.body;
+
   if (!OPENAI_KEY) {
-    return res.status(503).json({ error: 'AI not configured' });
+    // Fallback: generate a smart static workflow
+    return res.json({ workflow: generateFallbackWorkflow(sector, service, lang) });
   }
 
   try {
@@ -435,14 +450,14 @@ Respond ONLY with the JSON array, no markdown, no explanation.`;
       body: JSON.stringify({
         model: 'gpt-5.4',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000,
+        max_completion_tokens: 1000,
         temperature: 0.7,
       }),
     });
 
     if (!openaiRes.ok) {
       console.error('OpenAI workflow error:', await openaiRes.text());
-      return res.status(502).json({ error: 'AI service error' });
+      return res.json({ workflow: generateFallbackWorkflow(sector, service, lang) });
     }
 
     const data = await openaiRes.json();
