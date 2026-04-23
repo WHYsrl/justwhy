@@ -88,11 +88,11 @@ section{padding:10rem 3rem}
 .tm .bio{font-size:.75rem;line-height:1.5;color:var(--g3)}
 
 /* ====== BRIEF — snap + horizontal ====== */
-#brief{border-bottom:1px solid var(--g2);padding:6rem 0;overflow:hidden}
-.bf-header{padding:0 3rem;margin-bottom:3rem}
+#brief{border-bottom:1px solid var(--g2);padding:4rem 0 3rem;overflow:hidden}
+.bf-header{padding:0 3rem;margin-bottom:0}
 .bf-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:0}
 .bf-track::-webkit-scrollbar{display:none}
-.bf-panel{flex:0 0 100vw;min-height:55vh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:2rem 3rem}
+.bf-panel{flex:0 0 100vw;scroll-snap-align:start;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem 3rem}
 .bf-panel-inner{max-width:600px;width:100%;text-align:center}
 .bf-cards{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin:2rem 0}
 .bf-card{padding:.8rem 1.2rem;border:1px solid var(--g2);color:var(--g4);cursor:pointer;font-size:.85rem;font-weight:500;transition:all .3s;font-family:var(--f)}
@@ -225,17 +225,10 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 
 <section id="manifesto"><div class="rv"><p class="sl" data-i18n="manifesto.label">Manifesto</p><p class="mt" data-i18n="manifesto.text">Trends come and go. The metaverse, NFTs, the next big thing — they rise and fade. We don't chase technology. We ask <strong>why</strong>. Because when you start from the right question, you build systems that evolve, communicate, and last — no matter what comes next.</p></div></section>
 
-<section id="services"><div class="rv"><p class="sl" data-i18n="services.label">What we do</p><h2 class="st" data-i18n="services.title">Systems that communicate, evolve, engage.</h2></div><div class="sg" id="sGrid"></div></section>
-
-<section id="work"><div class="rv"><p class="sl" data-i18n="work.label">Selected Work</p><h2 class="st" data-i18n="work.title">Case studies</h2></div><div class="wg" id="wGrid"></div><p class="csl" data-i18n="clients.label">Trusted by</p><div class="clist" id="cList"></div></section>
-
-<section id="team"><div class="rv"><p class="sl" data-i18n="team.label">The team</p><h2 class="st" data-i18n="team.title">25 years of convergence between creativity and technology.</h2></div><div class="tg" id="tGrid"></div></section>
-
-<!-- BRIEF — snapped + horizontal -->
+<!-- BRIEF — right after intro -->
 <section id="brief">
   <div class="bf-header rv"><p class="sl" data-i18n="brief.label">Start a project</p><h2 class="st" data-i18n="brief.title">Let's build something together.</h2></div>
   <div class="bf-track" id="bfTrack">
-    <!-- P0: What's your world? -->
     <div class="bf-panel" id="bfP0"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q1">What's your world?</h3>
       <div class="bf-cards" id="bfSector"></div>
@@ -243,7 +236,6 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
       <button class="bf-btn" id="bfN0" onclick="bfScroll(1)" disabled>Next →</button>
       <div class="bf-dots"><span class="act"></span><span></span><span></span><span></span></div>
     </div></div>
-    <!-- P1: What's your goal? -->
     <div class="bf-panel" id="bfP1"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q2">What's your goal?</h3>
       <div class="bf-cards" id="bfGoal"></div>
@@ -251,7 +243,6 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
       <div><button class="bf-back" onclick="bfScroll(0)">←</button><button class="bf-btn" id="bfN1" onclick="bfScroll(2)" disabled>Next →</button></div>
       <div class="bf-dots"><span></span><span class="act"></span><span></span><span></span></div>
     </div></div>
-    <!-- P2: Why? -->
     <div class="bf-panel" id="bfP2"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q3">Why?</h3>
       <div class="bf-cards" id="bfWhy"></div>
@@ -259,41 +250,26 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
       <div><button class="bf-back" onclick="bfScroll(1)">←</button><button class="bf-btn" id="bfN2" onclick="bfScroll(3)" disabled>Next →</button></div>
       <div class="bf-dots"><span></span><span></span><span class="act"></span><span></span></div>
     </div></div>
-    <!-- P3: Brief form -->
     <div class="bf-panel" id="bfP3"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q4">The details</h3>
       <div class="bf-form">
-        <div class="bf-row">
-          <div><label data-i18n="brief.name">Your name</label><input id="bfName" placeholder="Name Surname"></div>
-          <div><label>Email</label><input id="bfEmail" type="email" placeholder="you@company.com"></div>
-        </div>
-        <div class="bf-row">
-          <div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div>
-          <div><label>Website</label><input id="bfUrl" placeholder="https://"></div>
-        </div>
+        <div class="bf-row"><div><label data-i18n="brief.name">Your name</label><input id="bfName" placeholder="Name Surname"></div><div><label>Email</label><input id="bfEmail" type="email" placeholder="you@company.com"></div></div>
+        <div class="bf-row"><div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div><div><label>Website</label><input id="bfUrl" placeholder="https://"></div></div>
         <div><label data-i18n="brief.desc">Project description</label><textarea id="bfDesc" placeholder="What do you want to build?"></textarea></div>
-        <div class="bf-row">
-          <div><label>KPI</label><input id="bfKpi" placeholder="e.g. engagement, conversions, awareness"></div>
-          <div><label>Target</label><input id="bfTarget" placeholder="e.g. Gen Z, luxury consumers, B2B"></div>
-        </div>
-        <div><label>Budget</label>
-          <select id="bfBudget">
-            <option value="" disabled selected>Select budget range</option>
-            <option value="5K-10K">€ 5.000 – 10.000</option>
-            <option value="10K-25K">€ 10.000 – 25.000</option>
-            <option value="25K-50K">€ 25.000 – 50.000</option>
-            <option value="50K-100K">€ 50.000 – 100.000</option>
-            <option value="100K-250K">€ 100.000 – 250.000</option>
-            <option value="250K-500K">€ 250.000 – 500.000</option>
-            <option value="500K+">€ 500.000+</option>
-          </select>
-        </div>
+        <div class="bf-row"><div><label>KPI</label><input id="bfKpi" placeholder="e.g. engagement, conversions, awareness"></div><div><label>Target</label><input id="bfTarget" placeholder="e.g. Gen Z, luxury consumers, B2B"></div></div>
+        <div><label>Budget</label><select id="bfBudget"><option value="" disabled selected>Select budget range</option><option value="5K-10K">€ 5.000 – 10.000</option><option value="10K-25K">€ 10.000 – 25.000</option><option value="25K-50K">€ 25.000 – 50.000</option><option value="50K-100K">€ 50.000 – 100.000</option><option value="100K-250K">€ 100.000 – 250.000</option><option value="250K-500K">€ 250.000 – 500.000</option><option value="500K+">€ 500.000+</option></select></div>
       </div>
       <div><button class="bf-back" onclick="bfScroll(2)">←</button><button class="bf-btn" onclick="bfSubmit()" data-i18n="brief.submit">Generate workflow →</button></div>
       <div class="bf-dots"><span></span><span></span><span></span><span class="act"></span></div>
     </div></div>
   </div>
 </section>
+
+<section id="services"><div class="rv"><p class="sl" data-i18n="services.label">What we do</p><h2 class="st" data-i18n="services.title">Systems that communicate, evolve, engage.</h2></div><div class="sg" id="sGrid"></div></section>
+
+<section id="work"><div class="rv"><p class="sl" data-i18n="work.label">Selected Work</p><h2 class="st" data-i18n="work.title">Case studies</h2></div><div class="wg" id="wGrid"></div><p class="csl" data-i18n="clients.label">Trusted by</p><div class="clist" id="cList"></div></section>
+
+<section id="team"><div class="rv"><p class="sl" data-i18n="team.label">The team</p><h2 class="st" data-i18n="team.title">25 years of convergence between creativity and technology.</h2></div><div class="tg" id="tGrid"></div></section>
 
 <section id="contact"><div class="rv"><p class="sl" data-i18n="contact.label">Get in touch</p><a href="mailto:info@justwhy.it" class="ce" id="cEmail">info@justwhy.it</a><div class="cm" id="cMeta"><p>WHY srl — Roma, Italia</p><p><a href="https://justwhy.it">justwhy.it</a></p></div></div></section>
 
