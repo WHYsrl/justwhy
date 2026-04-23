@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHY — Ideas into Systems</title>
+<meta name="description" content="Why transforms ideas into dynamic, evolutionary communication systems.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#0a0a0a;--white:#f0f0f0;--g1:#1a1a1a;--g2:#2a2a2a;--g3:#888;
+  --accent:#c8ff00;--accent-dim:rgba(200,255,0,0.12);
+  --font:'Inter',-apple-system,sans-serif;--display:'Space Grotesk',sans-serif;
+}
+html{background:var(--black);color:var(--white);font-family:var(--font);overflow-x:hidden}
+body{background:var(--black);overflow-x:hidden}
+
+/* THREE.JS CANVAS — fixed bg */
+#three-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#main-content{position:relative;z-index:1}
+
+/* ====== ONBOARDING ====== */
+#onboarding{position:fixed;inset:0;z-index:9999;background:rgba(10,10,10,0.97);display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity 0.8s,transform 0.8s}
+#onboarding.exit{opacity:0;transform:scale(1.05);pointer-events:none}
+.ob-container{text-align:center;max-width:600px;padding:2rem;width:100%}
+.ob-step{display:none;animation:obIn 0.5s forwards}
+.ob-step.active{display:block}
+@keyframes obIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.ob-welcome{font-family:var(--display);font-size:clamp(1.2rem,3vw,1.8rem);font-weight:400;color:var(--g3);margin-bottom:0.5rem}
+.ob-question{font-family:var(--display);font-size:clamp(1.8rem,5vw,3rem);font-weight:700;margin-bottom:2.5rem;letter-spacing:-0.02em}
+.ob-options{display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem}
+.ob-option{display:flex;align-items:center;gap:1rem;background:transparent;border:1px solid var(--g2);color:var(--white);padding:1.1rem 1.5rem;cursor:pointer;font-family:var(--font);font-size:1rem;font-weight:500;transition:all 0.3s;text-align:left}
+.ob-option:hover{border-color:var(--accent);background:var(--accent-dim)}
+.ob-option.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.ob-option .ob-icon{font-size:1.3rem;width:2rem;text-align:center;opacity:0.7}
+.ob-option.selected .ob-icon{opacity:1}
+.ob-nav{display:flex;justify-content:space-between;align-items:center;margin-top:2rem}
+.ob-skip{background:none;border:none;color:var(--g3);font-size:0.8rem;font-weight:500;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;font-family:var(--font);transition:color 0.3s}
+.ob-skip:hover{color:var(--white)}
+.ob-next{background:var(--accent);color:var(--black);border:none;padding:0.85rem 2rem;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;font-family:var(--font);transition:all 0.3s;opacity:0.3;pointer-events:none}
+.ob-next.enabled{opacity:1;pointer-events:all}
+.ob-next:hover{filter:brightness(1.1)}
+.ob-dots{display:flex;gap:0.5rem;justify-content:center;margin-top:2rem}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--g2);transition:all 0.3s}
+.ob-dot.active{background:var(--accent);width:20px;border-radius:3px}
+.ob-lang{position:absolute;top:2rem;right:2rem;background:none;border:1px solid var(--g2);color:var(--g3);padding:0.4rem 0.8rem;font-size:0.75rem;font-weight:600;letter-spacing:0.1em;cursor:pointer;font-family:var(--font);transition:all 0.3s}
+.ob-lang:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ====== NAV ====== */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all 0.4s;transform:translateY(-100%);opacity:0}
+nav.visible{transform:translateY(0);opacity:1}
+nav.scrolled{background:rgba(10,10,10,0.85);backdrop-filter:blur(20px)}
+.nav-logo{font-family:var(--display);font-size:1.5rem;font-weight:700;letter-spacing:0.15em;color:var(--white);text-decoration:none}
+.nav-links{display:flex;gap:2.5rem;align-items:center;list-style:none}
+.nav-links a{color:var(--g3);text-decoration:none;font-size:0.85rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.3s}
+.nav-links a:hover{color:var(--accent)}
+.lang-switch{background:none;border:1px solid var(--g3);color:var(--g3);padding:0.35rem 0.75rem;font-size:0.75rem;font-weight:600;letter-spacing:0.1em;cursor:pointer;border-radius:2px;transition:all 0.3s;font-family:var(--font)}
+.lang-switch:hover{border-color:var(--accent);color:var(--accent)}
+.mob-btn{display:none;background:none;border:none;cursor:pointer;width:30px;height:20px;position:relative;z-index:1001}
+.mob-btn span{display:block;width:100%;height:2px;background:var(--white);position:absolute;left:0;transition:all 0.3s}
+.mob-btn span:nth-child(1){top:0}.mob-btn span:nth-child(2){top:9px}.mob-btn span:nth-child(3){top:18px}
+.mob-btn.active span:nth-child(1){top:9px;transform:rotate(45deg)}.mob-btn.active span:nth-child(2){opacity:0}.mob-btn.active span:nth-child(3){top:9px;transform:rotate(-45deg)}
+
+/* ====== SECTIONS ====== */
+section{padding:8rem 3rem;position:relative}
+.section-header{margin-bottom:4rem}
+.section-label{font-size:0.75rem;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem}
+.section-title{font-family:var(--display);font-size:clamp(2rem,4vw,3.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.1}
+
+/* HERO */
+#hero{height:100vh;min-height:700px;display:flex;align-items:center;justify-content:center}
+.hero-content{text-align:center;max-width:900px;padding:0 2rem}
+.hero-pre{font-size:0.8rem;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;opacity:0;transform:translateY(20px);animation:fadeUp 0.8s 0.3s forwards}
+.hero-title{font-family:var(--display);font-size:clamp(3rem,8vw,7rem);font-weight:800;line-height:0.95;letter-spacing:-0.03em;margin-bottom:1.5rem;opacity:0;transform:translateY(30px);animation:fadeUp 0.8s 0.5s forwards}
+.hero-title em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:clamp(1rem,1.5vw,1.25rem);font-weight:300;line-height:1.7;color:var(--g3);max-width:650px;margin:0 auto 2.5rem;opacity:0;transform:translateY(20px);animation:fadeUp 0.8s 0.7s forwards}
+.hero-cta{display:inline-flex;align-items:center;gap:0.75rem;background:var(--accent);color:var(--black);text-decoration:none;padding:1rem 2.5rem;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;transition:all 0.3s;opacity:0;transform:translateY(20px);animation:fadeUp 0.8s 0.9s forwards}
+.hero-cta:hover{background:var(--white);transform:translateY(-2px)!important}
+.hero-cta svg{width:16px;height:16px;transition:transform 0.3s}
+.hero-cta:hover svg{transform:translateX(4px)}
+.scroll-ind{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);opacity:0;animation:fadeUp 0.8s 1.3s forwards}
+.scroll-ind span{display:block;width:1px;height:50px;background:linear-gradient(to bottom,var(--accent),transparent);margin:0 auto;animation:scrollP 2s infinite}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+@keyframes scrollP{0%,100%{opacity:.3;transform:scaleY(.5)}50%{opacity:1;transform:scaleY(1)}}
+
+/* MANIFESTO */
+.manifesto-strip{padding:6rem 3rem;border-top:1px solid var(--g2);border-bottom:1px solid var(--g2);background:rgba(10,10,10,0.85);backdrop-filter:blur(10px)}
+.manifesto-inner{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:auto 1fr;gap:3rem;align-items:start}
+.manifesto-label{font-size:0.75rem;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);padding-top:0.5rem}
+.manifesto-text{font-family:var(--display);font-size:clamp(1.3rem,2.5vw,1.8rem);font-weight:400;line-height:1.7}
+.manifesto-text strong{color:var(--accent);font-weight:600}
+
+/* SERVICES */
+#services{background:rgba(10,10,10,0.85);backdrop-filter:blur(5px)}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;max-width:1400px;margin:0 auto;background:var(--g2)}
+.service-card{background:rgba(10,10,10,0.9);padding:3rem;transition:all 0.4s;cursor:default}
+.service-card:hover{background:rgba(26,26,26,0.95)}
+.service-card.highlighted{border-left:3px solid var(--accent)}
+.service-icon{width:48px;height:48px;margin-bottom:1.5rem;color:var(--accent)}
+.service-card h3{font-family:var(--display);font-size:1.4rem;font-weight:600;margin-bottom:1rem}
+.service-card p{font-size:0.9rem;line-height:1.7;color:var(--g3)}
+.service-tags{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1.5rem}
+.service-tags span{font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:0.3rem 0.7rem;border:1px solid var(--g2);color:var(--g3);transition:all 0.3s}
+.service-card:hover .service-tags span{border-color:var(--accent);color:var(--accent)}
+
+/* WORK */
+#work{background:rgba(26,26,26,0.85);backdrop-filter:blur(5px)}
+.work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;max-width:1400px;margin:0 auto;background:var(--g2)}
+.work-item{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--black);cursor:pointer}
+.work-item-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform 0.6s cubic-bezier(0.16,1,0.3,1)}
+.work-item:hover .work-item-bg{transform:scale(1.05)}
+.work-item-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(10,10,10,0.95) 0%,rgba(10,10,10,0.3) 50%,rgba(10,10,10,0.1) 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:2rem;opacity:0;transition:opacity 0.4s}
+.work-item:hover .work-item-overlay{opacity:1}
+.work-item-category{font-size:0.7rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+.work-item-title{font-family:var(--display);font-size:1.3rem;font-weight:600}
+.work-item-client{font-size:0.85rem;color:var(--g3);margin-top:0.25rem}
+.work-item.featured{grid-column:span 2;aspect-ratio:8/3}
+
+.clients-strip{padding:4rem 3rem;border-top:1px solid var(--g2);background:rgba(26,26,26,0.85)}
+.clients-inner{max-width:1200px;margin:0 auto}
+.clients-label{font-size:0.7rem;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;color:var(--g3);margin-bottom:2rem;text-align:center}
+.clients-list{display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem 1.5rem;font-size:0.85rem;color:var(--g3);line-height:2}
+.clients-list span{transition:color 0.3s}.clients-list span:hover{color:var(--white)}
+
+/* TEAM */
+#team{background:rgba(10,10,10,0.85);backdrop-filter:blur(5px)}
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;max-width:1200px;margin:0 auto}
+.team-member{text-align:center}
+.team-photo{width:100%;aspect-ratio:3/4;background:var(--g2);margin-bottom:1.5rem;overflow:hidden}
+.team-photo-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:2.5rem;font-weight:700;color:var(--g3);opacity:0.3}
+.team-member h3{font-family:var(--display);font-size:1.1rem;font-weight:600;margin-bottom:0.3rem}
+.team-member .role{font-size:0.8rem;color:var(--accent);font-weight:500;margin-bottom:0.75rem}
+.team-member p.bio{font-size:0.8rem;line-height:1.6;color:var(--g3)}
+
+/* CONTACT */
+#contact{background:rgba(26,26,26,0.85);backdrop-filter:blur(5px);text-align:center}
+.contact-inner{max-width:700px;margin:0 auto}
+.contact-email{font-family:var(--display);font-size:clamp(1.5rem,3vw,2.5rem);font-weight:600;color:var(--white);text-decoration:none;display:inline-block;margin-bottom:2rem;transition:color 0.3s;word-break:break-all}
+.contact-email:hover{color:var(--accent)}
+.contact-meta{font-size:0.85rem;color:var(--g3);line-height:1.8}
+.contact-meta a{color:var(--g3);text-decoration:none;transition:color 0.3s}
+.contact-meta a:hover{color:var(--accent)}
+
+footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:var(--g3);background:rgba(10,10,10,0.9)}
+
+/* ====== AI CHAT ====== */
+#chat-toggle{position:fixed;bottom:2rem;right:2rem;z-index:900;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--black);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:1.3rem;transition:all 0.3s;box-shadow:0 4px 20px rgba(200,255,0,0.3)}
+#chat-toggle:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(200,255,0,0.4)}
+#chat-toggle.active{border-radius:12px;background:var(--g1);border:1px solid var(--g2)}
+#chat-toggle svg{width:24px;height:24px}
+
+#chat-panel{position:fixed;bottom:6rem;right:2rem;z-index:899;width:380px;max-height:500px;background:var(--g1);border:1px solid var(--g2);display:none;flex-direction:column;overflow:hidden;opacity:0;transform:translateY(20px) scale(0.95);transition:all 0.3s}
+#chat-panel.open{display:flex;opacity:1;transform:translateY(0) scale(1)}
+
+.chat-header{padding:1rem 1.25rem;border-bottom:1px solid var(--g2);display:flex;justify-content:space-between;align-items:center}
+.chat-header h4{font-family:var(--display);font-size:0.9rem;font-weight:600}
+.chat-header span{font-size:0.75rem;color:var(--g3)}
+
+.chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.75rem;max-height:340px;min-height:200px}
+.chat-msg{max-width:85%;padding:0.75rem 1rem;font-size:0.85rem;line-height:1.5;animation:obIn 0.3s forwards}
+.chat-msg.assistant{background:var(--g2);border-radius:2px 12px 12px 12px;align-self:flex-start;color:var(--white)}
+.chat-msg.user{background:var(--accent-dim);border:1px solid rgba(200,255,0,0.2);border-radius:12px 2px 12px 12px;align-self:flex-end;color:var(--accent)}
+.chat-msg.typing{color:var(--g3)}
+
+.chat-input-area{padding:0.75rem;border-top:1px solid var(--g2);display:flex;gap:0.5rem}
+.chat-input-area input{flex:1;background:var(--black);border:1px solid var(--g2);color:var(--white);padding:0.65rem 1rem;font-family:var(--font);font-size:0.85rem;outline:none;transition:border-color 0.3s}
+.chat-input-area input:focus{border-color:var(--accent)}
+.chat-input-area button{background:var(--accent);color:var(--black);border:none;padding:0.65rem 1rem;font-weight:700;font-size:0.8rem;cursor:pointer;font-family:var(--font);transition:all 0.3s}
+.chat-input-area button:hover{filter:brightness(1.1)}
+
+/* SCROLL REVEAL */
+.rv{opacity:0;transform:translateY(40px);transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),transform 0.8s cubic-bezier(0.16,1,0.3,1)}
+.rv.vis{opacity:1;transform:translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:1024px){.team-grid{grid-template-columns:repeat(2,1fr)}.work-grid{grid-template-columns:repeat(2,1fr)}.work-item.featured{grid-column:span 1;aspect-ratio:4/3}}
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,10,10,0.98);backdrop-filter:blur(20px);flex-direction:column;justify-content:center;gap:2rem;opacity:0;pointer-events:none;transition:opacity 0.3s}
+  .nav-links.open{opacity:1;pointer-events:all}.nav-links a{font-size:1.2rem}.mob-btn{display:block}
+  section{padding:5rem 1.5rem}.manifesto-strip{padding:4rem 1.5rem}.manifesto-inner{grid-template-columns:1fr;gap:1rem}
+  .services-grid{grid-template-columns:1fr}.work-grid{grid-template-columns:1fr}.work-item-overlay{opacity:1}
+  .team-grid{grid-template-columns:1fr 1fr;gap:1.5rem}
+  footer{flex-direction:column;gap:0.5rem;text-align:center;padding:1.5rem}
+  #chat-panel{width:calc(100vw - 2rem);right:1rem;bottom:5rem}
+  #chat-toggle{bottom:1.5rem;right:1.5rem}
+}
+@media(max-width:480px){.team-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<canvas id="three-canvas"></canvas>
+
+<!-- ====== ONBOARDING ====== -->
+<div id="onboarding">
+  <button class="ob-lang" id="obLangBtn" onclick="toggleLang()">IT</button>
+  <div class="ob-container">
+    <div class="ob-step active" data-step="0">
+      <p class="ob-welcome" data-i18n="onboarding.welcome">Before we begin —</p>
+      <h2 class="ob-question" data-i18n="onboarding.q1.question">What brings you here?</h2>
+      <div class="ob-options" id="obOpts0"></div>
+      <div class="ob-nav">
+        <button class="ob-skip" onclick="skipOnboarding()" data-i18n="onboarding.skip">Skip intro</button>
+        <button class="ob-next" id="obNext0" onclick="obNextStep(0)" data-i18n="onboarding.next">Next</button>
+      </div>
+      <div class="ob-dots"><span class="ob-dot active"></span><span class="ob-dot"></span><span class="ob-dot"></span></div>
+    </div>
+    <div class="ob-step" data-step="1">
+      <p class="ob-welcome" data-i18n="onboarding.welcome">Before we begin —</p>
+      <h2 class="ob-question" data-i18n="onboarding.q2.question">What's your world?</h2>
+      <div class="ob-options" id="obOpts1"></div>
+      <div class="ob-nav">
+        <button class="ob-skip" onclick="skipOnboarding()" data-i18n="onboarding.skip">Skip intro</button>
+        <button class="ob-next" id="obNext1" onclick="obNextStep(1)" data-i18n="onboarding.next">Next</button>
+      </div>
+      <div class="ob-dots"><span class="ob-dot"></span><span class="ob-dot active"></span><span class="ob-dot"></span></div>
+    </div>
+    <div class="ob-step" data-step="2">
+      <p class="ob-welcome" data-i18n="onboarding.welcome">Before we begin —</p>
+      <h2 class="ob-question" data-i18n="onboarding.q3.question">What excites you most?</h2>
+      <div class="ob-options" id="obOpts2"></div>
+      <div class="ob-nav">
+        <button class="ob-skip" onclick="skipOnboarding()" data-i18n="onboarding.skip">Skip intro</button>
+        <button class="ob-next" id="obNext2" onclick="finishOnboarding()" data-i18n="onboarding.start">Enter</button>
+      </div>
+      <div class="ob-dots"><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== NAV ====== -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">WHY</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#services" data-i18n="nav.services">Services</a></li>
+    <li><a href="#work" data-i18n="nav.work">Work</a></li>
+    <li><a href="#team" data-i18n="nav.team">Team</a></li>
+    <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
+    <li><button class="lang-switch" id="langSwitch" onclick="toggleLang()">IT</button></li>
+  </ul>
+  <button class="mob-btn" id="mobBtn" onclick="toggleMobileMenu()"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- ====== MAIN CONTENT ====== -->
+<div id="main-content">
+  <section id="hero">
+    <div class="hero-content">
+      <p class="hero-pre" data-i18n="hero.pre">Creative Technology Studio</p>
+      <h1 class="hero-title" data-i18n="hero.title">Ideas into<br><em>Systems</em></h1>
+      <p class="hero-sub" id="heroSub" data-i18n="hero.sub">We transform ideas into dynamic, evolutionary communication systems. Technology changes fast. The right question doesn't.</p>
+      <a href="#contact" class="hero-cta"><span data-i18n="hero.cta">Start a project</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+    <div class="scroll-ind"><span></span></div>
+  </section>
+
+  <div class="manifesto-strip">
+    <div class="manifesto-inner rv">
+      <span class="manifesto-label" data-i18n="manifesto.label">Manifesto</span>
+      <p class="manifesto-text" data-i18n="manifesto.text">Trends come and go. The metaverse, NFTs, the next big thing — they rise and fade. We don't chase technology. We ask <strong>why</strong>. Because when you start from the right question, you build systems that evolve, communicate, and last — no matter what comes next.</p>
+    </div>
+  </div>
+
+  <section id="services">
+    <div class="section-header rv" style="max-width:1400px;margin:0 auto 4rem">
+      <p class="section-label" data-i18n="services.label">What we do</p>
+      <h2 class="section-title" data-i18n="services.title">Systems that communicate,<br>evolve, engage.</h2>
+    </div>
+    <div class="services-grid" id="servicesGrid"></div>
+  </section>
+
+  <section id="work">
+    <div class="section-header rv" style="max-width:1400px;margin:0 auto 4rem">
+      <p class="section-label" data-i18n="work.label">Selected Work</p>
+      <h2 class="section-title" data-i18n="work.title">Case studies</h2>
+    </div>
+    <div class="work-grid" id="workGrid"></div>
+    <div class="clients-strip"><div class="clients-inner rv">
+      <p class="clients-label" data-i18n="clients.label">Trusted by</p>
+      <div class="clients-list" id="clientsList"></div>
+    </div></div>
+  </section>
+
+  <section id="team">
+    <div class="section-header rv" style="max-width:1200px;margin:0 auto 4rem">
+      <p class="section-label" data-i18n="team.label">The team</p>
+      <h2 class="section-title" data-i18n="team.title">25 years of convergence<br>between creativity and technology.</h2>
+    </div>
+    <div class="team-grid" id="teamGrid"></div>
+  </section>
+
+  <section id="contact">
+    <div class="contact-inner rv">
+      <div class="section-header" style="margin-bottom:3rem">
+        <p class="section-label" data-i18n="contact.label">Get in touch</p>
+        <h2 class="section-title" data-i18n="contact.title">Let's build something<br>worth asking why.</h2>
+      </div>
+      <a href="" class="contact-email" id="contactEmail"></a>
+      <div class="contact-meta" id="contactMeta"></div>
+    </div>
+  </section>
+  <footer><span>&copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
+</div>
+
+<!-- ====== AI CHAT ====== -->
+<button id="chat-toggle" onclick="toggleChat()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+</button>
+<div id="chat-panel">
+  <div class="chat-header">
+    <h4>WHY AI</h4>
+    <span data-i18n-chat="powered">Powered by GPT</span>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg assistant" id="chatWelcome">Hi! I'm WHY's AI assistant. Ask me about our services, projects, or how we can help you.</div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">Send</button>
+  </div>
+</div>
+
+<!-- ====== THREE.JS ====== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// =============================================
+// GLOBALS
+// =============================================
+let siteContent = null;
+let currentLang = 'en';
+let userProfile = { intent: null, sector: null, interest: null };
+let chatMessages = [];
+
+const SERVICE_ICONS = {
+  cube:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 4L4 14v20l20 10 20-10V14L24 4z"/><path d="M4 14l20 10m0 0l20-10M24 24v20"/></svg>',
+  play:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/><path d="M18 16l14 8-14 8V16z"/></svg>',
+  headset:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="32" height="24" rx="2"/><path d="M16 38h16M24 32v6"/><path d="M14 20l6 4-6 4m8 0h6"/></svg>',
+  signal:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 24c0-8.8 7.2-16 16-16s16 7.2 16 16"/><path d="M14 24c0-5.5 4.5-10 10-10s10 4.5 10 10"/><circle cx="24" cy="24" r="4"/><path d="M24 28v12M18 40h12"/></svg>',
+  gamepad:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="10" y="6" width="28" height="36" rx="3"/><path d="M18 36h12"/><circle cx="24" cy="22" r="8"/><path d="M20 22l3 3 5-6"/></svg>',
+  brain:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 4v8m0 24v8M4 24h8m24 0h8"/><circle cx="24" cy="24" r="12"/><path d="M18 24c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6"/></svg>'
+};
+
+// =============================================
+// THREE.JS — ISOMETRIC LOGO CUBE
+// =============================================
+(function() {
+  const canvas = document.getElementById('three-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const isMobile = window.innerWidth < 768;
+
+  // Orthographic camera for true isometric look
+  const frustum = 4;
+  const aspect = window.innerWidth / window.innerHeight;
+  const camera = new THREE.OrthographicCamera(
+    -frustum * aspect, frustum * aspect,
+    frustum, -frustum, 0.1, 100
+  );
+  // Isometric view angle (looking at cube from (1,1,1) direction)
+  camera.position.set(8, 8, 8);
+  camera.lookAt(0, 0, 0);
+
+  const cubeGroup = new THREE.Group();
+  scene.add(cubeGroup);
+
+  // --- CREATE LINE RIBBONS ---
+  const LINES_PER_FACE = isMobile ? 16 : 24;
+  const CUBE_S = 1.8; // cube half-size
+  const allRibbons = [];
+
+  function createRibbon(start, end, width, faceIndex) {
+    const dir = new THREE.Vector3().subVectors(end, start);
+    const length = dir.length();
+    dir.normalize();
+
+    // Find perpendicular in the face plane
+    let up;
+    if (faceIndex === 0) up = new THREE.Vector3(0, 1, 0); // top face → perp is Y
+    else if (faceIndex === 1) up = new THREE.Vector3(1, 0, 0); // right face → perp is X
+    else up = new THREE.Vector3(0, 0, 1); // front face → perp is Z
+
+    const perp = new THREE.Vector3().crossVectors(dir, up).normalize();
+
+    const hw = width / 2;
+    const vertices = new Float32Array([
+      start.x + perp.x*hw, start.y + perp.y*hw, start.z + perp.z*hw,
+      start.x - perp.x*hw, start.y - perp.y*hw, start.z - perp.z*hw,
+      end.x + perp.x*hw,   end.y + perp.y*hw,   end.z + perp.z*hw,
+      end.x - perp.x*hw,   end.y - perp.y*hw,   end.z - perp.z*hw,
+    ]);
+    const indices = [0,1,2, 1,3,2];
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x888888,
+      transparent: true,
+      opacity: 0.6,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+
+    const mesh = new THREE.Mesh(geo, mat);
+    return mesh;
+  }
+
+  // Generate lines for each face of the cube
+  // Top face (y = CUBE_S): lines parallel to X, varying Z
+  for (let i = 0; i < LINES_PER_FACE; i++) {
+    const t = i / (LINES_PER_FACE - 1); // 0 to 1
+    const z = -CUBE_S + t * 2 * CUBE_S;
+    const distFromCenter = Math.abs(t - 0.5) * 2; // 0 at center, 1 at edges
+    const width = 0.02 + (1 - distFromCenter) * 0.06;
+    const opacity = 0.3 + (1 - distFromCenter) * 0.5;
+
+    const ribbon = createRibbon(
+      new THREE.Vector3(-CUBE_S, CUBE_S, z),
+      new THREE.Vector3(CUBE_S, CUBE_S, z),
+      width, 0
+    );
+    ribbon.material.opacity = opacity;
+    ribbon.userData = { face: 0, index: i, baseOpacity: opacity, baseWidth: width, t };
+    cubeGroup.add(ribbon);
+    allRibbons.push(ribbon);
+  }
+
+  // Right face (x = CUBE_S): lines parallel to Y, varying Z
+  for (let i = 0; i < LINES_PER_FACE; i++) {
+    const t = i / (LINES_PER_FACE - 1);
+    const z = -CUBE_S + t * 2 * CUBE_S;
+    const distFromCenter = Math.abs(t - 0.5) * 2;
+    const width = 0.02 + (1 - distFromCenter) * 0.06;
+    const opacity = 0.25 + (1 - distFromCenter) * 0.45;
+
+    const ribbon = createRibbon(
+      new THREE.Vector3(CUBE_S, -CUBE_S, z),
+      new THREE.Vector3(CUBE_S, CUBE_S, z),
+      width, 1
+    );
+    ribbon.material.opacity = opacity;
+    ribbon.userData = { face: 1, index: i, baseOpacity: opacity, baseWidth: width, t };
+    cubeGroup.add(ribbon);
+    allRibbons.push(ribbon);
+  }
+
+  // Front face (z = CUBE_S): lines parallel to Y, varying X
+  for (let i = 0; i < LINES_PER_FACE; i++) {
+    const t = i / (LINES_PER_FACE - 1);
+    const x = -CUBE_S + t * 2 * CUBE_S;
+    const distFromCenter = Math.abs(t - 0.5) * 2;
+    const width = 0.02 + (1 - distFromCenter) * 0.06;
+    const opacity = 0.2 + (1 - distFromCenter) * 0.4;
+
+    const ribbon = createRibbon(
+      new THREE.Vector3(x, -CUBE_S, CUBE_S),
+      new THREE.Vector3(x, CUBE_S, CUBE_S),
+      width, 2
+    );
+    ribbon.material.opacity = opacity;
+    ribbon.userData = { face: 2, index: i, baseOpacity: opacity, baseWidth: width, t };
+    cubeGroup.add(ribbon);
+    allRibbons.push(ribbon);
+  }
+
+  // --- STATE ---
+  let mouse = { x: 0, y: 0 };
+  let time = 0;
+  let scrollProgress = 0;
+  let pulseActive = 0;
+  let accentMode = 0; // 0 = gray, 1 = accent color
+
+  function onPointerMove(e) {
+    const x = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+    const y = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+    mouse.x = (x / window.innerWidth) * 2 - 1;
+    mouse.y = -(y / window.innerHeight) * 2 + 1;
+  }
+  document.addEventListener('mousemove', onPointerMove);
+  document.addEventListener('touchmove', onPointerMove, { passive: true });
+
+  window.addEventListener('scroll', () => {
+    const maxScroll = document.body.scrollHeight - window.innerHeight;
+    scrollProgress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+  });
+
+  // Exposed for onboarding
+  window.pulseScene = function() { pulseActive = 1; };
+  window.morphScene = function() {};
+  window.enterSiteScene = function() { accentMode = 1; };
+
+  // --- ANIMATE ---
+  const accentCol = new THREE.Color(0xc8ff00);
+  const grayCol = new THREE.Color(0x888888);
+  const brightGray = new THREE.Color(0xbbbbbb);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    time += 0.005;
+    pulseActive *= 0.96;
+
+    // Rotation: base isometric + mouse influence + scroll
+    const baseRotY = Math.PI * 0.25;
+    const baseRotX = 0;
+    cubeGroup.rotation.y = baseRotY + mouse.x * 0.15 + scrollProgress * 0.3;
+    cubeGroup.rotation.x = baseRotX + mouse.y * 0.1;
+    cubeGroup.rotation.z = Math.sin(time * 0.3) * 0.02;
+
+    // Animate each ribbon
+    for (let i = 0; i < allRibbons.length; i++) {
+      const r = allRibbons[i];
+      const d = r.userData;
+      const phase = d.face * 2.1 + d.index * 0.15;
+
+      // Breathing: subtle opacity oscillation
+      const breath = Math.sin(time * 1.5 + phase) * 0.08;
+      let opacity = d.baseOpacity + breath + pulseActive * 0.3;
+
+      // Wave displacement along the face
+      const wave = Math.sin(time * 2 + d.t * Math.PI * 3 + d.face) * 0.015;
+      r.position.y = wave;
+
+      // Color: lerp to accent based on accentMode and proximity
+      const scrollInfluence = Math.sin(scrollProgress * Math.PI * 2 + d.face) * 0.3;
+      let colorMix = accentMode * (0.15 + scrollInfluence * 0.15 + (1 - Math.abs(d.t - 0.5) * 2) * 0.2);
+      colorMix = Math.max(0, Math.min(1, colorMix));
+
+      const targetCol = grayCol.clone().lerp(accentCol, colorMix + pulseActive * 0.5);
+      r.material.color.lerp(targetCol, 0.05);
+
+      // Brighter near center
+      if (colorMix < 0.1) {
+        const centerBright = (1 - Math.abs(d.t - 0.5) * 2) * 0.3;
+        r.material.color.lerp(brightGray, centerBright);
+      }
+
+      r.material.opacity = Math.max(0.05, Math.min(1, opacity));
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  window.addEventListener('resize', () => {
+    const aspect = window.innerWidth / window.innerHeight;
+    camera.left = -frustum * aspect;
+    camera.right = frustum * aspect;
+    camera.top = frustum;
+    camera.bottom = -frustum;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+
+// =============================================
+// CONTENT LOADING
+// =============================================
+async function loadContent() {
+  try {
+    const res = await fetch('/api/content');
+    siteContent = await res.json();
+  } catch(e) { siteContent = null; }
+  if (siteContent) populateOnboarding();
+}
+
+// =============================================
+// ONBOARDING
+// =============================================
+function populateOnboarding() {
+  const ob = siteContent.onboarding[currentLang];
+  ['q1','q2','q3'].forEach((qKey, i) => {
+    const container = document.getElementById('obOpts' + i);
+    container.innerHTML = '';
+    ob[qKey].options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'ob-option';
+      btn.innerHTML = `<span class="ob-icon">${opt.icon}</span><span>${opt.label}</span>`;
+      btn.onclick = () => selectObOption(i, opt.value, btn);
+      container.appendChild(btn);
+    });
+  });
+}
+
+function selectObOption(step, value, btn) {
+  btn.parentElement.querySelectorAll('.ob-option').forEach(o => o.classList.remove('selected'));
+  btn.classList.add('selected');
+  if (step === 0) userProfile.intent = value;
+  if (step === 1) userProfile.sector = value;
+  if (step === 2) userProfile.interest = value;
+  document.getElementById('obNext' + step).classList.add('enabled');
+  if (window.pulseScene) window.pulseScene();
+}
+
+function obNextStep(s) {
+  const steps = document.querySelectorAll('.ob-step');
+  steps[s].classList.remove('active');
+  steps[s + 1].classList.add('active');
+}
+
+function skipOnboarding() { enterSite(); }
+function finishOnboarding() { enterSite(); }
+
+async function enterSite() {
+  const ob = document.getElementById('onboarding');
+  ob.classList.add('exit');
+  setTimeout(() => {
+    ob.style.display = 'none';
+    document.getElementById('navbar').classList.add('visible');
+    document.getElementById('chat-toggle').style.display = 'flex';
+    buildSite();
+    if (window.enterSiteScene) window.enterSiteScene();
+    personalizeContent();
+  }, 800);
+}
+
+// AI-generated personalized content
+async function personalizeContent() {
+  if (!userProfile.intent && !userProfile.sector) return;
+  try {
+    const res = await fetch('/api/personalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile: userProfile, lang: currentLang }),
+    });
+    const data = await res.json();
+    if (data.headline) {
+      const sub = document.getElementById('heroSub');
+      sub.style.transition = 'opacity 0.5s';
+      sub.style.opacity = '0';
+      setTimeout(() => {
+        sub.textContent = data.subtitle || data.headline;
+        sub.style.opacity = '1';
+      }, 500);
+    }
+  } catch(e) {}
+}
+
+// =============================================
+// BUILD SITE
+// =============================================
+function buildSite() {
+  if (!siteContent) return;
+  const lang = currentLang;
+  applyI18n();
+
+  // SERVICES — reorder by relevance
+  const services = [...siteContent.services.items];
+  if (userProfile.interest || userProfile.sector) {
+    services.sort((a, b) => {
+      const aScore = (a.id === userProfile.interest ? -3 : 0) + (a.categories?.includes(userProfile.sector) ? -1 : 0);
+      const bScore = (b.id === userProfile.interest ? -3 : 0) + (b.categories?.includes(userProfile.sector) ? -1 : 0);
+      return aScore - bScore;
+    });
+  }
+
+  document.getElementById('servicesGrid').innerHTML = services.map((s, i) => {
+    const hl = s.id === userProfile.interest;
+    return `<div class="service-card rv${hl ? ' highlighted' : ''}" style="transition-delay:${i*0.1}s">
+      <div class="service-icon">${SERVICE_ICONS[s.icon]||SERVICE_ICONS.cube}</div>
+      <h3>${s[lang].title}</h3><p>${s[lang].desc}</p>
+      <div class="service-tags">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // WORK — reorder
+  const works = [...siteContent.work.items];
+  if (userProfile.sector || userProfile.interest) {
+    works.sort((a, b) => {
+      const aS = (a.tags||[]).reduce((s,t) => s + (t===userProfile.interest?-2:0) + (t===userProfile.sector?-1:0), 0);
+      const bS = (b.tags||[]).reduce((s,t) => s + (t===userProfile.interest?-2:0) + (t===userProfile.sector?-1:0), 0);
+      return aS - bS;
+    });
+  }
+
+  const catKey = lang === 'it' ? 'category_it' : 'category_en';
+  document.getElementById('workGrid').innerHTML = works.map((w, i) => {
+    const feat = i === 0 && (userProfile.sector || userProfile.interest);
+    const bg = w.image ? `url(${w.image})` : `linear-gradient(135deg,${(w.gradient||['#1a1a1a','#2a2a2a']).join(',')})`;
+    return `<div class="work-item rv${feat?' featured':''}" style="transition-delay:${i*0.08}s">
+      <div class="work-item-bg" style="background:${bg};background-size:cover;background-position:center"></div>
+      <div class="work-item-overlay">
+        <span class="work-item-category">${w[catKey]}</span>
+        <h3 class="work-item-title">${w.title}</h3>
+        <span class="work-item-client">${w.client}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('clientsList').innerHTML = (siteContent.clients||[]).map(c => `<span>${c}</span>`).join('');
+
+  document.getElementById('teamGrid').innerHTML = (siteContent.team.members||[]).map((m, i) => `
+    <div class="team-member rv" style="transition-delay:${i*0.1}s">
+      <div class="team-photo">${m.photo?`<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">`:`<span class="team-photo-placeholder">${m.initials}</span>`}</div>
+      <h3>${m.name}</h3><p class="role">${m.role}</p><p class="bio">${m[lang].bio}</p>
+    </div>`).join('');
+
+  const c = siteContent.contact;
+  document.getElementById('contactEmail').href = `mailto:${c.email}`;
+  document.getElementById('contactEmail').textContent = c.email;
+  document.getElementById('contactMeta').innerHTML = `<p>${c.company} — ${c.location}</p><p><a href="https://${c.website}" target="_blank">${c.website}</a></p>`;
+
+  initReveal();
+}
+
+// =============================================
+// I18N
+// =============================================
+const i18nNav = { en: {'nav.services':'Services','nav.work':'Work','nav.team':'Team','nav.contact':'Contact'}, it: {'nav.services':'Servizi','nav.work':'Lavori','nav.team':'Team','nav.contact':'Contatti'} };
+
+function applyI18n() {
+  if (!siteContent) return;
+  const l = currentLang;
+  const map = {
+    'hero.pre':siteContent.hero?.[l]?.pre, 'hero.title':siteContent.hero?.[l]?.title,
+    'hero.sub':siteContent.hero?.[l]?.sub, 'hero.cta':siteContent.hero?.[l]?.cta,
+    'manifesto.label':siteContent.manifesto?.[l]?.label, 'manifesto.text':siteContent.manifesto?.[l]?.text,
+    'services.label':siteContent.services?.[l]?.label, 'services.title':siteContent.services?.[l]?.title,
+    'work.label':siteContent.work?.[l]?.label, 'work.title':siteContent.work?.[l]?.title,
+    'clients.label':l==='it'?'Ci hanno scelto':'Trusted by',
+    'team.label':siteContent.team?.[l]?.label, 'team.title':siteContent.team?.[l]?.title,
+    'contact.label':siteContent.contact?.[l]?.label, 'contact.title':siteContent.contact?.[l]?.title,
+    'onboarding.welcome':siteContent.onboarding?.[l]?.welcome, 'onboarding.skip':siteContent.onboarding?.[l]?.skip,
+    'onboarding.next':siteContent.onboarding?.[l]?.next, 'onboarding.start':siteContent.onboarding?.[l]?.start,
+    'onboarding.q1.question':siteContent.onboarding?.[l]?.q1?.question,
+    'onboarding.q2.question':siteContent.onboarding?.[l]?.q2?.question,
+    'onboarding.q3.question':siteContent.onboarding?.[l]?.q3?.question,
+    ...i18nNav[l]
+  };
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (map[k]) el.innerHTML = map[k];
+  });
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'it' : 'en';
+  document.documentElement.lang = currentLang;
+  const label = currentLang === 'en' ? 'IT' : 'EN';
+  document.getElementById('langSwitch').textContent = label;
+  document.getElementById('obLangBtn').textContent = label;
+  applyI18n();
+  if (siteContent) {
+    populateOnboarding();
+    if (document.getElementById('onboarding').style.display === 'none') buildSite();
+  }
+  // Update chat welcome
+  const welcome = document.getElementById('chatWelcome');
+  if (welcome) welcome.textContent = currentLang === 'it'
+    ? 'Ciao! Sono l\'assistente AI di WHY. Chiedimi dei nostri servizi, progetti, o come possiamo aiutarti.'
+    : 'Hi! I\'m WHY\'s AI assistant. Ask me about our services, projects, or how we can help you.';
+}
+
+// =============================================
+// AI CHAT
+// =============================================
+let chatOpen = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  document.getElementById('chat-toggle').classList.toggle('active', chatOpen);
+  if (chatOpen) document.getElementById('chatInput').focus();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  // Add user message
+  chatMessages.push({ role: 'user', content: text });
+  appendChatMsg('user', text);
+
+  // Show typing indicator
+  const typingEl = appendChatMsg('assistant typing', '...');
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatMessages, profile: userProfile }),
+    });
+
+    if (!res.ok) {
+      typingEl.textContent = currentLang === 'it' ? 'Mi dispiace, si è verificato un errore.' : 'Sorry, something went wrong.';
+      typingEl.classList.remove('typing');
+      return;
+    }
+
+    // Stream response
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullResponse = '';
+    let buffer = '';
+    typingEl.textContent = '';
+    typingEl.classList.remove('typing');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              fullResponse += parsed.content;
+              typingEl.textContent = fullResponse;
+              scrollChatToBottom();
+            }
+          } catch(e) {}
+        }
+      }
+    }
+
+    chatMessages.push({ role: 'assistant', content: fullResponse });
+
+  } catch(e) {
+    typingEl.textContent = currentLang === 'it' ? 'Connessione non disponibile.' : 'Connection unavailable.';
+    typingEl.classList.remove('typing');
+  }
+}
+
+function appendChatMsg(cls, text) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + cls;
+  div.textContent = text;
+  container.appendChild(div);
+  scrollChatToBottom();
+  return div;
+}
+
+function scrollChatToBottom() {
+  const c = document.getElementById('chatMessages');
+  c.scrollTop = c.scrollHeight;
+}
+
+// =============================================
+// UTILITIES
+// =============================================
+function initReveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+}
+
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+function toggleMobileMenu() {
+  document.getElementById('mobBtn').classList.toggle('active');
+  document.getElementById('navLinks').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('.nav-links a')) {
+    document.getElementById('mobBtn').classList.remove('active');
+    document.getElementById('navLinks').classList.remove('open');
+  }
+});
+
+// =============================================
+// INIT
+// =============================================
+loadContent();
+</script>
+</body>
+</html>

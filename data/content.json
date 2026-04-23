@@ -1,0 +1,320 @@
+{
+  "meta": {
+    "title": "WHY — Ideas into Systems",
+    "description": "Why transforms ideas into dynamic, evolutionary communication systems.",
+    "accent_color": "#c8ff00"
+  },
+  "hero": {
+    "en": {
+      "pre": "Creative Technology Studio",
+      "title": "Ideas into <em>Systems</em>",
+      "sub": "We transform ideas into dynamic, evolutionary communication systems. Technology changes fast. The right question doesn't.",
+      "cta": "Start a project"
+    },
+    "it": {
+      "pre": "Creative Technology Studio",
+      "title": "Dalle idee ai <em>Sistemi</em>",
+      "sub": "Trasformiamo le idee in sistemi di comunicazione dinamici ed evolutivi. La tecnologia cambia in fretta. La domanda giusta no.",
+      "cta": "Inizia un progetto"
+    }
+  },
+  "manifesto": {
+    "en": {
+      "label": "Manifesto",
+      "text": "Trends come and go. The metaverse, NFTs, the next big thing — they rise and fade. We don't chase technology. We ask <strong>why</strong>. Because when you start from the right question, you build systems that evolve, communicate, and last — no matter what comes next."
+    },
+    "it": {
+      "label": "Manifesto",
+      "text": "I trend vanno e vengono. Il metaverso, gli NFT, la prossima rivoluzione — nascono e svaniscono. Noi non inseguiamo la tecnologia. Ci chiediamo <strong>perché</strong>. Perché quando parti dalla domanda giusta, costruisci sistemi che evolvono, comunicano e durano — qualunque cosa arrivi dopo."
+    }
+  },
+  "services": {
+    "en": {
+      "label": "What we do",
+      "title": "Systems that communicate, evolve, engage."
+    },
+    "it": {
+      "label": "Cosa facciamo",
+      "title": "Sistemi che comunicano, evolvono, coinvolgono."
+    },
+    "items": [
+      {
+        "id": "rt3d",
+        "icon": "cube",
+        "tags": ["Unreal Engine 5", "Unity", "WebGL"],
+        "categories": ["architecture", "luxury", "corporate"],
+        "en": {
+          "title": "3D Real Time",
+          "desc": "Real-time 3D environments and experiences built on Unreal Engine 5 and Unity. From virtual showrooms to architectural visualization, with cinematic quality at interactive speed."
+        },
+        "it": {
+          "title": "3D Real Time",
+          "desc": "Ambienti ed esperienze 3D in tempo reale su Unreal Engine 5 e Unity. Dallo showroom virtuale alla visualizzazione architettonica, con qualità cinematografica a velocità interattiva."
+        }
+      },
+      {
+        "id": "video",
+        "icon": "play",
+        "tags": ["Virtual Production", "360°", "Dolby Atmos"],
+        "categories": ["entertainment", "corporate", "luxury"],
+        "en": {
+          "title": "Immersive Video",
+          "desc": "360° video, volumetric capture, and virtual production with green screen and camera tracking. Cinematic content that wraps around the viewer."
+        },
+        "it": {
+          "title": "Immersive Video",
+          "desc": "Video 360°, cattura volumetrica e virtual production con green screen e camera tracking. Contenuti cinematografici che avvolgono lo spettatore."
+        }
+      },
+      {
+        "id": "xr",
+        "icon": "headset",
+        "tags": ["Meta Quest", "AR", "Spatial Computing"],
+        "categories": ["tech", "architecture", "luxury"],
+        "en": {
+          "title": "XR Spatial Experiences",
+          "desc": "Augmented and virtual reality experiences for Quest, Vive, Varjo, and spatial displays. We design spaces where physical and digital merge seamlessly."
+        },
+        "it": {
+          "title": "XR Spatial Experiences",
+          "desc": "Esperienze in realtà aumentata e virtuale per Quest, Vive, Varjo e display spaziali. Progettiamo spazi dove fisico e digitale si fondono."
+        }
+      },
+      {
+        "id": "phygital",
+        "icon": "signal",
+        "tags": ["IoT", "Retail", "Installations"],
+        "categories": ["luxury", "corporate", "entertainment"],
+        "en": {
+          "title": "Phygital Activations",
+          "desc": "IoT-driven installations, interactive retail, sensor-based experiences. We connect physical spaces to digital intelligence, turning environments into responsive systems."
+        },
+        "it": {
+          "title": "Phygital Activations",
+          "desc": "Installazioni IoT, retail interattivo, esperienze basate su sensori. Connettiamo gli spazi fisici all'intelligenza digitale, trasformando ambienti in sistemi reattivi."
+        }
+      },
+      {
+        "id": "games",
+        "icon": "gamepad",
+        "tags": ["HTML5", "PlayCanvas", "Gamification"],
+        "categories": ["entertainment", "corporate", "tech"],
+        "en": {
+          "title": "Instant Games",
+          "desc": "Branded games and gamified experiences designed for instant engagement. Mobile-first, browser-based, built to capture attention and deliver measurable interaction."
+        },
+        "it": {
+          "title": "Instant Games",
+          "desc": "Giochi brandizzati e esperienze gamificate per un engagement immediato. Mobile-first, browser-based, costruiti per catturare l'attenzione e generare interazione misurabile."
+        }
+      },
+      {
+        "id": "ai",
+        "icon": "brain",
+        "tags": ["Generative AI", "Deep Learning", "NLP"],
+        "categories": ["tech", "corporate", "entertainment"],
+        "en": {
+          "title": "AI-Powered Systems",
+          "desc": "Artificial intelligence as a design and production tool. From generative content to intelligent interaction systems, AI is embedded in our workflow and our solutions."
+        },
+        "it": {
+          "title": "AI-Powered Systems",
+          "desc": "L'intelligenza artificiale come strumento di progettazione e produzione. Dai contenuti generativi ai sistemi di interazione intelligente, l'AI è parte integrante del nostro workflow e delle nostre soluzioni."
+        }
+      }
+    ]
+  },
+  "work": {
+    "en": {
+      "label": "Selected Work",
+      "title": "Case studies"
+    },
+    "it": {
+      "label": "Lavori selezionati",
+      "title": "Case studies"
+    },
+    "items": [
+      {
+        "id": "bulgari",
+        "category_en": "XR Experience",
+        "category_it": "Esperienza XR",
+        "title": "Virtual Showroom",
+        "client": "Bulgari",
+        "tags": ["xr", "luxury"],
+        "gradient": ["#1a1a2e", "#16213e", "#0f3460"]
+      },
+      {
+        "id": "webuild",
+        "category_en": "3D Real Time",
+        "category_it": "3D Real Time",
+        "title": "Digital Twin",
+        "client": "Webuild",
+        "tags": ["rt3d", "architecture"],
+        "gradient": ["#2d1b2e", "#1a1a2e", "#0d1b2a"]
+      },
+      {
+        "id": "dg",
+        "category_en": "Phygital Activation",
+        "category_it": "Attivazione Phygital",
+        "title": "Interactive Retail",
+        "client": "Dolce&Gabbana",
+        "tags": ["phygital", "luxury"],
+        "gradient": ["#1b2d1b", "#1a2e1a", "#0d2a0d"]
+      },
+      {
+        "id": "fremantle",
+        "category_en": "Immersive Video",
+        "category_it": "Video Immersivo",
+        "title": "Virtual Production",
+        "client": "Fremantle",
+        "tags": ["video", "entertainment"],
+        "gradient": ["#2e2d1b", "#2e1a1a", "#2a0d0d"]
+      },
+      {
+        "id": "fastweb",
+        "category_en": "Instant Game",
+        "category_it": "Instant Game",
+        "title": "Branded Game",
+        "client": "Fastweb",
+        "tags": ["games", "tech"],
+        "gradient": ["#0d1b2a", "#1b2d2d", "#1a2e2e"]
+      },
+      {
+        "id": "tedx",
+        "category_en": "AI System",
+        "category_it": "Sistema AI",
+        "title": "Generative Experience",
+        "client": "TEDxRoma",
+        "tags": ["ai", "entertainment"],
+        "gradient": ["#1a1a1a", "#2a2a2a", "#1a1a1a"]
+      }
+    ]
+  },
+  "clients": [
+    "Bulgari", "Dolce&Gabbana", "Hogan", "Webuild", "Fastweb", "Fremantle",
+    "Capgemini", "Elettronica", "Bialetti", "Benelli", "Lineapelle", "TEDxRoma",
+    "Grandi Stazioni", "Balloon Museum", "Triumph Group", "ANIA", "E4Life", "NSS", "SKNUPS"
+  ],
+  "team": {
+    "en": {
+      "label": "The team",
+      "title": "25 years of convergence between creativity and technology."
+    },
+    "it": {
+      "label": "Il team",
+      "title": "25 anni di convergenza tra creatività e tecnologia."
+    },
+    "members": [
+      {
+        "name": "Filippo Maria Bonifati",
+        "initials": "FB",
+        "role": "CEO",
+        "en": { "bio": "Pioneer in communication technologies. 20+ years leading innovation projects for brands across luxury, institutional, and corporate sectors." },
+        "it": { "bio": "Pioniere nelle tecnologie di comunicazione. Oltre 20 anni alla guida di progetti di innovazione per brand del lusso, istituzionali e corporate." }
+      },
+      {
+        "name": "Emiliano Trapani",
+        "initials": "ET",
+        "role": "Creative Director",
+        "en": { "bio": "Visual communicator and art director. 20+ years merging aesthetics and technology into compelling digital and audiovisual experiences." },
+        "it": { "bio": "Comunicatore visivo e art director. Oltre 20 anni a coniugare estetica e tecnologia in esperienze digitali e audiovisive." }
+      },
+      {
+        "name": "Benedetto Spada",
+        "initials": "BS",
+        "role": "VFX Director",
+        "en": { "bio": "Computer graphics and VFX veteran. From AAA game studios to award-winning productions, 20+ years mastering the full 3D pipeline." },
+        "it": { "bio": "Veterano della computer graphics e dei VFX. Dagli studi di videogiochi AAA a produzioni premiate, oltre 20 anni di padronanza della pipeline 3D." }
+      },
+      {
+        "name": "Giulia di Fausto",
+        "initials": "GF",
+        "role": "Executive Producer",
+        "en": { "bio": "Expert in audiovisual and digital production management. Background in communication and marketing with major brands and agencies." },
+        "it": { "bio": "Esperta nella gestione di produzioni audiovisive e digitali. Background in comunicazione e marketing con brand e agenzie di primo piano." }
+      }
+    ]
+  },
+  "contact": {
+    "en": {
+      "label": "Get in touch",
+      "title": "Let's build something worth asking why."
+    },
+    "it": {
+      "label": "Contatti",
+      "title": "Costruiamo qualcosa per cui vale la pena chiedersi perché."
+    },
+    "email": "info@justwhy.it",
+    "company": "WHY srl",
+    "location": "Roma, Italia",
+    "website": "justwhy.it"
+  },
+  "onboarding": {
+    "en": {
+      "welcome": "Before we begin —",
+      "skip": "Skip intro",
+      "next": "Next",
+      "start": "Enter",
+      "q1": {
+        "question": "What brings you here?",
+        "options": [
+          { "label": "Looking for a partner", "value": "partner", "icon": "🤝" },
+          { "label": "Exploring capabilities", "value": "explore", "icon": "🔍" },
+          { "label": "I have a project", "value": "project", "icon": "🚀" }
+        ]
+      },
+      "q2": {
+        "question": "What's your world?",
+        "options": [
+          { "label": "Fashion & Luxury", "value": "luxury", "icon": "✦" },
+          { "label": "Corporate & Institutional", "value": "corporate", "icon": "◆" },
+          { "label": "Entertainment & Events", "value": "entertainment", "icon": "▲" },
+          { "label": "Architecture & Design", "value": "architecture", "icon": "◇" },
+          { "label": "Tech & Innovation", "value": "tech", "icon": "⬡" }
+        ]
+      },
+      "q3": {
+        "question": "What excites you most?",
+        "options": [
+          { "label": "Immersive 3D worlds", "value": "rt3d", "icon": "◈" },
+          { "label": "Interactive installations", "value": "phygital", "icon": "◎" },
+          { "label": "AI-powered experiences", "value": "ai", "icon": "⊛" },
+          { "label": "Games & engagement", "value": "games", "icon": "◉" }
+        ]
+      }
+    },
+    "it": {
+      "welcome": "Prima di iniziare —",
+      "skip": "Salta intro",
+      "next": "Avanti",
+      "start": "Entra",
+      "q1": {
+        "question": "Cosa ti porta qui?",
+        "options": [
+          { "label": "Cerco un partner", "value": "partner", "icon": "🤝" },
+          { "label": "Esploro le competenze", "value": "explore", "icon": "🔍" },
+          { "label": "Ho un progetto", "value": "project", "icon": "🚀" }
+        ]
+      },
+      "q2": {
+        "question": "Qual è il tuo mondo?",
+        "options": [
+          { "label": "Fashion & Lusso", "value": "luxury", "icon": "✦" },
+          { "label": "Corporate & Istituzioni", "value": "corporate", "icon": "◆" },
+          { "label": "Entertainment & Eventi", "value": "entertainment", "icon": "▲" },
+          { "label": "Architettura & Design", "value": "architecture", "icon": "◇" },
+          { "label": "Tech & Innovazione", "value": "tech", "icon": "⬡" }
+        ]
+      },
+      "q3": {
+        "question": "Cosa ti entusiasma di più?",
+        "options": [
+          { "label": "Mondi 3D immersivi", "value": "rt3d", "icon": "◈" },
+          { "label": "Installazioni interattive", "value": "phygital", "icon": "◎" },
+          { "label": "Esperienze AI-powered", "value": "ai", "icon": "⊛" },
+          { "label": "Giochi & engagement", "value": "games", "icon": "◉" }
+        ]
+      }
+    }
+  }
+}

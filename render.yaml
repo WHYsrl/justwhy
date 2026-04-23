@@ -1,0 +1,26 @@
+databases:
+  - name: why-db
+    plan: basic-256mb
+    databaseName: why_cms
+    user: why_admin
+
+services:
+  - type: web
+    name: why-website
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_PASS
+        value: why2025!
+      - key: DATABASE_URL
+        fromDatabase:
+          name: why-db
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false

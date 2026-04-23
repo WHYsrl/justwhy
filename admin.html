@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHY — CMS Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e; --border: #2a2a2a;
+  --text: #e0e0e0; --text2: #888; --accent: #c8ff00; --danger: #ff4444;
+  --font: 'Inter', sans-serif; --display: 'Space Grotesk', sans-serif;
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* --- LOGIN --- */
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 2rem;
+}
+.login-box {
+  background: var(--surface); border: 1px solid var(--border); padding: 3rem;
+  width: 100%; max-width: 400px;
+}
+.login-box h1 {
+  font-family: var(--display); font-size: 1.5rem; font-weight: 700;
+  letter-spacing: 0.1em; margin-bottom: 0.5rem;
+}
+.login-box p { font-size: 0.85rem; color: var(--text2); margin-bottom: 2rem; }
+.login-box .error { color: var(--danger); font-size: 0.8rem; margin-bottom: 1rem; display: none; }
+
+/* --- FORM ELEMENTS --- */
+label { display: block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.5rem; }
+input[type="text"], input[type="password"], input[type="email"], textarea, select {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 0.75rem 1rem; font-family: var(--font); font-size: 0.9rem;
+  margin-bottom: 1.25rem; outline: none; transition: border-color 0.3s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+textarea { min-height: 100px; resize: vertical; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent); color: var(--bg); border: none;
+  padding: 0.75rem 1.5rem; font-family: var(--font); font-size: 0.85rem;
+  font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: all 0.3s;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn-outline {
+  background: transparent; border: 1px solid var(--border); color: var(--text);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: var(--danger); }
+.btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+
+/* --- LAYOUT --- */
+#app { display: none; }
+.admin-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 2rem; border-bottom: 1px solid var(--border);
+  background: var(--surface); position: sticky; top: 0; z-index: 100;
+}
+.admin-header h1 { font-family: var(--display); font-size: 1.1rem; font-weight: 700; letter-spacing: 0.1em; }
+.admin-header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+.admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 60px); }
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 1.5rem 0;
+}
+.sidebar a {
+  display: block; padding: 0.65rem 1.5rem; color: var(--text2);
+  text-decoration: none; font-size: 0.85rem; font-weight: 500;
+  transition: all 0.2s; border-left: 2px solid transparent;
+}
+.sidebar a:hover { color: var(--text); background: var(--surface2); }
+.sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: var(--surface2); }
+.sidebar .sidebar-label {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--text2); padding: 1.5rem 1.5rem 0.5rem;
+}
+
+.content-area { padding: 2rem 3rem; max-width: 900px; }
+.content-area h2 {
+  font-family: var(--display); font-size: 1.5rem; font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.content-area .subtitle { color: var(--text2); font-size: 0.9rem; margin-bottom: 2rem; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+
+.lang-tabs {
+  display: flex; gap: 0; margin-bottom: 1.5rem;
+}
+.lang-tab {
+  padding: 0.5rem 1.25rem; font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.08em; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--border); color: var(--text2);
+  transition: all 0.2s;
+}
+.lang-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+.save-toast {
+  position: fixed; bottom: 2rem; right: 2rem;
+  background: var(--accent); color: var(--bg);
+  padding: 0.75rem 1.5rem; font-weight: 600; font-size: 0.85rem;
+  transform: translateY(100px); opacity: 0; transition: all 0.3s;
+  z-index: 1000;
+}
+.save-toast.show { transform: translateY(0); opacity: 1; }
+
+.items-list { display: flex; flex-direction: column; gap: 1rem; }
+.item-row {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center;
+}
+.item-row h4 { font-size: 0.95rem; }
+.item-row .meta { font-size: 0.8rem; color: var(--text2); }
+
+@media (max-width: 768px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .content-area { padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>WHY</h1>
+    <p>Content Management System</p>
+    <div class="error" id="loginError">Invalid credentials</div>
+    <label>Username</label>
+    <input type="text" id="loginUser" placeholder="admin">
+    <label>Password</label>
+    <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn" onclick="doLogin()" style="width:100%;justify-content:center;">Login</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="admin-header">
+    <h1>WHY CMS</h1>
+    <div class="admin-header-actions">
+      <button class="btn btn-sm" onclick="saveAll()">Save All</button>
+      <button class="btn btn-sm btn-outline" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="admin-layout">
+    <div class="sidebar">
+      <div class="sidebar-label">Content</div>
+      <a href="#" onclick="showSection('hero')" class="active" data-section="hero">Hero</a>
+      <a href="#" onclick="showSection('manifesto')" data-section="manifesto">Manifesto</a>
+      <a href="#" onclick="showSection('services')" data-section="services">Services</a>
+      <a href="#" onclick="showSection('work')" data-section="work">Work / Portfolio</a>
+      <a href="#" onclick="showSection('team')" data-section="team">Team</a>
+      <a href="#" onclick="showSection('contact')" data-section="contact">Contact</a>
+      <a href="#" onclick="showSection('clients')" data-section="clients">Clients</a>
+      <div class="sidebar-label">Settings</div>
+      <a href="#" onclick="showSection('onboarding')" data-section="onboarding">Onboarding</a>
+      <a href="#" onclick="showSection('settings')" data-section="settings">Settings</a>
+    </div>
+    <div class="content-area" id="contentArea">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<div class="save-toast" id="saveToast">Changes saved ✓</div>
+
+<script>
+let content = {};
+let editLang = 'en';
+
+// --- AUTH ---
+async function doLogin() {
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: document.getElementById('loginUser').value,
+      password: document.getElementById('loginPass').value
+    })
+  });
+  if (res.ok) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadContent();
+  } else {
+    const el = document.getElementById('loginError');
+    el.style.display = 'block';
+    el.textContent = 'Invalid credentials';
+  }
+}
+
+async function doLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.reload();
+}
+
+// Check existing session
+fetch('/api/session').then(r => r.json()).then(d => {
+  if (d.authenticated) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadContent();
+  }
+});
+
+// --- CONTENT ---
+async function loadContent() {
+  const res = await fetch('/api/content');
+  content = await res.json();
+  showSection('hero');
+}
+
+async function saveAll() {
+  const res = await fetch('/api/content', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(content)
+  });
+  if (res.ok) {
+    const toast = document.getElementById('saveToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+}
+
+function showSection(name) {
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  const link = document.querySelector(`.sidebar a[data-section="${name}"]`);
+  if (link) link.classList.add('active');
+
+  const area = document.getElementById('contentArea');
+  const renderers = {
+    hero: renderHero, manifesto: renderManifesto, services: renderServices,
+    work: renderWork, team: renderTeam, contact: renderContact,
+    clients: renderClients, onboarding: renderOnboarding, settings: renderSettings
+  };
+  if (renderers[name]) renderers[name](area);
+}
+
+function langTabs(onChange) {
+  return `<div class="lang-tabs">
+    <div class="lang-tab ${editLang==='en'?'active':''}" onclick="editLang='en';${onChange}">EN</div>
+    <div class="lang-tab ${editLang==='it'?'active':''}" onclick="editLang='it';${onChange}">IT</div>
+  </div>`;
+}
+
+function field(label, path, type='text') {
+  const val = getNestedValue(content, path) || '';
+  const escaped = String(val).replace(/"/g, '&quot;');
+  if (type === 'textarea') {
+    return `<label>${label}</label><textarea oninput="setNestedValue(content,'${path}',this.value)">${val}</textarea>`;
+  }
+  return `<label>${label}</label><input type="${type}" value="${escaped}" oninput="setNestedValue(content,'${path}',this.value)">`;
+}
+
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((o, k) => o && o[k], obj);
+}
+
+function setNestedValue(obj, path, val) {
+  const keys = path.split('.');
+  const last = keys.pop();
+  const target = keys.reduce((o, k) => o[k], obj);
+  target[last] = val;
+}
+
+// --- RENDERERS ---
+function renderHero(el) {
+  el.innerHTML = `
+    <h2>Hero Section</h2>
+    <p class="subtitle">The first thing visitors see.</p>
+    ${langTabs("renderHero(document.getElementById('contentArea'))")}
+    <div class="card">
+      ${field('Pre-title', `hero.${editLang}.pre`)}
+      ${field('Title (HTML allowed)', `hero.${editLang}.title`)}
+      ${field('Subtitle', `hero.${editLang}.sub`, 'textarea')}
+      ${field('CTA Button', `hero.${editLang}.cta`)}
+    </div>`;
+}
+
+function renderManifesto(el) {
+  el.innerHTML = `
+    <h2>Manifesto</h2>
+    <p class="subtitle">Your positioning statement. HTML tags like &lt;strong&gt; are supported.</p>
+    ${langTabs("renderManifesto(document.getElementById('contentArea'))")}
+    <div class="card">
+      ${field('Label', `manifesto.${editLang}.label`)}
+      ${field('Text (HTML allowed)', `manifesto.${editLang}.text`, 'textarea')}
+    </div>`;
+}
+
+function renderServices(el) {
+  const items = content.services.items || [];
+  let html = `
+    <h2>Services</h2>
+    <p class="subtitle">Edit service cards. Changes apply to both onboarding matching and display.</p>
+    ${langTabs("renderServices(document.getElementById('contentArea'))")}
+    <div class="card">
+      ${field('Section Label', `services.${editLang}.label`)}
+      ${field('Section Title', `services.${editLang}.title`)}
+    </div>`;
+
+  items.forEach((item, i) => {
+    html += `<div class="card">
+      <h3>${item[editLang]?.title || item.id}</h3>
+      ${field('Title', `services.items.${i}.${editLang}.title`)}
+      ${field('Description', `services.items.${i}.${editLang}.desc`, 'textarea')}
+      <label>Tags (comma-separated)</label>
+      <input type="text" value="${item.tags.join(', ')}" oninput="content.services.items[${i}].tags=this.value.split(',').map(s=>s.trim())">
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function renderWork(el) {
+  const items = content.work.items || [];
+  let html = `
+    <h2>Work / Portfolio</h2>
+    <p class="subtitle">Manage case studies. Add image URLs when ready.</p>
+    ${langTabs("renderWork(document.getElementById('contentArea'))")}
+    <div class="card">
+      ${field('Section Label', `work.${editLang}.label`)}
+      ${field('Section Title', `work.${editLang}.title`)}
+    </div>`;
+
+  items.forEach((item, i) => {
+    html += `<div class="card">
+      <h3>${item.client} — ${item.title}</h3>
+      ${field('Title', `work.items.${i}.title`)}
+      ${field('Client', `work.items.${i}.client`)}
+      ${field('Category (EN)', `work.items.${i}.category_en`)}
+      ${field('Category (IT)', `work.items.${i}.category_it`)}
+      ${field('Image URL', `work.items.${i}.image`)}
+    </div>`;
+  });
+
+  html += `<button class="btn btn-outline btn-sm" onclick="addWorkItem()">+ Add project</button>`;
+  el.innerHTML = html;
+}
+
+function addWorkItem() {
+  content.work.items.push({
+    id: 'new-' + Date.now(),
+    category_en: 'New Category', category_it: 'Nuova Categoria',
+    title: 'New Project', client: 'Client Name',
+    tags: [], gradient: ['#1a1a1a', '#2a2a2a', '#1a1a1a']
+  });
+  renderWork(document.getElementById('contentArea'));
+}
+
+function renderTeam(el) {
+  const members = content.team.members || [];
+  let html = `
+    <h2>Team</h2>
+    <p class="subtitle">Edit team member profiles.</p>
+    ${langTabs("renderTeam(document.getElementById('contentArea'))")}
+    <div class="card">
+      ${field('Section Label', `team.${editLang}.label`)}
+      ${field('Section Title', `team.${editLang}.title`)}
+    </div>`;
+
+  members.forEach((m, i) => {
+    html += `<div class="card">
+      <h3>${m.name}</h3>
+      ${field('Name', `team.members.${i}.name`)}
+      ${field('Role', `team.members.${i}.role`)}
+      ${field('Initials', `team.members.${i}.initials`)}
+      ${field('Bio', `team.members.${i}.${editLang}.bio`, 'textarea')}
+      ${field('Photo URL', `team.members.${i}.photo`)}
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function renderContact(el) {
+  el.innerHTML = `
+    <h2>Contact</h2>
+    <p class="subtitle">Contact section details.</p>
+    ${langTabs("renderContact(document.getElementById('contentArea'))")}
+    <div class="card">
+      ${field('Label', `contact.${editLang}.label`)}
+      ${field('Title', `contact.${editLang}.title`)}
+      ${field('Email', 'contact.email', 'email')}
+      ${field('Company Name', 'contact.company')}
+      ${field('Location', 'contact.location')}
+    </div>`;
+}
+
+function renderClients(el) {
+  const clients = content.clients || [];
+  el.innerHTML = `
+    <h2>Clients</h2>
+    <p class="subtitle">Client names displayed in the trust strip.</p>
+    <div class="card">
+      <label>Clients (one per line)</label>
+      <textarea style="min-height:250px" oninput="content.clients=this.value.split('\\n').map(s=>s.trim()).filter(Boolean)">${clients.join('\n')}</textarea>
+    </div>`;
+}
+
+function renderOnboarding(el) {
+  el.innerHTML = `
+    <h2>Onboarding Questions</h2>
+    <p class="subtitle">Customize the interactive onboarding that visitors see on first load.</p>
+    ${langTabs("renderOnboarding(document.getElementById('contentArea'))")}
+    <div class="card">
+      <h3>General</h3>
+      ${field('Welcome text', `onboarding.${editLang}.welcome`)}
+      ${field('Skip button', `onboarding.${editLang}.skip`)}
+      ${field('Next button', `onboarding.${editLang}.next`)}
+      ${field('Enter button', `onboarding.${editLang}.start`)}
+    </div>
+    <div class="card">
+      <h3>Question 1</h3>
+      ${field('Question', `onboarding.${editLang}.q1.question`)}
+    </div>
+    <div class="card">
+      <h3>Question 2</h3>
+      ${field('Question', `onboarding.${editLang}.q2.question`)}
+    </div>
+    <div class="card">
+      <h3>Question 3</h3>
+      ${field('Question', `onboarding.${editLang}.q3.question`)}
+    </div>`;
+}
+
+function renderSettings(el) {
+  el.innerHTML = `
+    <h2>Settings</h2>
+    <p class="subtitle">Site metadata and security.</p>
+    <div class="card">
+      <h3>Site Meta</h3>
+      ${field('Page Title', 'meta.title')}
+      ${field('Meta Description', 'meta.description', 'textarea')}
+      ${field('Accent Color', 'meta.accent_color')}
+    </div>
+    <div class="card">
+      <h3>Change Password</h3>
+      <label>Current Password</label>
+      <input type="password" id="currentPass">
+      <label>New Password</label>
+      <input type="password" id="newPass">
+      <button class="btn btn-sm" onclick="changePassword()">Update Password</button>
+    </div>`;
+}
+
+async function changePassword() {
+  const res = await fetch('/api/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      currentPassword: document.getElementById('currentPass').value,
+      newPassword: document.getElementById('newPass').value
+    })
+  });
+  const data = await res.json();
+  alert(res.ok ? 'Password updated!' : data.error);
+}
+</script>
+</body>
+</html>

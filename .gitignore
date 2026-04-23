@@ -1,0 +1,10 @@
+node_modules/
+package-lock.json
+data/users.json
+data/content.backup-*.json
+.env
+.DS_Store
+
+# Company docs (non servono nel repo del sito)
+*.pdf
+*.docx
