@@ -10,20 +10,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bk:#050505;--wh:#fff;--g1:#111;--g2:#1e1e1e;--g3:#555;--g4:#999;
-  --ac:#c8ff00;--acd:rgba(200,255,0,0.08);
-  --f:'Inter',-apple-system,sans-serif;--d:'Space Grotesk',sans-serif;
-}
-html{scroll-behavior:smooth}
+:root{--bk:#050505;--wh:#fff;--g1:#111;--g2:#1e1e1e;--g3:#555;--g4:#999;--ac:#c8ff00;--acd:rgba(200,255,0,0.08);--f:'Inter',-apple-system,sans-serif;--d:'Space Grotesk',sans-serif}
+html{scroll-behavior:smooth;scroll-snap-type:y proximity}
 html,body{margin:0;background:var(--bk);color:var(--wh);font-family:var(--f);overflow-x:hidden}
 ::selection{background:var(--ac);color:var(--bk)}
 
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
+/* NAV — logo grande e sticky */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
 nav.scr{background:rgba(5,5,5,.92);backdrop-filter:blur(30px)}
 .nl{text-decoration:none;display:flex;align-items:center}
-.nl img{height:28px;width:auto}
+.nl img{height:44px;width:auto;transition:height .3s}
+nav.scr .nl img{height:32px}
 .nk{display:flex;gap:2.5rem;align-items:center;list-style:none}
 .nk a{color:var(--g3);text-decoration:none;font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:color .3s}
 .nk a:hover{color:var(--ac)}
@@ -34,15 +31,14 @@ nav.scr{background:rgba(5,5,5,.92);backdrop-filter:blur(30px)}
 .mb span:nth-child(1){top:0}.mb span:nth-child(2){top:8px}.mb span:nth-child(3){top:16px}
 .mb.act span:nth-child(1){top:8px;transform:rotate(45deg)}.mb.act span:nth-child(2){opacity:0}.mb.act span:nth-child(3){top:8px;transform:rotate(-45deg)}
 
-/* SECTIONS */
 section{padding:10rem 3rem}
 .sl{font-size:.7rem;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--ac);margin-bottom:1.2rem}
 .st{font-family:var(--d);font-size:clamp(2rem,4.5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;margin-bottom:2rem}
 
 /* HERO */
 #hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:1px solid var(--g2);position:relative;overflow:hidden}
-.hero-bg-logo{position:absolute;right:-5%;top:50%;transform:translateY(-50%);width:55vw;max-width:700px;opacity:.04;pointer-events:none;user-select:none}
-.hc{max-width:900px;padding:0 2rem}
+.hero-bg-logo{position:absolute;right:-5%;top:50%;transform:translateY(-50%);width:55vw;max-width:700px;opacity:.04;pointer-events:none}
+.hc{max-width:900px;padding:0 2rem;position:relative;z-index:1}
 .hp{font-size:.75rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--ac);margin-bottom:2rem}
 .ht{font-family:var(--d);font-size:clamp(3.5rem,9vw,8rem);font-weight:800;line-height:.9;letter-spacing:-.04em;margin-bottom:2rem}
 .ht em{font-style:normal;-webkit-text-stroke:2px var(--ac);color:transparent}
@@ -52,15 +48,13 @@ section{padding:10rem 3rem}
 .hcta:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 40px rgba(200,255,0,.15)}
 .hcta svg{width:14px;height:14px;transition:transform .3s}.hcta:hover svg{transform:translateX(4px)}
 
-/* MANIFESTO */
 #manifesto{border-bottom:1px solid var(--g2)}
 .mt{font-family:var(--d);font-size:clamp(1.4rem,2.8vw,2rem);font-weight:400;line-height:1.7;color:var(--g4);max-width:900px}
 .mt strong{color:var(--ac);font-weight:600}
 
-/* SERVICES */
 #services{border-bottom:1px solid var(--g2)}
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:var(--g2);margin-top:3rem}
-.sc{background:var(--bk);padding:2.5rem;transition:all .4s;cursor:default;transform-style:preserve-3d}
+.sc{background:var(--bk);padding:2.5rem;transition:all .4s;cursor:default}
 .sc:hover{background:var(--g1)}
 .si2{width:36px;height:36px;margin-bottom:1.2rem;color:var(--g3);transition:color .3s}.sc:hover .si2{color:var(--ac)}
 .sc h3{font-family:var(--d);font-size:1.2rem;font-weight:600;margin-bottom:.8rem;transition:transform .3s}.sc:hover h3{transform:translateX(4px)}
@@ -69,7 +63,6 @@ section{padding:10rem 3rem}
 .stg span{font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .5rem;border:1px solid var(--g2);color:var(--g3);transition:all .3s}
 .sc:hover .stg span{border-color:var(--ac);color:var(--ac)}
 
-/* WORK */
 #work{border-bottom:1px solid var(--g2)}
 .wg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--g2);margin-top:3rem}
 .wi{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--g1);cursor:pointer;transition:transform .5s cubic-bezier(.16,1,.3,1)}
@@ -84,7 +77,6 @@ section{padding:10rem 3rem}
 .clist{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem 1rem;font-size:.78rem;color:var(--g3);line-height:2.2}
 .clist span{transition:color .3s;cursor:default}.clist span:hover{color:var(--ac)}
 
-/* TEAM */
 #team{border-bottom:1px solid var(--g2)}
 .tg{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;margin-top:3rem}
 .tm{text-align:center;transition:transform .4s}
@@ -95,45 +87,45 @@ section{padding:10rem 3rem}
 .tm .rl{font-size:.7rem;color:var(--ac);font-weight:500;letter-spacing:.08em;margin-bottom:.6rem}
 .tm .bio{font-size:.75rem;line-height:1.5;color:var(--g3)}
 
-/* ====== BRIEF — HORIZONTAL SCROLL ====== */
-#brief{border-bottom:1px solid var(--g2);padding:6rem 0;overflow:hidden}
+/* ====== BRIEF — snap + horizontal ====== */
+#brief{border-bottom:1px solid var(--g2);padding:6rem 0;overflow:hidden;scroll-snap-align:start;scroll-margin-top:70px}
 .bf-header{padding:0 3rem;margin-bottom:3rem}
-.bf-track{
-  display:flex;
-  overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  gap:0;
-}
+.bf-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:0}
 .bf-track::-webkit-scrollbar{display:none}
-.bf-panel{
-  flex:0 0 100vw;
-  min-height:50vh;
-  scroll-snap-align:start;
-  display:flex;align-items:center;justify-content:center;
-  padding:2rem 3rem;
-}
+.bf-panel{flex:0 0 100vw;min-height:55vh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:2rem 3rem}
 .bf-panel-inner{max-width:600px;width:100%;text-align:center}
 .bf-cards{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin:2rem 0}
 .bf-card{padding:.8rem 1.2rem;border:1px solid var(--g2);color:var(--g4);cursor:pointer;font-size:.85rem;font-weight:500;transition:all .3s;font-family:var(--f)}
 .bf-card:hover{border-color:var(--g3);color:var(--wh)}
 .bf-card.sel{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+.bf-card.other{border-style:dashed}
+/* "Other" text input that appears when clicked */
+.bf-other{display:none;margin:1rem auto;max-width:400px}
+.bf-other.vis{display:block}
+.bf-other input{width:100%;background:var(--bk);border:1px solid var(--ac);color:var(--ac);padding:.7rem 1rem;font-family:var(--f);font-size:.85rem;outline:none;text-align:center}
+
 .bf-form{text-align:left;display:flex;flex-direction:column;gap:1rem;margin:2rem 0}
 .bf-form label{font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--g3);margin-bottom:.25rem;display:block}
-.bf-form input,.bf-form textarea{width:100%;background:var(--bk);border:1px solid var(--g2);color:var(--wh);padding:.7rem 1rem;font-family:var(--f);font-size:.85rem;outline:none;transition:border-color .3s}
-.bf-form input:focus,.bf-form textarea:focus{border-color:var(--ac)}
-.bf-form textarea{min-height:100px;resize:vertical}
+.bf-form input,.bf-form textarea,.bf-form select{width:100%;background:var(--bk);border:1px solid var(--g2);color:var(--wh);padding:.7rem 1rem;font-family:var(--f);font-size:.85rem;outline:none;transition:border-color .3s;-webkit-appearance:none;appearance:none}
+.bf-form input:focus,.bf-form textarea:focus,.bf-form select:focus{border-color:var(--ac)}
+.bf-form textarea{min-height:80px;resize:vertical}
+.bf-form select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center}
+.bf-form select option{background:var(--g1);color:var(--wh)}
+.bf-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
 .bf-btn{background:var(--ac);color:var(--bk);border:0;padding:.85rem 2rem;font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:var(--f);transition:all .3s}
 .bf-btn:hover{opacity:.85}.bf-btn:disabled{opacity:.3;cursor:default}
+.bf-back{background:0;border:1px solid var(--g2);color:var(--g4);padding:.85rem 1.5rem;font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:var(--f);transition:all .3s;margin-right:.5rem}
+.bf-back:hover{border-color:var(--g3);color:var(--wh)}
 .bf-dots{display:flex;gap:.5rem;justify-content:center;margin-top:2rem}
-.bf-dots span{width:8px;height:8px;border-radius:50%;background:var(--g2);transition:all .3s;cursor:pointer}
+.bf-dots span{width:8px;height:8px;border-radius:50%;background:var(--g2);transition:all .3s}
 .bf-dots span.act{background:var(--ac);width:24px;border-radius:4px}
 
 /* WORKFLOW OVERLAY */
 #wf-overlay{position:fixed;inset:0;z-index:2000;background:var(--bk);overflow-y:auto;display:none;animation:fu .6s forwards}
 #wf-overlay.open{display:block}
-.wf-wrap{max-width:700px;margin:0 auto;padding:6rem 2rem}
+.wf-wrap{max-width:100%;margin:0 auto;padding:6rem 2rem}
+.wf-wrap-header{max-width:700px;margin:0 auto}
 .wf-close{position:fixed;top:2rem;right:2rem;background:0;border:1px solid var(--g2);color:var(--g3);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:all .3s;z-index:2001}
 .wf-close:hover{border-color:var(--ac);color:var(--ac)}
 .wf-spinner{text-align:center;padding:4rem 0}
@@ -142,10 +134,9 @@ section{padding:10rem 3rem}
 .wf-spinner-msg{font-size:.9rem;color:var(--g4);transition:opacity .3s}
 .wf-spinner-sub{font-size:.7rem;color:var(--g3);margin-top:.5rem;letter-spacing:.1em}
 @keyframes fu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-/* Workflow — horizontal scroll */
 .wf-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:1px;background:var(--g2);margin-top:2rem}
 .wf-track::-webkit-scrollbar{display:none}
-.wf-phase{flex:0 0 min(85vw,340px);scroll-snap-align:start;background:var(--bk);padding:2rem;text-align:left;opacity:0;animation:fu .5s forwards;position:relative;border-top:2px solid var(--ac)}
+.wf-phase{flex:0 0 min(85vw,340px);scroll-snap-align:start;background:var(--bk);padding:2rem;text-align:left;opacity:0;animation:fu .5s forwards;border-top:2px solid var(--ac)}
 .wf-phase .num{font-family:var(--d);font-size:2.5rem;font-weight:800;color:var(--g2);margin-bottom:.5rem}
 .wf-phase h4{font-family:var(--d);font-size:1rem;font-weight:600;margin-bottom:.3rem}
 .wf-phase .dur{font-size:.65rem;color:var(--ac);font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
@@ -153,16 +144,15 @@ section{padding:10rem 3rem}
 .wf-phase .tools{display:flex;flex-wrap:wrap;gap:.25rem}
 .wf-phase .tools span{font-size:.55rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .4rem;border:1px solid var(--g2);color:var(--g3)}
 .wf-hint{font-size:.7rem;color:var(--g3);text-align:center;margin-top:1rem;letter-spacing:.05em}
+.wf-logo{display:block;width:100px;margin:0 auto 2rem;opacity:.2}
 
-/* CONTACT */
 #contact{text-align:center;padding:8rem 3rem}
 .ce{font-family:var(--d);font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;color:var(--wh);text-decoration:none;display:inline-block;margin:1rem 0;transition:all .4s}
 .ce:hover{color:var(--ac)}
 .cm{font-size:.82rem;color:var(--g3);line-height:2}.cm a{color:var(--g3);text-decoration:none;transition:color .3s}.cm a:hover{color:var(--ac)}
 
 footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--g3)}
-footer img{height:20px;opacity:.4}
-.wf-logo{display:block;width:80px;margin:0 auto 2rem;opacity:.3}
+footer img{height:22px;opacity:.35}
 
 /* CHAT */
 #chtgl{position:fixed;bottom:2rem;right:2rem;z-index:1100;width:52px;height:52px;border-radius:50%;background:var(--ac);color:var(--bk);border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .4s;box-shadow:0 4px 20px rgba(200,255,0,.15)}
@@ -178,15 +168,14 @@ footer img{height:20px;opacity:.4}
 .chia input{flex:1;background:var(--bk);border:1px solid var(--g2);color:var(--wh);padding:.6rem 1rem;font-family:var(--f);font-size:.82rem;outline:none;transition:border-color .3s}.chia input:focus{border-color:var(--ac)}
 .chia button{background:var(--ac);color:var(--bk);border:0;padding:.6rem 1rem;font-weight:700;font-size:.75rem;cursor:pointer;font-family:var(--f)}
 
-/* REVEAL */
 .rv{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
 .rv.vis{opacity:1;transform:translateY(0)}
 
 @media(max-width:1024px){.tg{grid-template-columns:repeat(2,1fr)}.wg{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:768px){
-  nav{padding:1rem 1.5rem}.nk{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,5,.98);backdrop-filter:blur(30px);flex-direction:column;justify-content:center;gap:2rem;opacity:0;pointer-events:none;transition:opacity .3s}.nk.opn{opacity:1;pointer-events:all}.nk a{font-size:1.1rem}.mb{display:block}
+  nav{padding:1rem 1.5rem}.nl img{height:36px}.nk{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,5,.98);backdrop-filter:blur(30px);flex-direction:column;justify-content:center;gap:2rem;opacity:0;pointer-events:none;transition:opacity .3s}.nk.opn{opacity:1;pointer-events:all}.nk a{font-size:1.1rem}.mb{display:block}
   section{padding:6rem 1.5rem}.sg{grid-template-columns:1fr}.wg{grid-template-columns:1fr}.wio{opacity:1}.tg{grid-template-columns:1fr 1fr;gap:1.5rem}
-  .bf-header{padding:0 1.5rem}
+  .bf-header{padding:0 1.5rem}.bf-row{grid-template-columns:1fr}
   footer{flex-direction:column;gap:.5rem;text-align:center;padding:1.5rem}
   #chtp{width:calc(100vw - 2rem);right:1rem;bottom:5rem}#chtgl{bottom:1.5rem;right:1.5rem}
 }
@@ -210,160 +199,182 @@ footer img{height:20px;opacity:.4}
   </div>
 </section>
 
-<section id="manifesto">
-  <div class="rv">
-    <p class="sl" data-i18n="manifesto.label">Manifesto</p>
-    <p class="mt" data-i18n="manifesto.text">Trends come and go. The metaverse, NFTs, the next big thing — they rise and fade. We don't chase technology. We ask <strong>why</strong>. Because when you start from the right question, you build systems that evolve, communicate, and last — no matter what comes next.</p>
-  </div>
-</section>
+<section id="manifesto"><div class="rv"><p class="sl" data-i18n="manifesto.label">Manifesto</p><p class="mt" data-i18n="manifesto.text">Trends come and go. The metaverse, NFTs, the next big thing — they rise and fade. We don't chase technology. We ask <strong>why</strong>. Because when you start from the right question, you build systems that evolve, communicate, and last — no matter what comes next.</p></div></section>
 
-<section id="services">
-  <div class="rv"><p class="sl" data-i18n="services.label">What we do</p><h2 class="st" data-i18n="services.title">Systems that communicate, evolve, engage.</h2></div>
-  <div class="sg" id="sGrid"></div>
-</section>
+<section id="services"><div class="rv"><p class="sl" data-i18n="services.label">What we do</p><h2 class="st" data-i18n="services.title">Systems that communicate, evolve, engage.</h2></div><div class="sg" id="sGrid"></div></section>
 
-<section id="work">
-  <div class="rv"><p class="sl" data-i18n="work.label">Selected Work</p><h2 class="st" data-i18n="work.title">Case studies</h2></div>
-  <div class="wg" id="wGrid"></div>
-  <p class="csl" data-i18n="clients.label">Trusted by</p>
-  <div class="clist" id="cList"></div>
-</section>
+<section id="work"><div class="rv"><p class="sl" data-i18n="work.label">Selected Work</p><h2 class="st" data-i18n="work.title">Case studies</h2></div><div class="wg" id="wGrid"></div><p class="csl" data-i18n="clients.label">Trusted by</p><div class="clist" id="cList"></div></section>
 
-<section id="team">
-  <div class="rv"><p class="sl" data-i18n="team.label">The team</p><h2 class="st" data-i18n="team.title">25 years of convergence between creativity and technology.</h2></div>
-  <div class="tg" id="tGrid"></div>
-</section>
+<section id="team"><div class="rv"><p class="sl" data-i18n="team.label">The team</p><h2 class="st" data-i18n="team.title">25 years of convergence between creativity and technology.</h2></div><div class="tg" id="tGrid"></div></section>
 
-<!-- BRIEF — horizontal scroll -->
+<!-- BRIEF — snapped + horizontal -->
 <section id="brief">
-  <div class="bf-header rv">
-    <p class="sl" data-i18n="brief.label">Start a project</p>
-    <h2 class="st" data-i18n="brief.title">Let's build something together.</h2>
-  </div>
+  <div class="bf-header rv"><p class="sl" data-i18n="brief.label">Start a project</p><h2 class="st" data-i18n="brief.title">Let's build something together.</h2></div>
   <div class="bf-track" id="bfTrack">
-    <div class="bf-panel" id="bfP0">
-      <div class="bf-panel-inner">
-        <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q1">What's your world?</h3>
-        <div class="bf-cards" id="bfSector"></div>
-        <button class="bf-btn" id="bfN0" onclick="bfScroll(1)" disabled>Next →</button>
-        <div class="bf-dots"><span class="act"></span><span></span><span></span></div>
-      </div>
-    </div>
-    <div class="bf-panel" id="bfP1">
-      <div class="bf-panel-inner">
-        <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q2">What are you looking for?</h3>
-        <div class="bf-cards" id="bfService"></div>
-        <div><button class="bf-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);margin-right:.5rem" onclick="bfScroll(0)">←</button><button class="bf-btn" id="bfN1" onclick="bfScroll(2)" disabled>Next →</button></div>
-        <div class="bf-dots"><span></span><span class="act"></span><span></span></div>
-      </div>
-    </div>
-    <div class="bf-panel" id="bfP2">
-      <div class="bf-panel-inner">
-        <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q3">Tell us about your project</h3>
-        <div class="bf-form">
+    <!-- P0: What's your world? -->
+    <div class="bf-panel" id="bfP0"><div class="bf-panel-inner">
+      <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q1">What's your world?</h3>
+      <div class="bf-cards" id="bfSector"></div>
+      <button class="bf-btn" id="bfN0" onclick="bfScroll(1)" disabled>Next →</button>
+      <div class="bf-dots"><span class="act"></span><span></span><span></span><span></span></div>
+    </div></div>
+    <!-- P1: What's your goal? -->
+    <div class="bf-panel" id="bfP1"><div class="bf-panel-inner">
+      <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q2">What's your goal?</h3>
+      <div class="bf-cards" id="bfGoal"></div>
+      <div class="bf-other" id="bfGoalOther"><input id="bfGoalTxt" placeholder="Describe your goal..."></div>
+      <div><button class="bf-back" onclick="bfScroll(0)">←</button><button class="bf-btn" id="bfN1" onclick="bfScroll(2)" disabled>Next →</button></div>
+      <div class="bf-dots"><span></span><span class="act"></span><span></span><span></span></div>
+    </div></div>
+    <!-- P2: Why? -->
+    <div class="bf-panel" id="bfP2"><div class="bf-panel-inner">
+      <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q3">Why?</h3>
+      <div class="bf-cards" id="bfWhy"></div>
+      <div class="bf-other" id="bfWhyOther"><input id="bfWhyTxt" placeholder="Tell us why..."></div>
+      <div><button class="bf-back" onclick="bfScroll(1)">←</button><button class="bf-btn" id="bfN2" onclick="bfScroll(3)" disabled>Next →</button></div>
+      <div class="bf-dots"><span></span><span></span><span class="act"></span><span></span></div>
+    </div></div>
+    <!-- P3: Brief form -->
+    <div class="bf-panel" id="bfP3"><div class="bf-panel-inner">
+      <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q4">The details</h3>
+      <div class="bf-form">
+        <div class="bf-row">
           <div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div>
           <div><label>Website</label><input id="bfUrl" placeholder="https://"></div>
-          <div><label data-i18n="brief.desc">Project description</label><textarea id="bfDesc" placeholder="What do you want to build?"></textarea></div>
         </div>
-        <div><button class="bf-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);margin-right:.5rem" onclick="bfScroll(1)">←</button><button class="bf-btn" onclick="bfSubmit()" data-i18n="brief.submit">Generate workflow →</button></div>
-        <div class="bf-dots"><span></span><span></span><span class="act"></span></div>
+        <div><label data-i18n="brief.desc">Project description</label><textarea id="bfDesc" placeholder="What do you want to build?"></textarea></div>
+        <div class="bf-row">
+          <div><label>KPI</label><input id="bfKpi" placeholder="e.g. engagement, conversions, awareness"></div>
+          <div><label>Target</label><input id="bfTarget" placeholder="e.g. Gen Z, luxury consumers, B2B"></div>
+        </div>
+        <div><label>Budget</label>
+          <select id="bfBudget">
+            <option value="" disabled selected>Select budget range</option>
+            <option value="5K-10K">€ 5.000 – 10.000</option>
+            <option value="10K-25K">€ 10.000 – 25.000</option>
+            <option value="25K-50K">€ 25.000 – 50.000</option>
+            <option value="50K-100K">€ 50.000 – 100.000</option>
+            <option value="100K-250K">€ 100.000 – 250.000</option>
+            <option value="250K-500K">€ 250.000 – 500.000</option>
+            <option value="500K+">€ 500.000+</option>
+          </select>
+        </div>
       </div>
-    </div>
+      <div><button class="bf-back" onclick="bfScroll(2)">←</button><button class="bf-btn" onclick="bfSubmit()" data-i18n="brief.submit">Generate workflow →</button></div>
+      <div class="bf-dots"><span></span><span></span><span></span><span class="act"></span></div>
+    </div></div>
   </div>
 </section>
 
-<section id="contact">
-  <div class="rv">
-    <p class="sl" data-i18n="contact.label">Get in touch</p>
-    <a href="mailto:info@justwhy.it" class="ce" id="cEmail">info@justwhy.it</a>
-    <div class="cm" id="cMeta"><p>WHY srl — Roma, Italia</p><p><a href="https://justwhy.it">justwhy.it</a></p></div>
-  </div>
-</section>
+<section id="contact"><div class="rv"><p class="sl" data-i18n="contact.label">Get in touch</p><a href="mailto:info@justwhy.it" class="ce" id="cEmail">info@justwhy.it</a><div class="cm" id="cMeta"><p>WHY srl — Roma, Italia</p><p><a href="https://justwhy.it">justwhy.it</a></p></div></div></section>
 
 <footer><span><img src="img/logo-white.png" alt="WHY"> &nbsp; &copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
 
 <!-- WORKFLOW OVERLAY -->
-<div id="wf-overlay">
-  <button class="wf-close" onclick="closeWf()">&times;</button>
-  <div class="wf-wrap">
-    <img src="img/logo-white.png" alt="WHY" class="wf-logo">
-    <p class="sl">Your workflow</p>
-    <h2 class="st" id="wfTitle">Here's how we'd build it together.</h2>
-    <div id="wfContent"></div>
-    <div style="text-align:center;margin-top:3rem" id="wfCta"></div>
-  </div>
-</div>
+<div id="wf-overlay"><button class="wf-close" onclick="closeWf()">&times;</button><div class="wf-wrap"><div class="wf-wrap-header"><img src="img/logo-white.png" alt="WHY" class="wf-logo"><p class="sl">Your workflow</p><h2 class="st" id="wfTitle">Here's how we'd build it together.</h2></div><div id="wfContent"></div><div style="text-align:center;margin-top:3rem;max-width:700px;margin-left:auto;margin-right:auto" id="wfCta"></div></div></div>
 
 <!-- CHAT -->
 <button id="chtgl" onclick="togChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button>
 <div id="chtp"><div class="chh"><h4>WHY AI</h4><span>GPT</span></div><div class="chms" id="chMs"><div class="chm ast" id="chW">Hi! Ask me anything about WHY.</div></div><div class="chia"><input id="chIn" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendCh()"><button onclick="sendCh()">Send</button></div></div>
 
 <script>
-// =============================================
-// SCROLL REVEAL
-// =============================================
 const rvObs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:.1,rootMargin:'0px 0px -60px 0px'});
 function initRv(){document.querySelectorAll('.rv').forEach(el=>rvObs.observe(el));}
 initRv();
 
-// TILT
 function initTilt(){document.querySelectorAll('.sc,.wi,.tm').forEach(el=>{el.addEventListener('mousemove',e=>{const r=el.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateZ(4px)`;});el.addEventListener('mouseleave',()=>{el.style.transform='';});});}
 
-// NAV
 window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scr',window.scrollY>50);});
 function togMob(){document.getElementById('mbB').classList.toggle('act');document.getElementById('nk').classList.toggle('opn');}
 document.addEventListener('click',e=>{if(e.target.closest('.nk a')){document.getElementById('mbB').classList.remove('act');document.getElementById('nk').classList.remove('opn');}});
 
-// =============================================
-// CONTENT
-// =============================================
-let D=null,lang='en',bf={sector:null,service:null},chM=[];
+let D=null,lang='en',bf={sector:null,goal:null,why:null},chM=[];
 const IC={cube:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 4L4 14v20l20 10 20-10V14L24 4z"/><path d="M4 14l20 10m0 0l20-10M24 24v20"/></svg>',play:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/><path d="M18 16l14 8-14 8V16z"/></svg>',headset:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="32" height="24" rx="2"/><path d="M16 38h16M24 32v6"/></svg>',signal:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 24c0-8.8 7.2-16 16-16s16 7.2 16 16"/><path d="M14 24c0-5.5 4.5-10 10-10s10 4.5 10 10"/><circle cx="24" cy="24" r="4"/><path d="M24 28v12M18 40h12"/></svg>',gamepad:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="10" y="6" width="28" height="36" rx="3"/><path d="M18 36h12"/><circle cx="24" cy="22" r="8"/></svg>',brain:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="12"/><path d="M24 4v8m0 24v8M4 24h8m24 0h8"/></svg>'};
+
+// Brief question options — bilingual
+const bfOpts={
+  goals:{
+    en:['Launch a new product or experience','Engage & retain our audience','Transform a physical space','Innovate our communication','Other'],
+    it:['Lanciare un nuovo prodotto o esperienza','Coinvolgere e fidelizzare il pubblico','Trasformare uno spazio fisico','Innovare la nostra comunicazione','Altro']
+  },
+  whys:{
+    en:['We need to stand out from competitors','Our audience expects innovation','We want to create lasting impact','We\'re exploring new technologies','Other'],
+    it:['Dobbiamo distinguerci dai competitor','Il nostro pubblico si aspetta innovazione','Vogliamo creare un impatto duraturo','Stiamo esplorando nuove tecnologie','Altro']
+  }
+};
 
 async function load(){try{const r=await fetch('/api/content');D=await r.json();}catch(e){}if(D)build();}
 
 function build(){
   if(!D)return;const l=lang;
-  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Cosa stai cercando?':'What are you looking for?','brief.q3':l==='it'?'Parlaci del tuo progetto':'Tell us about your project','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
+  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?','brief.q3':l==='it'?'Perché?':'Why?','brief.q4':l==='it'?'I dettagli':'The details','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
   document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(m[k])el.innerHTML=m[k];});
 
   const sv=D.services?.items||[];
-  document.getElementById('sGrid').innerHTML=sv.map((s,i)=>`<div class="sc rv"><div class="si2">${IC[s.icon]||IC.cube}</div><h3>${s[l].title}</h3><p>${s[l].desc}</p><div class="stg">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
+  document.getElementById('sGrid').innerHTML=sv.map(s=>`<div class="sc rv"><div class="si2">${IC[s.icon]||IC.cube}</div><h3>${s[l].title}</h3><p>${s[l].desc}</p><div class="stg">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
 
   const wk=D.work?.items||[];const ck=l==='it'?'category_it':'category_en';
-  document.getElementById('wGrid').innerHTML=wk.map((w,i)=>{const bg=w.image?`url(${w.image})`:`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;return `<div class="wi rv"><div class="wib" style="background:${bg};background-size:cover;background-position:center"></div><div class="wio"><span class="wic">${w[ck]}</span><h3 class="wit">${w.title}</h3><span class="wicl">${w.client}</span></div></div>`;}).join('');
+  document.getElementById('wGrid').innerHTML=wk.map(w=>{const bg=w.image?`url(${w.image})`:`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;return `<div class="wi rv"><div class="wib" style="background:${bg};background-size:cover;background-position:center"></div><div class="wio"><span class="wic">${w[ck]}</span><h3 class="wit">${w.title}</h3><span class="wicl">${w.client}</span></div></div>`;}).join('');
 
   document.getElementById('cList').innerHTML=(D.clients||[]).map(c=>`<span>${c}</span>`).join('');
-  document.getElementById('tGrid').innerHTML=(D.team?.members||[]).map((m,i)=>`<div class="tm rv"><div class="tp">${m.photo?`<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">`:`<span class="tpl">${m.initials}</span>`}</div><h3>${m.name}</h3><p class="rl">${m.role}</p><p class="bio">${m[l].bio}</p></div>`).join('');
+  document.getElementById('tGrid').innerHTML=(D.team?.members||[]).map(m=>`<div class="tm rv"><div class="tp">${m.photo?`<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">`:`<span class="tpl">${m.initials}</span>`}</div><h3>${m.name}</h3><p class="rl">${m.role}</p><p class="bio">${m[l].bio}</p></div>`).join('');
 
   const ct=D.contact||{};if(ct.email){document.getElementById('cEmail').href=`mailto:${ct.email}`;document.getElementById('cEmail').textContent=ct.email;}
   if(ct.company)document.getElementById('cMeta').innerHTML=`<p>${ct.company} — ${ct.location||''}</p><p><a href="https://${ct.website||''}">${ct.website||''}</a></p>`;
 
+  // Brief: sectors
   const sectors=l==='it'?['Fashion & Lusso','Corporate','Entertainment','Architettura','Tech & Innovation']:['Fashion & Luxury','Corporate','Entertainment','Architecture','Tech & Innovation'];
-  document.getElementById('bfSector').innerHTML=sectors.map(s=>`<div class="bf-card" onclick="selBf(this,'sector','${s}')">${s}</div>`).join('');
-  document.getElementById('bfService').innerHTML=sv.map(s=>`<div class="bf-card" onclick="selBf(this,'service','${s[l].title}')">${s[l].title}</div>`).join('');
+  document.getElementById('bfSector').innerHTML=sectors.map(s=>`<div class="bf-card" onclick="selBf(this,'sector','${s}',0)">${s}</div>`).join('');
+
+  // Brief: goals
+  const goals=bfOpts.goals[l]||bfOpts.goals.en;
+  document.getElementById('bfGoal').innerHTML=goals.map(g=>{
+    const isOther=g==='Other'||g==='Altro';
+    return `<div class="bf-card${isOther?' other':''}" onclick="selBfOther(this,'goal','${isOther?'':g}',1,'bfGoalOther','bfGoalTxt',${isOther})">${g}</div>`;
+  }).join('');
+
+  // Brief: whys
+  const whys=bfOpts.whys[l]||bfOpts.whys.en;
+  document.getElementById('bfWhy').innerHTML=whys.map(w=>{
+    const isOther=w==='Other'||w==='Altro';
+    return `<div class="bf-card${isOther?' other':''}" onclick="selBfOther(this,'why','${isOther?'':w}',2,'bfWhyOther','bfWhyTxt',${isOther})">${w}</div>`;
+  }).join('');
+
+  // Placeholders for "other" inputs
+  document.getElementById('bfGoalTxt').placeholder=l==='it'?'Descrivi il tuo obiettivo...':'Describe your goal...';
+  document.getElementById('bfWhyTxt').placeholder=l==='it'?'Dicci perché...':'Tell us why...';
 
   initRv();initTilt();
 }
 
-// BRIEF — horizontal scroll
-function selBf(el,t,v){el.parentElement.querySelectorAll('.bf-card').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');bf[t]=v;document.getElementById('bfN'+(t==='sector'?0:1)).disabled=false;}
-
-function bfScroll(panelIdx){
-  const track=document.getElementById('bfTrack');
-  const panel=document.getElementById('bfP'+panelIdx);
-  if(panel)track.scrollTo({left:panel.offsetLeft,behavior:'smooth'});
+// Brief selection with "Other" support
+function selBf(el,key,val,btnIdx){
+  el.parentElement.querySelectorAll('.bf-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');bf[key]=val;
+  document.getElementById('bfN'+btnIdx).disabled=false;
 }
 
-// Spinner
+function selBfOther(el,key,val,btnIdx,otherId,txtId,isOther){
+  el.parentElement.querySelectorAll('.bf-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  const otherBox=document.getElementById(otherId);
+  const txtInput=document.getElementById(txtId);
+  if(isOther){
+    otherBox.classList.add('vis');
+    txtInput.focus();
+    txtInput.oninput=()=>{bf[key]=txtInput.value;document.getElementById('bfN'+btnIdx).disabled=!txtInput.value.trim();};
+    bf[key]='';document.getElementById('bfN'+btnIdx).disabled=true;
+  }else{
+    otherBox.classList.remove('vis');
+    bf[key]=val;document.getElementById('bfN'+btnIdx).disabled=false;
+  }
+}
+
+function bfScroll(i){const t=document.getElementById('bfTrack');const p=document.getElementById('bfP'+i);if(p)t.scrollTo({left:p.offsetLeft,behavior:'smooth'});}
+
 const spinMsgs={en:['Gathering information','Analyzing website','Analyzing context','Researching best solutions & technologies','Estimating effort','Generating output'],it:['Recupero informazioni','Analisi web site','Analisi del contesto','Ricerca delle migliori soluzioni e tecnologie','Stima effort','Elaborazione output']};
 let spinInt=null;
-
-function showSpinner(){
-  const msgs=spinMsgs[lang]||spinMsgs.en;let idx=0;
-  document.getElementById('wfContent').innerHTML=`<div class="wf-spinner"><div class="wf-spinner-ring"></div><div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div><div class="wf-spinner-sub" id="spinSub">1/${msgs.length}</div></div>`;
-  spinInt=setInterval(()=>{idx=(idx+1)%msgs.length;const el=document.getElementById('spinMsg');const sub=document.getElementById('spinSub');if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}if(sub)sub.textContent=`${idx+1}/${msgs.length}`;},2500);
-}
+function showSpinner(){const msgs=spinMsgs[lang]||spinMsgs.en;let idx=0;document.getElementById('wfContent').innerHTML=`<div class="wf-spinner"><div class="wf-spinner-ring"></div><div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div><div class="wf-spinner-sub" id="spinSub">1/${msgs.length}</div></div>`;spinInt=setInterval(()=>{idx=(idx+1)%msgs.length;const el=document.getElementById('spinMsg');const sub=document.getElementById('spinSub');if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}if(sub)sub.textContent=`${idx+1}/${msgs.length}`;},2500);}
 function stopSpinner(){if(spinInt){clearInterval(spinInt);spinInt=null;}}
 
 async function bfSubmit(){
@@ -371,26 +382,31 @@ async function bfSubmit(){
   document.getElementById('wfTitle').textContent=lang==='it'?'Ecco come lo costruiremmo insieme.':'Here\'s how we\'d build it together.';
   document.getElementById('wfCta').innerHTML='';showSpinner();
   try{
-    const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sector:bf.sector,service:bf.service,company:document.getElementById('bfCo').value,website:document.getElementById('bfUrl').value,description:document.getElementById('bfDesc').value,lang})});
-    const d=await r.json();stopSpinner();
-    const wfc=document.getElementById('wfContent');
+    const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      sector:bf.sector,goal:bf.goal,why:bf.why,
+      company:document.getElementById('bfCo').value,
+      website:document.getElementById('bfUrl').value,
+      description:document.getElementById('bfDesc').value,
+      kpi:document.getElementById('bfKpi').value,
+      target:document.getElementById('bfTarget').value,
+      budget:document.getElementById('bfBudget').value,
+      lang
+    })});
+    const d=await r.json();stopSpinner();const wfc=document.getElementById('wfContent');
     if(d.workflow){
-      const swipeHint=lang==='it'?'← Scorri per esplorare le fasi →':'← Swipe to explore phases →';
-      wfc.innerHTML=`<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${swipeHint}</p>`;
+      const hint=lang==='it'?'← Scorri per esplorare le fasi →':'← Swipe to explore phases →';
+      wfc.innerHTML=`<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${hint}</p>`;
       document.getElementById('wfCta').innerHTML=`<a href="mailto:info@justwhy.it" class="hcta">${lang==='it'?'Parliamone →':'Let\'s talk →'}</a>`;
-    }
-    else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
+    }else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }
 function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
 
-// I18N
 function toggleLang(){lang=lang==='en'?'it':'en';document.documentElement.lang=lang;document.getElementById('lsB').textContent=lang==='en'?'IT':'EN';if(D)build();document.getElementById('chW').textContent=lang==='it'?'Ciao! Chiedimi quello che vuoi su WHY.':'Hi! Ask me anything about WHY.';}
 
-// CHAT
 let chO=false;
 function togChat(){chO=!chO;document.getElementById('chtp').classList.toggle('opn',chO);if(chO)document.getElementById('chIn').focus();}
-async function sendCh(){const inp=document.getElementById('chIn');const t=inp.value.trim();if(!t)return;inp.value='';chM.push({role:'user',content:t});apCh('usr',t);const ty=apCh('ast','...');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chM,profile:{sector:bf.sector,interest:bf.service},lang})});if(!r.ok){ty.textContent=lang==='it'?'Errore. Riprova.':'Error. Try again.';return;}const data=await r.json();ty.textContent=data.content||'...';chM.push({role:'assistant',content:data.content});scrCh();}catch(e){ty.textContent=lang==='it'?'Errore di connessione.':'Connection error.';}}
+async function sendCh(){const inp=document.getElementById('chIn');const t=inp.value.trim();if(!t)return;inp.value='';chM.push({role:'user',content:t});apCh('usr',t);const ty=apCh('ast','...');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chM,profile:{sector:bf.sector,goal:bf.goal},lang})});if(!r.ok){ty.textContent=lang==='it'?'Errore. Riprova.':'Error. Try again.';return;}const data=await r.json();ty.textContent=data.content||'...';chM.push({role:'assistant',content:data.content});scrCh();}catch(e){ty.textContent=lang==='it'?'Errore di connessione.':'Connection error.';}}
 function apCh(c,t){const el=document.getElementById('chMs');const d=document.createElement('div');d.className='chm '+c;d.textContent=t;el.appendChild(d);scrCh();return d;}
 function scrCh(){document.getElementById('chMs').scrollTop=document.getElementById('chMs').scrollHeight;}
 

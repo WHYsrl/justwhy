@@ -379,16 +379,20 @@ app.post('/api/workflow', chatRateLimit, async (req, res) => {
   }
 
   try {
-    const { sector, service, company, website, description, lang } = req.body;
+    const { sector, goal, why: whyReason, service, company, website, description, kpi, target, budget, lang } = req.body;
 
     const prompt = `You are a creative technology strategist at WHY, a Rome-based studio specializing in 3D Real Time, Immersive Video, XR, Phygital Activations, Instant Games, and AI Systems.
 
 A potential client has submitted a project brief:
 - Sector: ${sector || 'not specified'}
-- Service interest: ${service || 'not specified'}
+- Goal: ${goal || 'not specified'}
+- Why (motivation): ${whyReason || 'not specified'}
 - Company: ${company || 'not specified'}
 - Website: ${website || 'not specified'}
 - Project description: ${description || 'not specified'}
+- KPI: ${kpi || 'not specified'}
+- Target audience: ${target || 'not specified'}
+- Budget range: ${budget || 'not specified'}
 
 Generate a proposed project workflow as a JSON array of phases. Each phase has:
 - "id": sequential number
