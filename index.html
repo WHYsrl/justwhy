@@ -1061,140 +1061,168 @@ load();
 
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
-  camera.position.z=50;
+  camera.position.z=60;
 
-  // Mouse
   const mouse={wx:0,wy:0,active:false,sx:0,sy:0,prevX:0,prevY:0,speed:0};
   const raycaster=new THREE.Raycaster();
   const mouseVec=new THREE.Vector2();
 
-  // --- Shape generators: return arrays of {x,y,z} target positions ---
-  function makeIcosahedron(n,r){
-    const geo=new THREE.IcosahedronGeometry(r,Math.ceil(n/12));
-    const pts=[];const p=geo.attributes.position;
-    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
-    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
-    geo.dispose();return pts;
+  // --- Solid-fill shape generators (particles fill the VOLUME, not just surface) ---
+  function fillCube(n,s){
+    const p=[];for(let i=0;i<n;i++)p.push({x:(Math.random()-.5)*s,y:(Math.random()-.5)*s,z:(Math.random()-.5)*s});return p;
   }
-  function makeTorus(n,R,r){
-    const pts=[];
+  function fillDiamond(n,r){
+    const p=[];for(let i=0;i<n;i++){
+      const y=(Math.random()-.5)*2;const ring=1-Math.abs(y);const a=Math.random()*Math.PI*2;
+      const rd=Math.random()*ring*r;
+      p.push({x:Math.cos(a)*rd,y:y*r,z:Math.sin(a)*rd});
+    }return p;
+  }
+  function fillCone(n,r,h){
+    const p=[];for(let i=0;i<n;i++){
+      const y=Math.random();const ring=(1-y)*r;const a=Math.random()*Math.PI*2;
+      const rd=Math.sqrt(Math.random())*ring;
+      p.push({x:Math.cos(a)*rd,y:(y-.5)*h,z:Math.sin(a)*rd});
+    }return p;
+  }
+  function fillParallelepiped(n,a,b,c,skew){
+    const p=[];for(let i=0;i<n;i++){
+      const x=(Math.random()-.5)*a,y=(Math.random()-.5)*b,z=(Math.random()-.5)*c;
+      p.push({x:x+y*skew,y,z});
+    }return p;
+  }
+  function fillOctahedron(n,r){
+    const p=[];for(let i=0;i<n;i++){
+      let x,y,z;do{x=(Math.random()-.5)*2;y=(Math.random()-.5)*2;z=(Math.random()-.5)*2;}while(Math.abs(x)+Math.abs(y)+Math.abs(z)>1);
+      p.push({x:x*r,y:y*r,z:z*r});
+    }return p;
+  }
+  function fillPyramid(n,base,h){
+    const p=[];for(let i=0;i<n;i++){
+      const y=Math.random();const s=(1-y)*base/2;
+      const x=(Math.random()-.5)*2*s,z=(Math.random()-.5)*2*s;
+      p.push({x,y:(y-.3)*h,z});
+    }return p;
+  }
+  function fillIcosahedron(n,r){
+    const p=[];const geo=new THREE.IcosahedronGeometry(r,0);const verts=geo.attributes.position;
+    // Fill by interpolating between center and vertices
     for(let i=0;i<n;i++){
-      const u=Math.random()*Math.PI*2,v=Math.random()*Math.PI*2;
-      pts.push({x:(R+r*Math.cos(v))*Math.cos(u),y:(R+r*Math.cos(v))*Math.sin(u),z:r*Math.sin(v)});
-    }return pts;
+      const vi=Math.floor(Math.random()*verts.count);
+      const t2=Math.pow(Math.random(),1/3);// cube root for volume uniformity
+      p.push({x:verts.getX(vi)*t2,y:verts.getY(vi)*t2,z:verts.getZ(vi)*t2});
+    }
+    geo.dispose();return p;
   }
-  function makeOctahedron(n,r){
-    const geo=new THREE.OctahedronGeometry(r,Math.ceil(n/6));
-    const pts=[];const p=geo.attributes.position;
-    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
-    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
-    geo.dispose();return pts;
-  }
-  function makeDodecahedron(n,r){
-    const geo=new THREE.DodecahedronGeometry(r,Math.ceil(n/20));
-    const pts=[];const p=geo.attributes.position;
-    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
-    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
-    geo.dispose();return pts;
-  }
-  function makeSphere(n,r){
-    const pts=[];
-    for(let i=0;i<n;i++){
-      const u=Math.random()*Math.PI*2,v=Math.acos(2*Math.random()-1);
-      pts.push({x:r*Math.sin(v)*Math.cos(u),y:r*Math.sin(v)*Math.sin(u),z:r*Math.cos(v)});
-    }return pts;
-  }
-  function makeDNA(n,r){
-    const pts=[];
-    for(let i=0;i<n;i++){
-      const t2=i/n*Math.PI*6-Math.PI*3;
-      const strand=i%2===0?1:-1;
-      pts.push({x:Math.cos(t2)*r*0.6*strand,y:t2*1.5,z:Math.sin(t2)*r*0.6*strand});
-    }return pts;
-  }
-  function makeTetra(n,r){
-    const geo=new THREE.TetrahedronGeometry(r,Math.ceil(n/4));
-    const pts=[];const p=geo.attributes.position;
-    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
-    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
-    geo.dispose();return pts;
+  function fillPrism(n,r,h){
+    const p=[];for(let i=0;i<n;i++){
+      const a=Math.floor(Math.random()*6);const a1=a*Math.PI/3,a2=(a+1)*Math.PI/3;
+      const u=Math.random(),v=Math.random();const s=u+v>1?{u:1-u,v:1-v}:{u,v};
+      const x=s.u*Math.cos(a1)*r+s.v*Math.cos(a2)*r;
+      const z=s.u*Math.sin(a1)*r+s.v*Math.sin(a2)*r;
+      p.push({x,y:(Math.random()-.5)*h,z});
+    }return p;
   }
 
-  const SHAPES=[makeIcosahedron,makeTorus,makeOctahedron,makeDodecahedron,makeSphere,makeDNA,makeTetra];
-  const SHAPE_ARGS=[[14],[8,4],[14],[14],[12],[10],[14]]; // radii
+  // --- Shape catalog with display names ---
+  const SHAPE_FNS=[
+    ()=>fillCube(0,12),
+    ()=>fillDiamond(0,10),
+    ()=>fillCone(0,9,14),
+    ()=>fillParallelepiped(0,14,10,8,0.4),
+    ()=>fillOctahedron(0,11),
+    ()=>fillPyramid(0,14,12),
+    ()=>fillIcosahedron(0,10),
+    ()=>fillPrism(0,8,12)
+  ];
 
-  // --- Particles ---
-  const PCOUNT=200;
+  // --- Multiple simultaneous shape clusters spread across the page ---
+  const CLUSTER_COUNT=3;
+  const PER_CLUSTER=180;
+  const AMBIENT=600-(CLUSTER_COUNT*PER_CLUSTER); // remaining particles are ambient dust
+  const TOTAL=CLUSTER_COUNT*PER_CLUSTER+AMBIENT;
+
   const pGeo=new THREE.BufferGeometry();
-  const pos=new Float32Array(PCOUNT*3);
+  const pos=new Float32Array(TOTAL*3);
   const pData=[];
-  for(let i=0;i<PCOUNT;i++){
-    pos[i*3]=(Math.random()-.5)*60;
-    pos[i*3+1]=(Math.random()-.5)*40;
-    pos[i*3+2]=(Math.random()-.5)*30;
-    pData.push({tx:0,ty:0,tz:0,vx:0,vy:0,vz:0,phase:Math.random()*Math.PI*2,disrupted:0});
+
+  // Cluster state
+  const clusters=[];
+  function randomPos(spread){return{x:(Math.random()-.5)*spread,y:(Math.random()-.5)*spread*0.6,z:(Math.random()-.5)*spread*0.3};}
+
+  for(let c=0;c<CLUSTER_COUNT;c++){
+    const cx=(c-1)*35+(Math.random()-.5)*10; // spread across viewport width
+    const cy=(Math.random()-.5)*20;
+    clusters.push({
+      cx,cy,shapeIdx:Math.floor(Math.random()*SHAPE_FNS.length),
+      rotX:Math.random()*Math.PI,rotY:Math.random()*Math.PI,
+      rotSpeedX:0.003+Math.random()*0.005,rotSpeedY:0.004+Math.random()*0.006,
+      disruption:0,reformTimer:0,scale:0.7+Math.random()*0.5,
+      start:c*PER_CLUSTER,count:PER_CLUSTER
+    });
   }
+
+  // Init all particles
+  for(let i=0;i<TOTAL;i++){
+    const sp=randomPos(120);
+    pos[i*3]=sp.x;pos[i*3+1]=sp.y;pos[i*3+2]=sp.z;
+    pData.push({tx:0,ty:0,tz:0,vx:0,vy:0,vz:0,phase:Math.random()*Math.PI*2,cluster:-1});
+  }
+  // Assign cluster particles
+  clusters.forEach((cl,ci)=>{
+    for(let i=cl.start;i<cl.start+cl.count;i++)pData[i].cluster=ci;
+  });
+
   pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  const pMat=new THREE.PointsMaterial({color:0xc8ff00,size:0.7,transparent:true,opacity:0.7,blending:THREE.AdditiveBlending,depthWrite:false});
+  const pMat=new THREE.PointsMaterial({color:0xc8ff00,size:0.25,transparent:true,opacity:0.65,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true});
   scene.add(new THREE.Points(pGeo,pMat));
 
-  // --- Wireframe edges for the active shape ---
-  const maxEdges=800;
+  // --- Edge lines (wireframe when formed) ---
+  const maxEdges=1500;
   const edgeGeo=new THREE.BufferGeometry();
   const edgePos=new Float32Array(maxEdges*6);
   const edgeCol=new Float32Array(maxEdges*6);
   edgeGeo.setAttribute('position',new THREE.BufferAttribute(edgePos,3));
   edgeGeo.setAttribute('color',new THREE.BufferAttribute(edgeCol,3));
-  const edgeMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.3,blending:THREE.AdditiveBlending,depthWrite:false});
+  const edgeMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.25,blending:THREE.AdditiveBlending,depthWrite:false});
   scene.add(new THREE.LineSegments(edgeGeo,edgeMat));
 
-  // --- Ambient dust ---
-  const DUST=80;
-  const dustGeo=new THREE.BufferGeometry();
-  const dustPos=new Float32Array(DUST*3);
-  for(let i=0;i<DUST;i++){
-    dustPos[i*3]=(Math.random()-.5)*120;
-    dustPos[i*3+1]=(Math.random()-.5)*80;
-    dustPos[i*3+2]=(Math.random()-.5)*60;
-  }
-  dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
-  const dustMat=new THREE.PointsMaterial({color:0xffffff,size:0.2,transparent:true,opacity:0.15,blending:THREE.AdditiveBlending,depthWrite:false});
-  scene.add(new THREE.Points(dustGeo,dustMat));
-
-  // --- Glow ---
-  const mouseLight=new THREE.PointLight(0xc8ff00,0,60,2);
-  mouseLight.position.set(0,0,15);
+  // --- Mouse glow ---
+  const mouseLight=new THREE.PointLight(0xc8ff00,0,50,2);
+  mouseLight.position.set(0,0,20);
   scene.add(mouseLight);
-  const ambLight=new THREE.PointLight(0xc8ff00,0.5,100,2);
-  ambLight.position.set(0,0,20);
-  scene.add(ambLight);
 
-  // --- Shape management ---
-  let currentShape=0;
-  let shapeRotation={x:0,y:0};
-  let disruption=0; // 0=formed, 1=fully scattered
-  let reformTimer=0;
-  const REFORM_DELAY=2.5; // seconds before reforming into new shape
-
-  function setShape(idx){
-    currentShape=idx;
-    const fn=SHAPES[idx];
-    const args=SHAPE_ARGS[idx];
-    const targets=fn(PCOUNT,...args);
-    // Shuffle for variety
-    for(let i=targets.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[targets[i],targets[j]]=[targets[j],targets[i]];}
-    for(let i=0;i<PCOUNT;i++){
-      pData[i].tx=targets[i].x;
-      pData[i].ty=targets[i].y;
-      pData[i].tz=targets[i].z;
+  // --- Assign shape targets to a cluster ---
+  function assignShape(cl){
+    const fn=SHAPE_FNS[cl.shapeIdx];
+    // Temporarily override count
+    const origFn=fn;
+    const targets=(() => {
+      switch(cl.shapeIdx){
+        case 0:return fillCube(cl.count,12*cl.scale);
+        case 1:return fillDiamond(cl.count,10*cl.scale);
+        case 2:return fillCone(cl.count,9*cl.scale,14*cl.scale);
+        case 3:return fillParallelepiped(cl.count,14*cl.scale,10*cl.scale,8*cl.scale,0.4);
+        case 4:return fillOctahedron(cl.count,11*cl.scale);
+        case 5:return fillPyramid(cl.count,14*cl.scale,12*cl.scale);
+        case 6:return fillIcosahedron(cl.count,10*cl.scale);
+        case 7:return fillPrism(cl.count,8*cl.scale,12*cl.scale);
+      }
+    })();
+    for(let i=0;i<cl.count;i++){
+      const pi=cl.start+i;
+      pData[pi].tx=targets[i].x;
+      pData[pi].ty=targets[i].y;
+      pData[pi].tz=targets[i].z;
     }
   }
-  function nextShape(){
-    let next;
-    do{next=Math.floor(Math.random()*SHAPES.length);}while(next===currentShape);
-    setShape(next);
+  function nextClusterShape(cl){
+    let next;do{next=Math.floor(Math.random()*SHAPE_FNS.length);}while(next===cl.shapeIdx);
+    cl.shapeIdx=next;
+    cl.scale=0.6+Math.random()*0.6;
+    assignShape(cl);
   }
-  setShape(0);
+  clusters.forEach(cl=>assignShape(cl));
 
   // --- Events ---
   function updateMouse(cx,cy){
@@ -1214,7 +1242,6 @@ load();
   window.addEventListener('mousemove',e=>updateMouse(e.clientX,e.clientY));
   window.addEventListener('touchmove',e=>{if(e.touches.length>0)updateMouse(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
   window.addEventListener('mouseleave',()=>{mouse.active=false;mouse.speed=0;});
-
   window.addEventListener('resize',()=>{
     camera.aspect=window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
@@ -1229,112 +1256,118 @@ load();
     const dt=Math.min(clock.getDelta(),0.05);
     const posArr=pGeo.attributes.position.array;
 
-    // Smooth mouse
     if(mouse.active){
-      mouse.sx+=(mouse.wx-mouse.sx)*0.08;
-      mouse.sy+=(mouse.wy-mouse.sy)*0.08;
+      mouse.sx+=(mouse.wx-mouse.sx)*0.07;
+      mouse.sy+=(mouse.wy-mouse.sy)*0.07;
     }
 
-    // Slow shape rotation
-    shapeRotation.x+=0.002;
-    shapeRotation.y+=0.003;
-    const cosX=Math.cos(shapeRotation.x),sinX=Math.sin(shapeRotation.x);
-    const cosY=Math.cos(shapeRotation.y),sinY=Math.sin(shapeRotation.y);
+    // --- Update each cluster ---
+    clusters.forEach(cl=>{
+      cl.rotX+=cl.rotSpeedX;
+      cl.rotY+=cl.rotSpeedY;
+      const cosX=Math.cos(cl.rotX),sinX=Math.sin(cl.rotX);
+      const cosY=Math.cos(cl.rotY),sinY=Math.sin(cl.rotY);
 
-    // Mouse disruption — fast movement shatters the shape
-    if(mouse.active&&mouse.speed>0.3){
-      disruption=Math.min(1,disruption+mouse.speed*0.08);
-      reformTimer=0;
-    }else{
-      reformTimer+=dt;
-      if(reformTimer>REFORM_DELAY&&disruption>0){
-        // Start reforming — if fully disrupted, pick new shape
-        if(disruption>0.7)nextShape();
-        disruption=Math.max(0,disruption-dt*0.4);
-      }
-    }
-
-    // Update particles
-    const formStrength=1-disruption;
-    for(let i=0;i<PCOUNT;i++){
-      const ix=i*3;
-      const d=pData[i];
-      let px=posArr[ix],py=posArr[ix+1],pz=posArr[ix+2];
-
-      // Rotated target position
-      let rtx=d.tx,rty=d.ty,rtz=d.tz;
-      // Rotate Y
-      let tmp=rtx*cosY+rtz*sinY; rtz=-rtx*sinY+rtz*cosY; rtx=tmp;
-      // Rotate X
-      tmp=rty*cosX-rtz*sinX; rtz=rty*sinX+rtz*cosX; rty=tmp;
-
-      // Pull toward target (stronger when formed)
-      const pull=0.03*formStrength+0.003;
-      d.vx+=(rtx-px)*pull;
-      d.vy+=(rty-py)*pull;
-      d.vz+=(rtz-pz)*pull;
-
-      // Mouse repulsion — push particles away
-      if(mouse.active){
-        const dx=px-mouse.sx,dy=py-mouse.sy;
-        const dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist<20&&dist>0.5){
-          const force=(1-dist/20)*0.5*(1+mouse.speed*2);
-          d.vx+=dx/dist*force;
-          d.vy+=dy/dist*force;
-          d.vz+=(Math.random()-.5)*force*0.5;
-          d.disrupted=1;
+      // Mouse disruption per cluster
+      const cdx=mouse.sx-cl.cx,cdy=mouse.sy-cl.cy;
+      const clusterMouseDist=Math.sqrt(cdx*cdx+cdy*cdy);
+      if(mouse.active&&clusterMouseDist<25&&mouse.speed>0.2){
+        cl.disruption=Math.min(1,cl.disruption+mouse.speed*0.06);
+        cl.reformTimer=0;
+      }else{
+        cl.reformTimer+=dt;
+        if(cl.reformTimer>2&&cl.disruption>0){
+          if(cl.disruption>0.6)nextClusterShape(cl);
+          cl.disruption=Math.max(0,cl.disruption-dt*0.35);
         }
       }
 
-      // When disrupted: add chaotic drift
-      if(disruption>0.3){
-        const chaos=disruption*0.02;
-        d.vx+=Math.sin(t*2+d.phase)*chaos;
-        d.vy+=Math.cos(t*1.7+d.phase*1.3)*chaos;
-        d.vz+=Math.sin(t*2.3+d.phase*0.7)*chaos;
+      const form=1-cl.disruption;
+      for(let i=cl.start;i<cl.start+cl.count;i++){
+        const ix=i*3;const d=pData[i];
+        let px=posArr[ix],py=posArr[ix+1],pz=posArr[ix+2];
+
+        // Rotate target into world space + offset to cluster position
+        let rtx=d.tx,rty=d.ty,rtz=d.tz;
+        let tmp=rtx*cosY+rtz*sinY;rtz=-rtx*sinY+rtz*cosY;rtx=tmp;
+        tmp=rty*cosX-rtz*sinX;rtz=rty*sinX+rtz*cosX;rty=tmp;
+        rtx+=cl.cx;rty+=cl.cy;
+
+        // Pull toward target
+        const pull=0.035*form+0.002;
+        d.vx+=(rtx-px)*pull;
+        d.vy+=(rty-py)*pull;
+        d.vz+=(rtz-pz)*pull;
+
+        // Mouse repulsion
+        if(mouse.active){
+          const dx=px-mouse.sx,dy=py-mouse.sy;
+          const dist=Math.sqrt(dx*dx+dy*dy);
+          if(dist<18&&dist>0.3){
+            const force=(1-dist/18)*0.6*(1+mouse.speed*3);
+            d.vx+=dx/dist*force;
+            d.vy+=dy/dist*force;
+            d.vz+=(Math.random()-.5)*force*0.4;
+          }
+        }
+
+        // Chaotic drift when disrupted
+        if(cl.disruption>0.2){
+          const ch=cl.disruption*0.015;
+          d.vx+=Math.sin(t*2.5+d.phase)*ch;
+          d.vy+=Math.cos(t*1.8+d.phase*1.4)*ch;
+          d.vz+=Math.sin(t*2.1+d.phase*0.8)*ch;
+        }
+
+        d.vx*=0.93;d.vy*=0.93;d.vz*=0.91;
+        px+=d.vx;py+=d.vy;pz+=d.vz;
+        if(Math.abs(px)>70)d.vx-=px*0.004;
+        if(Math.abs(py)>45)d.vy-=py*0.004;
+        if(Math.abs(pz)>25)d.vz-=pz*0.006;
+        posArr[ix]=px;posArr[ix+1]=py;posArr[ix+2]=pz;
       }
+    });
 
-      // Damping (less damping when disrupted for more energetic scatter)
-      const damp=disruption>0.5?0.96:0.92;
-      d.vx*=damp;d.vy*=damp;d.vz*=damp;
-
-      px+=d.vx;py+=d.vy;pz+=d.vz;
-
-      // Soft bounds
-      if(Math.abs(px)>60)d.vx-=px*0.003;
-      if(Math.abs(py)>40)d.vy-=py*0.003;
-      if(Math.abs(pz)>30)d.vz-=pz*0.005;
-
-      posArr[ix]=px;posArr[ix+1]=py;posArr[ix+2]=pz;
+    // --- Ambient particles (gentle float) ---
+    const ambStart=CLUSTER_COUNT*PER_CLUSTER;
+    for(let i=ambStart;i<TOTAL;i++){
+      const ix=i*3;const d=pData[i];
+      d.vx+=Math.sin(t*0.15+d.phase)*0.002;
+      d.vy+=Math.cos(t*0.12+d.phase*1.3)*0.002;
+      d.vx*=0.99;d.vy*=0.99;d.vz*=0.99;
+      posArr[ix]+=d.vx;posArr[ix+1]+=d.vy;posArr[ix+2]+=d.vz;
+      // Wrap
+      if(posArr[ix]>65)posArr[ix]=-65;if(posArr[ix]<-65)posArr[ix]=65;
+      if(posArr[ix+1]>42)posArr[ix+1]=-42;if(posArr[ix+1]<-42)posArr[ix+1]=42;
     }
+
     pGeo.attributes.position.needsUpdate=true;
+    pMat.opacity=0.5+Math.sin(t*0.7)*0.12;
 
-    // Particle pulse
-    pMat.opacity=0.55+Math.sin(t*0.8)*0.15+disruption*0.2;
-    pMat.size=0.6+disruption*0.3;
-
-    // Edge connections — between nearby particles (forms visible wireframe when assembled)
+    // --- Edge connections per cluster (forms solid wireframe) ---
     let ei=0;
     const epa=edgeGeo.attributes.position.array;
     const eca=edgeGeo.attributes.color.array;
-    const eDist=disruption<0.4?6+disruption*10:5;
-    for(let i=0;i<PCOUNT&&ei<maxEdges;i++){
-      for(let j=i+1;j<PCOUNT&&ei<maxEdges;j++){
-        const ax=posArr[i*3],ay=posArr[i*3+1],az=posArr[i*3+2];
-        const bx=posArr[j*3],by=posArr[j*3+1],bz=posArr[j*3+2];
-        const dd=Math.sqrt((ax-bx)**2+(ay-by)**2+(az-bz)**2);
-        if(dd<eDist){
-          const alpha=(1-dd/eDist)*(0.5+formStrength*0.5);
-          const ci=ei*6;
-          epa[ci]=ax;epa[ci+1]=ay;epa[ci+2]=az;
-          epa[ci+3]=bx;epa[ci+4]=by;epa[ci+5]=bz;
-          eca[ci]=0.78*alpha;eca[ci+1]=1*alpha;eca[ci+2]=0;
-          eca[ci+3]=0.78*alpha;eca[ci+4]=1*alpha;eca[ci+5]=0;
-          ei++;
+    clusters.forEach(cl=>{
+      const form=1-cl.disruption;
+      const eDist=3.5+form*3; // tighter when formed → denser wireframe
+      for(let i=cl.start;i<cl.start+cl.count&&ei<maxEdges;i++){
+        for(let j=i+1;j<cl.start+cl.count&&ei<maxEdges;j++){
+          const ax=posArr[i*3],ay=posArr[i*3+1],az=posArr[i*3+2];
+          const bx=posArr[j*3],by=posArr[j*3+1],bz=posArr[j*3+2];
+          const dd=Math.sqrt((ax-bx)**2+(ay-by)**2+(az-bz)**2);
+          if(dd<eDist){
+            const alpha=(1-dd/eDist)*(0.3+form*0.7);
+            const ci=ei*6;
+            epa[ci]=ax;epa[ci+1]=ay;epa[ci+2]=az;
+            epa[ci+3]=bx;epa[ci+4]=by;epa[ci+5]=bz;
+            eca[ci]=0.78*alpha;eca[ci+1]=1*alpha;eca[ci+2]=0;
+            eca[ci+3]=0.78*alpha;eca[ci+4]=1*alpha;eca[ci+5]=0;
+            ei++;
+          }
         }
       }
-    }
+    });
     for(let k=ei*6;k<maxEdges*6;k++){epa[k]=0;eca[k]=0;}
     edgeGeo.attributes.position.needsUpdate=true;
     edgeGeo.attributes.color.needsUpdate=true;
@@ -1344,21 +1377,8 @@ load();
     if(mouse.active){
       mouseLight.position.x+=(mouse.sx-mouseLight.position.x)*0.08;
       mouseLight.position.y+=(mouse.sy-mouseLight.position.y)*0.08;
-      mouseLight.intensity+=(2+mouse.speed*5-mouseLight.intensity)*0.06;
-    }else{
-      mouseLight.intensity*=0.96;
-    }
-    ambLight.intensity=0.3+disruption*0.5+Math.sin(t)*0.1;
-
-    // Dust drift
-    const dp=dustGeo.attributes.position.array;
-    for(let i=0;i<DUST;i++){
-      dp[i*3]+=Math.sin(t*0.1+i)*0.01;
-      dp[i*3+1]+=0.005;
-      if(dp[i*3+1]>40)dp[i*3+1]=-40;
-    }
-    dustGeo.attributes.position.needsUpdate=true;
-    dustMat.opacity=0.1+disruption*0.08;
+      mouseLight.intensity+=(1.5+mouse.speed*4-mouseLight.intensity)*0.05;
+    }else{mouseLight.intensity*=0.96;}
 
     renderer.render(scene,camera);
   }
