@@ -339,6 +339,13 @@ function renderWork(el) {
     <div class="card">
       ${field('Section Label', `work.${editLang}.label`)}
       ${field('Section Title', `work.${editLang}.title`)}
+      <div style="margin-top:1rem;display:flex;align-items:center;gap:.75rem">
+        <label style="margin:0;white-space:nowrap">Case Histories Section</label>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <input type="checkbox" id="chkCaseHistories" ${content.work?.case_histories_enabled !== false ? 'checked' : ''} onchange="content.work.case_histories_enabled=this.checked" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">
+          <span style="font-size:.8rem;color:var(--text2)">${content.work?.case_histories_enabled !== false ? 'Enabled — clicking a project opens its detail page' : 'Disabled — projects are shown without detail pages'}</span>
+        </div>
+      </div>
     </div>`;
 
   items.forEach((item, i) => {
