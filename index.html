@@ -468,7 +468,7 @@ function build(){
   document.getElementById('cList').innerHTML=(D.clients||[]).map(c=>`<span>${c}</span>`).join('');
   document.getElementById('tGrid').innerHTML=(D.team?.members||[]).map(m=>`<div class="tm rv"><div class="tp">${m.photo?`<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">`:`<span class="tpl">${m.initials}</span>`}</div><h3>${m.name}</h3><p class="rl">${m.role}</p><p class="bio">${m[l].bio}</p></div>`).join('');
 
-  const ct=D.contact||{};if(ct.email){document.getElementById('cEmail').href=`mailto:${ct.email}`;document.getElementById('cEmail').textContent=ct.email;}
+  if(ct.email){document.getElementById('cEmail').href=`mailto:${ct.email}`;document.getElementById('cEmail').textContent=ct.email;}
   if(ct.company)document.getElementById('cMeta').innerHTML=`<p>${ct.company} — ${ct.location||''}</p><p><a href="https://${ct.website||''}">${ct.website||''}</a></p>`;
 
   // Brief questions — load from CMS (brief_questions) or use defaults
