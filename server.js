@@ -50,6 +50,18 @@ async function initDB() {
       workflow JSONB,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS contact_requests (
+      id SERIAL PRIMARY KEY,
+      name TEXT,
+      email TEXT,
+      mode TEXT,
+      channel TEXT,
+      contact TEXT,
+      sector TEXT,
+      goal TEXT,
+      why TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
 
   // Seed default admin if no users exist
@@ -476,6 +488,30 @@ app.get('/api/submissions', requireAuth, async (req, res) => {
   } catch(e) {
     console.error('Submissions error:', e);
     res.status(500).json({ error: 'Failed to load submissions' });
+  }
+});
+
+// --- Contact Requests ---
+app.post('/api/contact-request', chatRateLimit, async (req, res) => {
+  try {
+    const { name, email, mode, channel, contact, sector, goal, why } = req.body;
+    await pool.query(
+      'INSERT INTO contact_requests (name, email, mode, channel, contact, sector, goal, why) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+      [name, email, mode, channel, contact, sector, goal, why]
+    );
+    res.json({ success: true });
+  } catch(e) {
+    console.error('Contact request error:', e);
+    res.status(500).json({ error: 'Failed to save' });
+  }
+});
+
+app.get('/api/contact-requests', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM contact_requests ORDER BY created_at DESC LIMIT 100');
+    res.json(rows);
+  } catch(e) {
+    res.status(500).json({ error: 'Failed to load' });
   }
 });
 

@@ -167,6 +167,7 @@ textarea { min-height: 100px; resize: vertical; }
       <div class="sidebar-label">Brief & AI</div>
       <a href="#" onclick="showSection('briefQuestions')" data-section="briefQuestions">Brief Questions</a>
       <a href="#" onclick="showSection('submissions')" data-section="submissions">Submissions</a>
+      <a href="#" onclick="showSection('contactReqs')" data-section="contactReqs">Contact Requests</a>
       <a href="#" onclick="showSection('aicontext')" data-section="aicontext">AI Context</a>
       <div class="sidebar-label">Settings</div>
       <a href="#" onclick="showSection('onboarding')" data-section="onboarding">Onboarding</a>
@@ -248,7 +249,7 @@ function showSection(name) {
   const renderers = {
     hero: renderHero, manifesto: renderManifesto, services: renderServices,
     work: renderWork, team: renderTeam, contact: renderContact,
-    clients: renderClients, briefQuestions: renderBriefQuestions, submissions: renderSubmissions, aicontext: renderAIContext, onboarding: renderOnboarding, settings: renderSettings
+    clients: renderClients, briefQuestions: renderBriefQuestions, submissions: renderSubmissions, contactReqs: renderContactReqs, aicontext: renderAIContext, onboarding: renderOnboarding, settings: renderSettings
   };
   if (renderers[name]) renderers[name](area);
 }
@@ -514,6 +515,32 @@ async function deleteSub(id) {
   if (!confirm('Delete this submission?')) return;
   await fetch('/api/submissions/' + id, { method: 'DELETE' });
   renderSubmissions(document.getElementById('contentArea'));
+}
+
+async function renderContactReqs(el) {
+  el.innerHTML = '<h2>Contact Requests</h2><p class="subtitle">Loading...</p>';
+  try {
+    const res = await fetch('/api/contact-requests');
+    const reqs = await res.json();
+    if (!reqs.length) { el.innerHTML = '<h2>Contact Requests</h2><p class="subtitle">No requests yet.</p>'; return; }
+    el.innerHTML = `
+      <h2>Contact Requests</h2>
+      <p class="subtitle">${reqs.length} request(s).</p>
+      ${reqs.map(r => `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div><h3>${r.name || 'Anonymous'}${r.email ? ' — '+r.email : ''}</h3>
+          <p style="font-size:.75rem;color:var(--text2)">${new Date(r.created_at).toLocaleString()}</p></div>
+        </div>
+        <div style="margin-top:.75rem;display:grid;grid-template-columns:1fr 1fr;gap:.4rem;font-size:.85rem">
+          <div><strong>Mode:</strong> ${r.mode || '—'}</div>
+          <div><strong>Channel:</strong> ${r.channel || '—'}</div>
+          <div><strong>Contact:</strong> ${r.contact || '—'}</div>
+          <div><strong>Sector:</strong> ${r.sector || '—'}</div>
+          <div><strong>Goal:</strong> ${r.goal || '—'}</div>
+          <div><strong>Why:</strong> ${r.why || '—'}</div>
+        </div>
+      </div>`).join('')}`;
+  } catch(e) { el.innerHTML = '<h2>Contact Requests</h2><p class="subtitle">Error loading.</p>'; }
 }
 
 function renderAIContext(el) {
