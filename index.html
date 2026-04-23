@@ -1063,141 +1063,157 @@ load();
   const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
   camera.position.z=50;
 
-  // --- Simplex-like noise for organic motion ---
-  function hash(x,y){const n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n);}
-  function smoothNoise(x,y){
-    const ix=Math.floor(x),iy=Math.floor(y);
-    const fx=x-ix,fy=y-iy;
-    const sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
-    const a=hash(ix,iy),b=hash(ix+1,iy),c=hash(ix,iy+1),d=hash(ix+1,iy+1);
-    return a+(b-a)*sx+(c-a)*sy+(d-a-c-b+a)*sx*sy;
-  }
-  function fbm(x,y){return smoothNoise(x,y)*0.5+smoothNoise(x*2,y*2)*0.3+smoothNoise(x*4,y*4)*0.2;}
-
   // Mouse
-  const mouse={wx:0,wy:0,active:false,smoothX:0,smoothY:0};
+  const mouse={wx:0,wy:0,active:false,sx:0,sy:0,prevX:0,prevY:0,speed:0};
   const raycaster=new THREE.Raycaster();
   const mouseVec=new THREE.Vector2();
 
-  // --- Particles ---
-  const PCOUNT=160;
-  const pGeo=new THREE.BufferGeometry();
-  const positions=new Float32Array(PCOUNT*3);
-  const pData=[]; // per-particle organic params
-  for(let i=0;i<PCOUNT;i++){
-    positions[i*3]=(Math.random()-0.5)*100;
-    positions[i*3+1]=(Math.random()-0.5)*60;
-    positions[i*3+2]=(Math.random()-0.5)*20-5;
-    pData.push({
-      homeX:positions[i*3], homeY:positions[i*3+1], homeZ:positions[i*3+2],
-      phase:Math.random()*Math.PI*2,
-      speed:0.3+Math.random()*0.7,
-      orbitR:0, orbitAngle:Math.random()*Math.PI*2, orbitSpeed:1+Math.random()*2,
-      vx:0, vy:0, vz:0
-    });
+  // --- Shape generators: return arrays of {x,y,z} target positions ---
+  function makeIcosahedron(n,r){
+    const geo=new THREE.IcosahedronGeometry(r,Math.ceil(n/12));
+    const pts=[];const p=geo.attributes.position;
+    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
+    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
+    geo.dispose();return pts;
   }
-  pGeo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  function makeTorus(n,R,r){
+    const pts=[];
+    for(let i=0;i<n;i++){
+      const u=Math.random()*Math.PI*2,v=Math.random()*Math.PI*2;
+      pts.push({x:(R+r*Math.cos(v))*Math.cos(u),y:(R+r*Math.cos(v))*Math.sin(u),z:r*Math.sin(v)});
+    }return pts;
+  }
+  function makeOctahedron(n,r){
+    const geo=new THREE.OctahedronGeometry(r,Math.ceil(n/6));
+    const pts=[];const p=geo.attributes.position;
+    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
+    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
+    geo.dispose();return pts;
+  }
+  function makeDodecahedron(n,r){
+    const geo=new THREE.DodecahedronGeometry(r,Math.ceil(n/20));
+    const pts=[];const p=geo.attributes.position;
+    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
+    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
+    geo.dispose();return pts;
+  }
+  function makeSphere(n,r){
+    const pts=[];
+    for(let i=0;i<n;i++){
+      const u=Math.random()*Math.PI*2,v=Math.acos(2*Math.random()-1);
+      pts.push({x:r*Math.sin(v)*Math.cos(u),y:r*Math.sin(v)*Math.sin(u),z:r*Math.cos(v)});
+    }return pts;
+  }
+  function makeDNA(n,r){
+    const pts=[];
+    for(let i=0;i<n;i++){
+      const t2=i/n*Math.PI*6-Math.PI*3;
+      const strand=i%2===0?1:-1;
+      pts.push({x:Math.cos(t2)*r*0.6*strand,y:t2*1.5,z:Math.sin(t2)*r*0.6*strand});
+    }return pts;
+  }
+  function makeTetra(n,r){
+    const geo=new THREE.TetrahedronGeometry(r,Math.ceil(n/4));
+    const pts=[];const p=geo.attributes.position;
+    for(let i=0;i<Math.min(n,p.count);i++)pts.push({x:p.getX(i),y:p.getY(i),z:p.getZ(i)});
+    while(pts.length<n)pts.push({x:(Math.random()-.5)*r*2,y:(Math.random()-.5)*r*2,z:(Math.random()-.5)*r*2});
+    geo.dispose();return pts;
+  }
 
-  const pMat=new THREE.PointsMaterial({
-    color:0xc8ff00, size:0.6, transparent:true, opacity:0.6,
-    blending:THREE.AdditiveBlending, depthWrite:false
-  });
+  const SHAPES=[makeIcosahedron,makeTorus,makeOctahedron,makeDodecahedron,makeSphere,makeDNA,makeTetra];
+  const SHAPE_ARGS=[[14],[8,4],[14],[14],[12],[10],[14]]; // radii
+
+  // --- Particles ---
+  const PCOUNT=200;
+  const pGeo=new THREE.BufferGeometry();
+  const pos=new Float32Array(PCOUNT*3);
+  const pData=[];
+  for(let i=0;i<PCOUNT;i++){
+    pos[i*3]=(Math.random()-.5)*60;
+    pos[i*3+1]=(Math.random()-.5)*40;
+    pos[i*3+2]=(Math.random()-.5)*30;
+    pData.push({tx:0,ty:0,tz:0,vx:0,vy:0,vz:0,phase:Math.random()*Math.PI*2,disrupted:0});
+  }
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const pMat=new THREE.PointsMaterial({color:0xc8ff00,size:0.7,transparent:true,opacity:0.7,blending:THREE.AdditiveBlending,depthWrite:false});
   scene.add(new THREE.Points(pGeo,pMat));
 
-  // --- Proximity lines ---
-  const maxLines=600;
-  const lineGeo=new THREE.BufferGeometry();
-  const linePos=new Float32Array(maxLines*6);
-  const lineCol=new Float32Array(maxLines*6);
-  lineGeo.setAttribute('position',new THREE.BufferAttribute(linePos,3));
-  lineGeo.setAttribute('color',new THREE.BufferAttribute(lineCol,3));
-  const lineMat=new THREE.LineBasicMaterial({
-    vertexColors:true,transparent:true,opacity:0.4,
-    blending:THREE.AdditiveBlending,depthWrite:false
-  });
-  scene.add(new THREE.LineSegments(lineGeo,lineMat));
+  // --- Wireframe edges for the active shape ---
+  const maxEdges=800;
+  const edgeGeo=new THREE.BufferGeometry();
+  const edgePos=new Float32Array(maxEdges*6);
+  const edgeCol=new Float32Array(maxEdges*6);
+  edgeGeo.setAttribute('position',new THREE.BufferAttribute(edgePos,3));
+  edgeGeo.setAttribute('color',new THREE.BufferAttribute(edgeCol,3));
+  const edgeMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.3,blending:THREE.AdditiveBlending,depthWrite:false});
+  scene.add(new THREE.LineSegments(edgeGeo,edgeMat));
 
-  // --- User bond lines (click-created networks) ---
-  const bonds=[];
-  const MAX_BONDS=250;
-  const bondGeo=new THREE.BufferGeometry();
-  const bondPos=new Float32Array(MAX_BONDS*6);
-  const bondCol=new Float32Array(MAX_BONDS*6);
-  bondGeo.setAttribute('position',new THREE.BufferAttribute(bondPos,3));
-  bondGeo.setAttribute('color',new THREE.BufferAttribute(bondCol,3));
-  const bondMat=new THREE.LineBasicMaterial({
-    vertexColors:true,transparent:true,opacity:0.7,
-    blending:THREE.AdditiveBlending,depthWrite:false
-  });
-  scene.add(new THREE.LineSegments(bondGeo,bondMat));
-
-  // --- Mouse glow ---
-  const mouseLight=new THREE.PointLight(0xc8ff00,0,80,1.8);
-  mouseLight.position.set(0,0,12);
-  scene.add(mouseLight);
-
-  // --- Click: create organic network cluster ---
-  function createConnections(wx,wy){
-    const posArr=pGeo.attributes.position.array;
-    const nearby=[];
-    for(let i=0;i<PCOUNT;i++){
-      const dx=posArr[i*3]-wx,dy=posArr[i*3+1]-wy;
-      const d=Math.sqrt(dx*dx+dy*dy);
-      if(d<22)nearby.push({idx:i,dist:d});
-    }
-    nearby.sort((a,b)=>a.dist-b.dist);
-    const pick=nearby.slice(0,Math.min(10,nearby.length));
-    if(pick.length<2)return;
-    let added=0;
-    for(let i=0;i<pick.length&&added<8;i++){
-      for(let j=i+1;j<pick.length&&added<8;j++){
-        if(Math.random()>0.5)continue; // random skip for organic feel
-        const a=pick[i].idx,b=pick[j].idx;
-        const exists=bonds.some(bd=>(bd.a===a&&bd.b===b)||(bd.a===b&&bd.b===a));
-        if(!exists){
-          bonds.push({a,b,str:1,age:0,pulse:Math.random()*Math.PI*2});
-          added++;
-          if(bonds.length>MAX_BONDS)bonds.shift();
-        }
-      }
-    }
-    // Also pull nearby particles toward each other organically
-    pick.forEach(p=>{
-      pData[p.idx].orbitR=3+Math.random()*5;
-      pData[p.idx].orbitAngle=Math.atan2(posArr[p.idx*3+1]-wy,posArr[p.idx*3]-wx);
-    });
-    mouseLight.intensity=8;
+  // --- Ambient dust ---
+  const DUST=80;
+  const dustGeo=new THREE.BufferGeometry();
+  const dustPos=new Float32Array(DUST*3);
+  for(let i=0;i<DUST;i++){
+    dustPos[i*3]=(Math.random()-.5)*120;
+    dustPos[i*3+1]=(Math.random()-.5)*80;
+    dustPos[i*3+2]=(Math.random()-.5)*60;
   }
+  dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
+  const dustMat=new THREE.PointsMaterial({color:0xffffff,size:0.2,transparent:true,opacity:0.15,blending:THREE.AdditiveBlending,depthWrite:false});
+  scene.add(new THREE.Points(dustGeo,dustMat));
+
+  // --- Glow ---
+  const mouseLight=new THREE.PointLight(0xc8ff00,0,60,2);
+  mouseLight.position.set(0,0,15);
+  scene.add(mouseLight);
+  const ambLight=new THREE.PointLight(0xc8ff00,0.5,100,2);
+  ambLight.position.set(0,0,20);
+  scene.add(ambLight);
+
+  // --- Shape management ---
+  let currentShape=0;
+  let shapeRotation={x:0,y:0};
+  let disruption=0; // 0=formed, 1=fully scattered
+  let reformTimer=0;
+  const REFORM_DELAY=2.5; // seconds before reforming into new shape
+
+  function setShape(idx){
+    currentShape=idx;
+    const fn=SHAPES[idx];
+    const args=SHAPE_ARGS[idx];
+    const targets=fn(PCOUNT,...args);
+    // Shuffle for variety
+    for(let i=targets.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[targets[i],targets[j]]=[targets[j],targets[i]];}
+    for(let i=0;i<PCOUNT;i++){
+      pData[i].tx=targets[i].x;
+      pData[i].ty=targets[i].y;
+      pData[i].tz=targets[i].z;
+    }
+  }
+  function nextShape(){
+    let next;
+    do{next=Math.floor(Math.random()*SHAPES.length);}while(next===currentShape);
+    setShape(next);
+  }
+  setShape(0);
 
   // --- Events ---
   function updateMouse(cx,cy){
-    const mx=(cx/window.innerWidth)*2-1;
-    const my=-(cy/window.innerHeight)*2+1;
-    mouseVec.set(mx,my);
+    const mx2=(cx/window.innerWidth)*2-1;
+    const my2=-(cy/window.innerHeight)*2+1;
+    mouseVec.set(mx2,my2);
     raycaster.setFromCamera(mouseVec,camera);
     const pt=new THREE.Vector3();
     raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,0,1),0),pt);
-    if(pt){mouse.wx=pt.x;mouse.wy=pt.y;}
+    if(pt){
+      mouse.prevX=mouse.wx;mouse.prevY=mouse.wy;
+      mouse.wx=pt.x;mouse.wy=pt.y;
+      mouse.speed=Math.sqrt((mouse.wx-mouse.prevX)**2+(mouse.wy-mouse.prevY)**2);
+    }
     mouse.active=true;
   }
   window.addEventListener('mousemove',e=>updateMouse(e.clientX,e.clientY));
   window.addEventListener('touchmove',e=>{if(e.touches.length>0)updateMouse(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
-  window.addEventListener('mouseleave',()=>{mouse.active=false;});
-
-  function isInteractive(el){
-    if(!el)return false;
-    const tag=el.tagName;
-    if(tag==='A'||tag==='BUTTON'||tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return true;
-    if(el.closest('a,button,.bf-card,.sc,.wi,.hcta,#chtgl,details,summary'))return true;
-    return false;
-  }
-  window.addEventListener('click',e=>{if(!isInteractive(e.target))createConnections(mouse.wx,mouse.wy);});
-  window.addEventListener('touchstart',e=>{
-    if(e.touches.length>0&&!isInteractive(e.target)){
-      updateMouse(e.touches[0].clientX,e.touches[0].clientY);
-      createConnections(mouse.wx,mouse.wy);
-    }
-  },{passive:true});
+  window.addEventListener('mouseleave',()=>{mouse.active=false;mouse.speed=0;});
 
   window.addEventListener('resize',()=>{
     camera.aspect=window.innerWidth/window.innerHeight;
@@ -1210,160 +1226,139 @@ load();
   function animate(){
     requestAnimationFrame(animate);
     const t=clock.getElapsedTime();
+    const dt=Math.min(clock.getDelta(),0.05);
     const posArr=pGeo.attributes.position.array;
 
-    // Smooth mouse position
+    // Smooth mouse
     if(mouse.active){
-      mouse.smoothX+=(mouse.wx-mouse.smoothX)*0.06;
-      mouse.smoothY+=(mouse.wy-mouse.smoothY)*0.06;
+      mouse.sx+=(mouse.wx-mouse.sx)*0.08;
+      mouse.sy+=(mouse.wy-mouse.sy)*0.08;
     }
 
-    // --- Organic particle movement ---
+    // Slow shape rotation
+    shapeRotation.x+=0.002;
+    shapeRotation.y+=0.003;
+    const cosX=Math.cos(shapeRotation.x),sinX=Math.sin(shapeRotation.x);
+    const cosY=Math.cos(shapeRotation.y),sinY=Math.sin(shapeRotation.y);
+
+    // Mouse disruption — fast movement shatters the shape
+    if(mouse.active&&mouse.speed>0.3){
+      disruption=Math.min(1,disruption+mouse.speed*0.08);
+      reformTimer=0;
+    }else{
+      reformTimer+=dt;
+      if(reformTimer>REFORM_DELAY&&disruption>0){
+        // Start reforming — if fully disrupted, pick new shape
+        if(disruption>0.7)nextShape();
+        disruption=Math.max(0,disruption-dt*0.4);
+      }
+    }
+
+    // Update particles
+    const formStrength=1-disruption;
     for(let i=0;i<PCOUNT;i++){
       const ix=i*3;
       const d=pData[i];
       let px=posArr[ix],py=posArr[ix+1],pz=posArr[ix+2];
 
-      // Flow field from noise — creates organic currents
-      const noiseScale=0.035;
-      const angle=fbm(px*noiseScale+t*0.08, py*noiseScale)*Math.PI*4;
-      const flowStrength=0.06*d.speed;
-      d.vx+=Math.cos(angle)*flowStrength;
-      d.vy+=Math.sin(angle)*flowStrength;
+      // Rotated target position
+      let rtx=d.tx,rty=d.ty,rtz=d.tz;
+      // Rotate Y
+      let tmp=rtx*cosY+rtz*sinY; rtz=-rtx*sinY+rtz*cosY; rtx=tmp;
+      // Rotate X
+      tmp=rty*cosX-rtz*sinX; rtz=rty*sinX+rtz*cosX; rty=tmp;
 
-      // Gentle vertical drift
-      d.vy+=Math.sin(t*0.3+d.phase)*0.003;
+      // Pull toward target (stronger when formed)
+      const pull=0.03*formStrength+0.003;
+      d.vx+=(rtx-px)*pull;
+      d.vy+=(rty-py)*pull;
+      d.vz+=(rtz-pz)*pull;
 
-      // Very gentle home pull to prevent all particles drifting away
-      d.vx+=(d.homeX-px)*0.0003;
-      d.vy+=(d.homeY-py)*0.0003;
-
-      // Mouse interaction — orbit around cursor instead of converging
+      // Mouse repulsion — push particles away
       if(mouse.active){
-        const dx=mouse.smoothX-px,dy=mouse.smoothY-py;
+        const dx=px-mouse.sx,dy=py-mouse.sy;
         const dist=Math.sqrt(dx*dx+dy*dy);
-
-        if(dist<30&&dist>1){
-          const influence=1-dist/30;
-          // Tangential force (orbit) — perpendicular to radius
-          const tx=-dy/dist, ty=dx/dist;
-          d.vx+=tx*0.08*influence*d.speed;
-          d.vy+=ty*0.08*influence*d.speed;
-
-          // Slight radial force — keep at sweet-spot distance (8-15 units)
-          const idealDist=8+i%8;
-          const radialForce=(dist-idealDist)*0.004*influence;
-          d.vx+=dx/dist*radialForce;
-          d.vy+=dy/dist*radialForce;
-
-          // Z-axis breathing near mouse
-          d.vz+=Math.sin(t*2+d.phase)*0.01*influence;
+        if(dist<20&&dist>0.5){
+          const force=(1-dist/20)*0.5*(1+mouse.speed*2);
+          d.vx+=dx/dist*force;
+          d.vy+=dy/dist*force;
+          d.vz+=(Math.random()-.5)*force*0.5;
+          d.disrupted=1;
         }
       }
 
-      // Decay orbit radius from clicks
-      if(d.orbitR>0){
-        d.orbitAngle+=d.orbitSpeed*0.03;
-        d.orbitR*=0.995;
-        if(d.orbitR<0.1)d.orbitR=0;
+      // When disrupted: add chaotic drift
+      if(disruption>0.3){
+        const chaos=disruption*0.02;
+        d.vx+=Math.sin(t*2+d.phase)*chaos;
+        d.vy+=Math.cos(t*1.7+d.phase*1.3)*chaos;
+        d.vz+=Math.sin(t*2.3+d.phase*0.7)*chaos;
       }
 
-      // Damping
-      d.vx*=0.94; d.vy*=0.94; d.vz*=0.92;
-      px+=d.vx; py+=d.vy; pz+=(d.vz||0);
+      // Damping (less damping when disrupted for more energetic scatter)
+      const damp=disruption>0.5?0.96:0.92;
+      d.vx*=damp;d.vy*=damp;d.vz*=damp;
 
-      // Soft boundary (organic bounce, not hard wrap)
-      if(Math.abs(px)>55) d.vx-=px*0.005;
-      if(Math.abs(py)>35) d.vy-=py*0.005;
-      if(Math.abs(pz)>15) d.vz=-(pz)*0.02;
+      px+=d.vx;py+=d.vy;pz+=d.vz;
 
-      posArr[ix]=px; posArr[ix+1]=py; posArr[ix+2]=pz;
+      // Soft bounds
+      if(Math.abs(px)>60)d.vx-=px*0.003;
+      if(Math.abs(py)>40)d.vy-=py*0.003;
+      if(Math.abs(pz)>30)d.vz-=pz*0.005;
+
+      posArr[ix]=px;posArr[ix+1]=py;posArr[ix+2]=pz;
     }
     pGeo.attributes.position.needsUpdate=true;
 
-    // Pulse
-    pMat.opacity=0.5+Math.sin(t*0.6)*0.15;
+    // Particle pulse
+    pMat.opacity=0.55+Math.sin(t*0.8)*0.15+disruption*0.2;
+    pMat.size=0.6+disruption*0.3;
 
-    // Mouse light
-    if(mouse.active){
-      mouseLight.position.x+=(mouse.smoothX-mouseLight.position.x)*0.08;
-      mouseLight.position.y+=(mouse.smoothY-mouseLight.position.y)*0.08;
-      mouseLight.intensity+=(3.5-mouseLight.intensity)*0.04;
-    }else{
-      mouseLight.intensity*=0.97;
-    }
-
-    // --- Proximity lines ---
-    let li=0;
-    const lpa=lineGeo.attributes.position.array;
-    const lca=lineGeo.attributes.color.array;
-    const cDist=15;
-    for(let i=0;i<PCOUNT&&li<maxLines;i++){
-      for(let j=i+1;j<PCOUNT&&li<maxLines;j++){
+    // Edge connections — between nearby particles (forms visible wireframe when assembled)
+    let ei=0;
+    const epa=edgeGeo.attributes.position.array;
+    const eca=edgeGeo.attributes.color.array;
+    const eDist=disruption<0.4?6+disruption*10:5;
+    for(let i=0;i<PCOUNT&&ei<maxEdges;i++){
+      for(let j=i+1;j<PCOUNT&&ei<maxEdges;j++){
         const ax=posArr[i*3],ay=posArr[i*3+1],az=posArr[i*3+2];
         const bx=posArr[j*3],by=posArr[j*3+1],bz=posArr[j*3+2];
-        const d=Math.sqrt((ax-bx)**2+(ay-by)**2+(az-bz)**2);
-        if(d<cDist){
-          const alpha=1-d/cDist;
-          // Near mouse = brighter
-          let boost=1;
-          if(mouse.active){
-            const mda=Math.sqrt((ax-mouse.smoothX)**2+(ay-mouse.smoothY)**2);
-            const mdb=Math.sqrt((bx-mouse.smoothX)**2+(by-mouse.smoothY)**2);
-            if(mda<20||mdb<20) boost=2;
-          }
-          const ci=li*6;
-          lpa[ci]=ax;lpa[ci+1]=ay;lpa[ci+2]=az;
-          lpa[ci+3]=bx;lpa[ci+4]=by;lpa[ci+5]=bz;
-          const c=alpha*boost;
-          lca[ci]=0.78*c;lca[ci+1]=1*c;lca[ci+2]=0;
-          lca[ci+3]=0.78*c;lca[ci+4]=1*c;lca[ci+5]=0;
-          li++;
+        const dd=Math.sqrt((ax-bx)**2+(ay-by)**2+(az-bz)**2);
+        if(dd<eDist){
+          const alpha=(1-dd/eDist)*(0.5+formStrength*0.5);
+          const ci=ei*6;
+          epa[ci]=ax;epa[ci+1]=ay;epa[ci+2]=az;
+          epa[ci+3]=bx;epa[ci+4]=by;epa[ci+5]=bz;
+          eca[ci]=0.78*alpha;eca[ci+1]=1*alpha;eca[ci+2]=0;
+          eca[ci+3]=0.78*alpha;eca[ci+4]=1*alpha;eca[ci+5]=0;
+          ei++;
         }
       }
     }
-    for(let k=li*6;k<maxLines*6;k++){lpa[k]=0;lca[k]=0;}
-    lineGeo.attributes.position.needsUpdate=true;
-    lineGeo.attributes.color.needsUpdate=true;
-    lineGeo.setDrawRange(0,li*2);
+    for(let k=ei*6;k<maxEdges*6;k++){epa[k]=0;eca[k]=0;}
+    edgeGeo.attributes.position.needsUpdate=true;
+    edgeGeo.attributes.color.needsUpdate=true;
+    edgeGeo.setDrawRange(0,ei*2);
 
-    // --- Bond lines (user-created networks) ---
-    const bpa=bondGeo.attributes.position.array;
-    const bca=bondGeo.attributes.color.array;
-    let bi=0;
-    for(let b=bonds.length-1;b>=0;b--){
-      const bond=bonds[b];
-      bond.age+=0.0008;
-      bond.str=Math.max(0,1-bond.age/1.5);
-      if(bond.str<=0){bonds.splice(b,1);continue;}
-      if(bi>=MAX_BONDS)continue;
-
-      // Bonded particles gently attract
-      const ax=posArr[bond.a*3],ay=posArr[bond.a*3+1],az=posArr[bond.a*3+2];
-      const bx=posArr[bond.b*3],by=posArr[bond.b*3+1],bz=posArr[bond.b*3+2];
-      const ddx=bx-ax,ddy=by-ay;
-      const dd=Math.sqrt(ddx*ddx+ddy*ddy);
-      if(dd>5&&dd<50){
-        const pull=0.004*bond.str;
-        pData[bond.a].vx+=ddx*pull;
-        pData[bond.a].vy+=ddy*pull;
-        pData[bond.b].vx-=ddx*pull;
-        pData[bond.b].vy-=ddy*pull;
-      }
-
-      const ci=bi*6;
-      bpa[ci]=ax;bpa[ci+1]=ay;bpa[ci+2]=az;
-      bpa[ci+3]=bx;bpa[ci+4]=by;bpa[ci+5]=bz;
-      const pulse=0.6+Math.sin(t*3+bond.pulse)*0.4;
-      const s=bond.str*pulse;
-      bca[ci]=0.78*s;bca[ci+1]=1*s;bca[ci+2]=0.15*s;
-      bca[ci+3]=0.78*s;bca[ci+4]=1*s;bca[ci+5]=0.15*s;
-      bi++;
+    // Glow
+    if(mouse.active){
+      mouseLight.position.x+=(mouse.sx-mouseLight.position.x)*0.08;
+      mouseLight.position.y+=(mouse.sy-mouseLight.position.y)*0.08;
+      mouseLight.intensity+=(2+mouse.speed*5-mouseLight.intensity)*0.06;
+    }else{
+      mouseLight.intensity*=0.96;
     }
-    for(let k=bi*6;k<MAX_BONDS*6;k++){bpa[k]=0;bca[k]=0;}
-    bondGeo.attributes.position.needsUpdate=true;
-    bondGeo.attributes.color.needsUpdate=true;
-    bondGeo.setDrawRange(0,bi*2);
+    ambLight.intensity=0.3+disruption*0.5+Math.sin(t)*0.1;
+
+    // Dust drift
+    const dp=dustGeo.attributes.position.array;
+    for(let i=0;i<DUST;i++){
+      dp[i*3]+=Math.sin(t*0.1+i)*0.01;
+      dp[i*3+1]+=0.005;
+      if(dp[i*3+1]>40)dp[i*3+1]=-40;
+    }
+    dustGeo.attributes.position.needsUpdate=true;
+    dustMat.opacity=0.1+disruption*0.08;
 
     renderer.render(scene,camera);
   }
