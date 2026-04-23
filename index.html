@@ -171,6 +171,8 @@ section{padding:10rem 3rem}
 .wf-phase .tools span{font-size:.55rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .4rem;border:1px solid var(--g2);color:var(--g3)}
 .wf-hint{font-size:.7rem;color:var(--g3);text-align:center;margin-top:1rem;letter-spacing:.05em}
 .wf-logo{display:block;width:120px;margin:0 auto 2rem;opacity:.4;filter:brightness(3) contrast(1.3)}
+.wf-img{max-width:800px;margin:0 auto 2rem;overflow:hidden;animation:fu .8s forwards}
+.wf-img img{width:100%;display:block;border:1px solid var(--g2)}
 
 /* CONTACT MODAL */
 #ctModal{position:fixed;inset:0;z-index:3000;background:rgba(5,5,5,.95);display:none;align-items:center;justify-content:center;animation:fu .4s forwards}
@@ -554,7 +556,8 @@ async function bfSubmit(){
     const d=await r.json();stopSpinner();const wfc=document.getElementById('wfContent');
     if(d.workflow){
       const hint=lang==='it'?'← Scorri per esplorare le fasi →':'← Swipe to explore phases →';
-      wfc.innerHTML=`<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${hint}</p>`;
+      const imgHtml=d.image?`<div class="wf-img"><img src="${d.image}" alt="Project visualization"></div>`:'';
+      wfc.innerHTML=`${imgHtml}<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${hint}</p>`;
       document.getElementById('wfCta').innerHTML=`<button class="hcta" onclick="openCt()" style="border:0;cursor:pointer">${lang==='it'?'Parliamone →':'Let\'s talk →'}</button>`;
     }else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}

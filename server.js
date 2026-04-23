@@ -386,6 +386,41 @@ The headline should be max 6 words, bold, no punctuation. The subtitle max 20 wo
   }
 });
 
+// --- Project Image Generation (OpenAI gpt-image-1) ---
+async function generateProjectImage(sector, goal, description, service) {
+  if (!OPENAI_KEY) return null;
+  try {
+    const prompt = `A sophisticated, dark-themed concept visualization for a creative technology project. The project is in the ${sector || 'technology'} sector, with the goal of "${goal || 'innovation'}". ${description ? 'Project: ' + description.slice(0, 200) : ''} Style: cinematic, moody, dark background (#050505), accent highlights in electric lime (#c8ff00), abstract and futuristic. No text, no logos, no words. Ultra high quality, photorealistic lighting.`;
+
+    const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt,
+        n: 1,
+        size: '1536x1024',
+        quality: 'medium',
+      }),
+    });
+
+    if (!imgRes.ok) {
+      console.error('Image generation error:', await imgRes.text());
+      return null;
+    }
+
+    const imgData = await imgRes.json();
+    const b64 = imgData.data?.[0]?.b64_json;
+    return b64 ? `data:image/png;base64,${b64}` : null;
+  } catch (e) {
+    console.error('Image generation error:', e);
+    return null;
+  }
+}
+
 // --- Workflow Generation (GPT-5.4 full, with fallback) ---
 function generateFallbackWorkflow(sector, service, lang) {
   const isIt = lang === 'it';
@@ -415,13 +450,13 @@ app.post('/api/workflow', chatRateLimit, async (req, res) => {
   if (!OPENAI_KEY) {
     const wf = generateFallbackWorkflow(sector, service, lang);
     await saveSubmission(wf);
-    return res.json({ workflow: wf });
+    return res.json({ workflow: wf, image: null });
   }
 
   try {
     const { sector, goal, why: whyReason, service, company, website, description, kpi, target, budget, lang } = req.body;
 
-    const prompt = `You are a creative technology strategist at WHY, a Rome-based studio specializing in 3D Real Time, Immersive Video, XR, Phygital Activations, Instant Games, and AI Systems.
+    const wfPrompt = `You are a creative technology strategist at WHY, a Rome-based studio specializing in 3D Real Time, Immersive Video, XR, Phygital Activations, Instant Games, and AI Systems.
 
 A potential client has submitted a project brief:
 - Sector: ${sector || 'not specified'}
@@ -445,23 +480,29 @@ Generate a proposed project workflow as a JSON array of phases. Each phase has:
 Create 4-6 phases. Be specific to their sector and needs. Use WHY's actual tech stack.
 Respond ONLY with the JSON array, no markdown, no explanation.`;
 
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-5.4',
-        messages: [{ role: 'user', content: prompt }],
-        max_completion_tokens: 1000,
-        temperature: 0.7,
+    // Run workflow generation and image generation in parallel
+    const [openaiRes, projectImage] = await Promise.all([
+      fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-5.4',
+          messages: [{ role: 'user', content: wfPrompt }],
+          max_completion_tokens: 1000,
+          temperature: 0.7,
+        }),
       }),
-    });
+      generateProjectImage(sector, goal, description, service)
+    ]);
 
     if (!openaiRes.ok) {
       console.error('OpenAI workflow error:', await openaiRes.text());
-      return res.json({ workflow: generateFallbackWorkflow(sector, service, lang) });
+      const wf = generateFallbackWorkflow(sector, service, lang);
+      await saveSubmission(wf);
+      return res.json({ workflow: wf, image: projectImage });
     }
 
     const data = await openaiRes.json();
@@ -470,7 +511,7 @@ Respond ONLY with the JSON array, no markdown, no explanation.`;
     if (match) {
       const wf = JSON.parse(match[0]);
       await saveSubmission(wf);
-      res.json({ workflow: wf });
+      res.json({ workflow: wf, image: projectImage });
     } else {
       await saveSubmission(null);
       res.status(500).json({ error: 'Failed to parse workflow' });
