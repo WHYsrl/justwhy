@@ -48,8 +48,10 @@ async function initDB() {
       target TEXT,
       budget TEXT,
       workflow JSONB,
+      image TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE submissions ADD COLUMN IF NOT EXISTS image TEXT;
     CREATE TABLE IF NOT EXISTS contact_requests (
       id SERIAL PRIMARY KEY,
       name TEXT,
@@ -565,18 +567,18 @@ app.post('/api/workflow', chatRateLimit, async (req, res) => {
   const { name, email, sector, goal, why: whyR, service, company, website, description, kpi, target, budget, lang } = req.body;
 
   // Save submission to DB
-  async function saveSubmission(workflow) {
+  async function saveSubmission(workflow, image) {
     try {
       await pool.query(
-        'INSERT INTO submissions (name, email, sector, goal, why, company, website, description, kpi, target, budget, workflow) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
-        [name, email, sector, goal || service, whyR, company, website, description, kpi, target, budget, workflow ? JSON.stringify(workflow) : null]
+        'INSERT INTO submissions (name, email, sector, goal, why, company, website, description, kpi, target, budget, workflow, image) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
+        [name, email, sector, goal || service, whyR, company, website, description, kpi, target, budget, workflow ? JSON.stringify(workflow) : null, image || null]
       );
     } catch(e) { console.error('Save submission error:', e); }
   }
 
   if (!OPENAI_KEY) {
     const wf = generateFallbackWorkflow(sector, service, lang);
-    await saveSubmission(wf);
+    await saveSubmission(wf, null);
     return res.json({ workflow: wf, image: null });
   }
 
@@ -628,7 +630,7 @@ Respond ONLY with the JSON array, no markdown, no explanation.`;
     if (!openaiRes.ok) {
       console.error('OpenAI workflow error:', await openaiRes.text());
       const wf = generateFallbackWorkflow(sector, service, lang);
-      await saveSubmission(wf);
+      await saveSubmission(wf, projectImage);
       return res.json({ workflow: wf, image: projectImage });
     }
 
@@ -637,10 +639,10 @@ Respond ONLY with the JSON array, no markdown, no explanation.`;
     const match = text.match(/\[[\s\S]*\]/);
     if (match) {
       const wf = JSON.parse(match[0]);
-      await saveSubmission(wf);
+      await saveSubmission(wf, projectImage);
       res.json({ workflow: wf, image: projectImage });
     } else {
-      await saveSubmission(null);
+      await saveSubmission(null, projectImage);
       res.status(500).json({ error: 'Failed to parse workflow' });
     }
   } catch (e) {

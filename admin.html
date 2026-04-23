@@ -564,6 +564,7 @@ async function renderSubmissions(el) {
           <div><strong>Target:</strong> ${s.target || '—'}</div>
         </div>
         ${s.workflow ? `<details style="margin-top:1rem"><summary style="cursor:pointer;font-size:.8rem;color:var(--accent)">AI Workflow Output</summary><div style="margin-top:.75rem;display:flex;flex-direction:column;gap:.5rem">${(Array.isArray(s.workflow)?s.workflow:[]).map(p=>`<div style="padding:.5rem .75rem;border-left:2px solid var(--accent);font-size:.8rem"><strong>${p.title||''}</strong> — ${p.duration||''}<br><span style="color:var(--text2)">${p.description||''}</span></div>`).join('')}</div></details>` : ''}
+        ${s.image ? `<details style="margin-top:.75rem"><summary style="cursor:pointer;font-size:.8rem;color:var(--accent)">AI Generated Image</summary><div style="margin-top:.75rem"><img src="${s.image}" style="max-width:100%;border-radius:8px;border:1px solid rgba(200,255,0,.2)" alt="AI project visualization"></div></details>` : ''}
       </div>`).join('')}
     `;
   } catch(e) {
