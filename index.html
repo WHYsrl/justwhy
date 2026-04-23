@@ -154,6 +154,19 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .bf-btn:hover{opacity:.85}.bf-btn:disabled{opacity:.3;cursor:default}
 .bf-back{background:0;border:0;color:var(--g3);font-size:.78rem;cursor:pointer;font-family:var(--f);margin-right:1rem;transition:color .3s}.bf-back:hover{color:var(--wh)}
 
+/* WORKFLOW OVERLAY — standalone fullscreen */
+#wf-overlay{position:fixed;inset:0;z-index:2000;background:var(--bk);overflow-y:auto;display:none;animation:fu .6s forwards}
+#wf-overlay.open{display:block}
+.wf-wrap{max-width:700px;margin:0 auto;padding:6rem 2rem}
+.wf-close{position:fixed;top:2rem;right:2rem;background:0;border:1px solid var(--g2);color:var(--g3);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:all .3s;z-index:2001}
+.wf-close:hover{border-color:var(--ac);color:var(--ac)}
+/* Spinner */
+.wf-spinner{text-align:center;padding:4rem 0}
+.wf-spinner-ring{width:60px;height:60px;border:2px solid var(--g2);border-top-color:var(--ac);border-radius:50%;margin:0 auto 2rem;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wf-spinner-msg{font-size:.9rem;color:var(--g4);transition:opacity .3s}
+.wf-spinner-sub{font-size:.7rem;color:var(--g3);margin-top:.5rem;letter-spacing:.1em}
+
 .wf-phase{border-left:2px solid var(--ac);padding:1.2rem 0 1.2rem 1.5rem;position:relative;text-align:left;opacity:0;animation:fu .5s forwards}
 .wf-phase::before{content:'';position:absolute;left:-5px;top:1.2rem;width:8px;height:8px;border-radius:50%;background:var(--ac)}
 .wf-phase h4{font-family:var(--d);font-size:1rem;font-weight:600;margin-bottom:.2rem}
@@ -281,6 +294,17 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </div>
 
 <footer><span>&copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
+
+<!-- WORKFLOW OVERLAY -->
+<div id="wf-overlay">
+  <button class="wf-close" onclick="closeWf()">&times;</button>
+  <div class="wf-wrap">
+    <p class="sl">Your workflow</p>
+    <h2 class="st" id="wfTitle">Here's how we'd build it together.</h2>
+    <div id="wfContent"></div>
+    <div style="text-align:center;margin-top:3rem" id="wfCta"></div>
+  </div>
+</div>
 
 <!-- CHAT -->
 <button id="chtgl" onclick="togChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button>
@@ -417,18 +441,92 @@ function build(){
 function selBf(el,t,v){el.parentElement.querySelectorAll('.bf-card').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');bf[t]=v;document.getElementById('bfN'+(t==='sector'?0:1)).disabled=false;}
 function bfNext(s){document.getElementById('bfS'+s).classList.remove('act');document.getElementById('bfS'+(s+1)).classList.add('act');}
 function bfPrev(s){document.getElementById('bfS'+s).classList.remove('act');document.getElementById('bfS'+(s-1)).classList.add('act');}
-async function bfSubmit(){
-  document.getElementById('bfS2').classList.remove('act');document.getElementById('bfS3').classList.add('act');
-  const wf=document.getElementById('bfWf');wf.innerHTML='<div class="wf-loading">Generating your workflow...</div>';
-  try{const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sector:bf.sector,service:bf.service,company:document.getElementById('bfCo').value,website:document.getElementById('bfUrl').value,description:document.getElementById('bfDesc').value,lang})});const d=await r.json();if(d.workflow){wf.innerHTML=d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="dur">Phase ${p.id} — ${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');}else{wf.innerHTML='<p style="color:var(--g3)">Error generating workflow. Contact us directly at info@justwhy.it</p>';}}catch(e){wf.innerHTML='<p style="color:var(--g3)">Connection error. Please try again.</p>';}
+
+// Spinner messages — bilingual
+const spinnerMsgs={
+  en:['Gathering information','Analyzing website','Analyzing context','Researching best solutions & technologies','Estimating effort','Generating output'],
+  it:['Recupero informazioni','Analisi web site','Analisi del contesto','Ricerca delle migliori soluzioni e tecnologie','Stima effort','Elaborazione output']
+};
+let spinnerInterval=null;
+
+function showSpinner(){
+  const msgs=spinnerMsgs[lang]||spinnerMsgs.en;
+  let idx=0;
+  const wfc=document.getElementById('wfContent');
+  wfc.innerHTML=`<div class="wf-spinner"><div class="wf-spinner-ring"></div><div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div><div class="wf-spinner-sub" id="spinSub">${idx+1}/${msgs.length}</div></div>`;
+  spinnerInterval=setInterval(()=>{
+    idx=(idx+1)%msgs.length;
+    const el=document.getElementById('spinMsg');
+    const sub=document.getElementById('spinSub');
+    if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}
+    if(sub)sub.textContent=`${idx+1}/${msgs.length}`;
+  },2500);
 }
+
+function stopSpinner(){if(spinnerInterval){clearInterval(spinnerInterval);spinnerInterval=null;}}
+
+async function bfSubmit(){
+  // Open workflow overlay
+  const ov=document.getElementById('wf-overlay');
+  ov.classList.add('open');
+  document.getElementById('wfTitle').textContent=lang==='it'?'Ecco come lo costruiremmo insieme.':'Here\'s how we\'d build it together.';
+  document.getElementById('wfCta').innerHTML='';
+  showSpinner();
+
+  try{
+    const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sector:bf.sector,service:bf.service,company:document.getElementById('bfCo').value,website:document.getElementById('bfUrl').value,description:document.getElementById('bfDesc').value,lang})});
+    const d=await r.json();
+    stopSpinner();
+    const wfc=document.getElementById('wfContent');
+    if(d.workflow){
+      wfc.innerHTML=d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.2}s"><div class="dur">${lang==='it'?'Fase':'Phase'} ${p.id} — ${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
+      document.getElementById('wfCta').innerHTML=`<a href="mailto:info@justwhy.it" class="hcta">${lang==='it'?'Parliamone →':'Let\'s talk →'}</a>`;
+    }else{
+      wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore nella generazione. Contattaci a info@justwhy.it':'Error generating workflow. Contact us at info@justwhy.it'}</p>`;
+    }
+  }catch(e){
+    stopSpinner();
+    document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione. Riprova.':'Connection error. Try again.'}</p>`;
+  }
+}
+
+function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
 
 function toggleLang(){lang=lang==='en'?'it':'en';document.documentElement.lang=lang;document.getElementById('lsB').textContent=lang==='en'?'IT':'EN';if(D)build();document.getElementById('chW').textContent=lang==='it'?'Ciao! Chiedimi quello che vuoi su WHY.':'Hi! Ask me anything about WHY.';}
 
-// CHAT
+// CHAT — non-streaming, works with GPT-5.x
 let chO=false;
 function togChat(){chO=!chO;document.getElementById('chtp').classList.toggle('opn',chO);if(chO)document.getElementById('chIn').focus();}
-async function sendCh(){const inp=document.getElementById('chIn');const t=inp.value.trim();if(!t)return;inp.value='';chM.push({role:'user',content:t});apCh('usr',t);const ty=apCh('ast','...');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chM,profile:{sector:bf.sector,interest:bf.service}})});if(!r.ok){ty.textContent='Error.';return;}const rd=r.body.getReader();const dc=new TextDecoder();let f='',b='';ty.textContent='';while(true){const{done,value}=await rd.read();if(done)break;b+=dc.decode(value,{stream:true});const ls=b.split('\n');b=ls.pop();for(const ln of ls){const tr=ln.trim();if(tr.startsWith('data: ')){const d=tr.slice(6);if(d==='[DONE]')break;try{const p=JSON.parse(d);if(p.content){f+=p.content;ty.textContent=f;scrCh();}}catch(e){}}}}chM.push({role:'assistant',content:f});}catch(e){ty.textContent='Error.';}}
+
+async function sendCh(){
+  const inp=document.getElementById('chIn');
+  const t=inp.value.trim();if(!t)return;inp.value='';
+  chM.push({role:'user',content:t});
+  apCh('usr',t);
+  const ty=apCh('ast','...');
+
+  try{
+    const r=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:chM,profile:{sector:bf.sector,interest:bf.service},lang})
+    });
+    if(!r.ok){
+      const err=await r.json().catch(()=>({error:'Unknown error'}));
+      ty.textContent=lang==='it'?'Errore. Riprova.':'Error. Try again.';
+      console.error('Chat error:',err);
+      return;
+    }
+    const data=await r.json();
+    ty.textContent=data.content||'...';
+    chM.push({role:'assistant',content:data.content});
+    scrCh();
+  }catch(e){
+    ty.textContent=lang==='it'?'Errore di connessione.':'Connection error.';
+    console.error('Chat fetch error:',e);
+  }
+}
+
 function apCh(c,t){const el=document.getElementById('chMs');const d=document.createElement('div');d.className='chm '+c;d.textContent=t;el.appendChild(d);scrCh();return d;}
 function scrCh(){document.getElementById('chMs').scrollTop=document.getElementById('chMs').scrollHeight;}
 

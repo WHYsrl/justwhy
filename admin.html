@@ -164,7 +164,8 @@ textarea { min-height: 100px; resize: vertical; }
       <a href="#" onclick="showSection('team')" data-section="team">Team</a>
       <a href="#" onclick="showSection('contact')" data-section="contact">Contact</a>
       <a href="#" onclick="showSection('clients')" data-section="clients">Clients</a>
-      <div class="sidebar-label">Settings</div>
+      <div class="sidebar-label">AI & Settings</div>
+      <a href="#" onclick="showSection('aicontext')" data-section="aicontext">AI Context</a>
       <a href="#" onclick="showSection('onboarding')" data-section="onboarding">Onboarding</a>
       <a href="#" onclick="showSection('settings')" data-section="settings">Settings</a>
     </div>
@@ -244,7 +245,7 @@ function showSection(name) {
   const renderers = {
     hero: renderHero, manifesto: renderManifesto, services: renderServices,
     work: renderWork, team: renderTeam, contact: renderContact,
-    clients: renderClients, onboarding: renderOnboarding, settings: renderSettings
+    clients: renderClients, aicontext: renderAIContext, onboarding: renderOnboarding, settings: renderSettings
   };
   if (renderers[name]) renderers[name](area);
 }
@@ -432,6 +433,24 @@ function renderOnboarding(el) {
     <div class="card">
       <h3>Question 3</h3>
       ${field('Question', `onboarding.${editLang}.q3.question`)}
+    </div>`;
+}
+
+function renderAIContext(el) {
+  el.innerHTML = `
+    <h2>AI Context</h2>
+    <p class="subtitle">Provide additional context for the AI chat assistant. This information is included in the system prompt and helps the AI give more accurate, relevant answers about WHY.</p>
+    <div class="card">
+      <h3>Context for AI</h3>
+      <p style="font-size:0.8rem;color:var(--text2);margin-bottom:1rem">Write anything the AI should know: current projects, availability, pricing guidelines, specific capabilities, recent news, partnerships, or tone-of-voice preferences. The AI will use this context when answering visitor questions.</p>
+      <label>AI Context (free text)</label>
+      <textarea style="min-height:300px" oninput="content.ai_context=this.value">${content.ai_context || ''}</textarea>
+    </div>
+    <div class="card">
+      <h3>Example context</h3>
+      <p style="font-size:0.8rem;color:var(--text2);line-height:1.6">
+        "We are currently focused on XR experiences for the luxury sector. Our latest project is a virtual showroom for [Brand]. We typically work on projects starting from €15k. Response time for new inquiries is 24-48h. We prefer to schedule an initial video call before providing estimates. Our team is currently at full capacity until Q3 2026."
+      </p>
     </div>`;
 }
 

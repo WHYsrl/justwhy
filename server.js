@@ -222,8 +222,8 @@ function chatRateLimit(req, res, next) {
   next();
 }
 
-// Build system prompt from DB content
-async function buildSystemPrompt(profile) {
+// Build system prompt from DB content + CMS ai_context
+async function buildSystemPrompt(profile, lang) {
   let contentData = {};
   try {
     const { rows } = await pool.query('SELECT data FROM content WHERE id = $1', ['main']);
@@ -233,10 +233,10 @@ async function buildSystemPrompt(profile) {
   const services = (contentData.services?.items || []).map(s => s.en?.title).join(', ');
   const clients = (contentData.clients || []).join(', ');
   const team = (contentData.team?.members || []).map(m => `${m.name} (${m.role})`).join(', ');
+  const aiContext = contentData.ai_context || '';
 
   let profileContext = '';
   if (profile) {
-    if (profile.intent) profileContext += `\nVisitor intent: ${profile.intent}`;
     if (profile.sector) profileContext += `\nVisitor sector: ${profile.sector}`;
     if (profile.interest) profileContext += `\nVisitor interest: ${profile.interest}`;
   }
@@ -252,28 +252,30 @@ Team: ${team}
 Technologies: Unreal Engine 5, Unity, WebGL (PlayCanvas, Babylon, Three.js), AR (Spark AR, Vuforia), Motion Capture, Virtual Production, AI (OpenAI, generative), Dolby Atmos, Quest/Vive/Varjo.
 
 Company: Founded 2021 in Rome as spinoff from Centounopercento (20+ years experience). 10 in-house resources + network. Joint venture FRY with Frame by Frame S.p.A.
+${aiContext ? '\nAdditional context from the team:\n' + aiContext : ''}
 ${profileContext}
 
 Guidelines:
+- CRITICAL: Always respond in the same language the user writes in. If they write in Italian, respond in Italian. If in English, respond in English.${lang ? ` The site is currently set to ${lang === 'it' ? 'Italian' : 'English'}.` : ''}
 - Be concise, professional, and warm. Match WHY's tone: bold, tech-forward, substance over buzzwords.
 - Answer questions about services, capabilities, team, and approach.
 - If asked about pricing or timelines, explain that each project is custom and suggest scheduling a call at info@justwhy.it.
-- Respond in the same language the visitor uses (Italian or English).
 - Keep answers under 150 words unless the visitor asks for detail.`;
 }
 
+// Chat endpoint — non-streaming for Node.js fetch compatibility
 app.post('/api/chat', chatRateLimit, async (req, res) => {
   if (!OPENAI_KEY) {
     return res.status(503).json({ error: 'AI chat not configured' });
   }
 
   try {
-    const { messages, profile } = req.body;
+    const { messages, profile, lang } = req.body;
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'Invalid messages' });
     }
 
-    const systemPrompt = await buildSystemPrompt(profile);
+    const systemPrompt = await buildSystemPrompt(profile, lang);
 
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -284,7 +286,6 @@ app.post('/api/chat', chatRateLimit, async (req, res) => {
       body: JSON.stringify({
         model: 'gpt-5.4-mini',
         messages: [{ role: 'system', content: systemPrompt }, ...messages.slice(-10)],
-        stream: true,
         max_completion_tokens: 500,
         temperature: 0.7,
       }),
@@ -292,54 +293,13 @@ app.post('/api/chat', chatRateLimit, async (req, res) => {
 
     if (!openaiRes.ok) {
       const err = await openaiRes.text();
-      console.error('OpenAI error:', err);
+      console.error('OpenAI chat error:', err);
       return res.status(502).json({ error: 'AI service error' });
     }
 
-    // Stream SSE to client
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    const reader = openaiRes.body;
-    let buffer = '';
-
-    reader.on('data', (chunk) => {
-      buffer += chunk.toString();
-      const lines = buffer.split('\n');
-      buffer = lines.pop(); // keep incomplete line
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('data: ')) {
-          const data = trimmed.slice(6);
-          if (data === '[DONE]') {
-            res.write('data: [DONE]\n\n');
-            res.end();
-            return;
-          }
-          try {
-            const parsed = JSON.parse(data);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              res.write(`data: ${JSON.stringify({ content })}\n\n`);
-            }
-          } catch(e) {}
-        }
-      }
-    });
-
-    reader.on('end', () => {
-      if (!res.writableEnded) {
-        res.write('data: [DONE]\n\n');
-        res.end();
-      }
-    });
-
-    reader.on('error', (err) => {
-      console.error('Stream error:', err);
-      if (!res.writableEnded) res.end();
-    });
+    const data = await openaiRes.json();
+    const content = data.choices?.[0]?.message?.content || '';
+    res.json({ content });
 
   } catch (e) {
     console.error('Chat error:', e);
