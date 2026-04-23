@@ -11,7 +11,7 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bk:#050505;--wh:#fff;--g1:#111;--g2:#1e1e1e;--g3:#555;--g4:#999;--ac:#c8ff00;--acd:rgba(200,255,0,0.08);--f:'Inter',-apple-system,sans-serif;--d:'Space Grotesk',sans-serif}
-html{scroll-behavior:smooth;scroll-snap-type:y proximity}
+html{scroll-behavior:smooth}
 html,body{margin:0;background:var(--bk);color:var(--wh);font-family:var(--f);overflow-x:hidden}
 ::selection{background:var(--ac);color:var(--bk)}
 
@@ -19,7 +19,7 @@ html,body{margin:0;background:var(--bk);color:var(--wh);font-family:var(--f);ove
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
 nav.scr{background:rgba(5,5,5,.92);backdrop-filter:blur(30px)}
 .nl{text-decoration:none;display:flex;align-items:center}
-.nl img{height:52px;width:auto;transition:all .3s;filter:brightness(1.8)}
+.nl img{height:52px;width:auto;transition:all .3s;filter:brightness(3) contrast(1.3)}
 nav.scr .nl img{height:38px}
 .nk{display:flex;gap:2.5rem;align-items:center;list-style:none}
 .nk a{color:var(--g3);text-decoration:none;font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:color .3s}
@@ -37,7 +37,7 @@ section{padding:10rem 3rem}
 
 /* HERO */
 #hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:1px solid var(--g2);position:relative;overflow:hidden}
-.hero-bg-logo{position:absolute;right:-8%;top:50%;transform:translateY(-50%);width:65vw;max-width:850px;opacity:.08;pointer-events:none;filter:brightness(1.5)}
+.hero-bg-logo{position:absolute;right:-8%;top:50%;transform:translateY(-50%);width:65vw;max-width:850px;opacity:.12;pointer-events:none;filter:brightness(3) contrast(1.3)}
 .hc{max-width:900px;padding:0 2rem;position:relative;z-index:1}
 .hp{font-size:.75rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--ac);margin-bottom:2rem}
 .ht{font-family:var(--d);font-size:clamp(3.5rem,9vw,8rem);font-weight:800;line-height:.9;letter-spacing:-.04em;margin-bottom:2rem}
@@ -144,7 +144,7 @@ section{padding:10rem 3rem}
 .wf-phase .tools{display:flex;flex-wrap:wrap;gap:.25rem}
 .wf-phase .tools span{font-size:.55rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .4rem;border:1px solid var(--g2);color:var(--g3)}
 .wf-hint{font-size:.7rem;color:var(--g3);text-align:center;margin-top:1rem;letter-spacing:.05em}
-.wf-logo{display:block;width:120px;margin:0 auto 2rem;opacity:.35;filter:brightness(1.8)}
+.wf-logo{display:block;width:120px;margin:0 auto 2rem;opacity:.4;filter:brightness(3) contrast(1.3)}
 
 #contact{text-align:center;padding:8rem 3rem}
 .ce{font-family:var(--d);font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;color:var(--wh);text-decoration:none;display:inline-block;margin:1rem 0;transition:all .4s}
@@ -152,7 +152,7 @@ section{padding:10rem 3rem}
 .cm{font-size:.82rem;color:var(--g3);line-height:2}.cm a{color:var(--g3);text-decoration:none;transition:color .3s}.cm a:hover{color:var(--ac)}
 
 footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--g3)}
-footer img{height:24px;opacity:.5;filter:brightness(1.8)}
+footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
 
 /* CHAT */
 #chtgl{position:fixed;bottom:2rem;right:2rem;z-index:1100;width:52px;height:52px;border-radius:50%;background:var(--ac);color:var(--bk);border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .4s;box-shadow:0 4px 20px rgba(200,255,0,.15)}
@@ -285,6 +285,20 @@ initRv();
 function initTilt(){document.querySelectorAll('.sc,.wi,.tm').forEach(el=>{el.addEventListener('mousemove',e=>{const r=el.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateZ(4px)`;});el.addEventListener('mouseleave',()=>{el.style.transform='';});});}
 
 window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scr',window.scrollY>50);});
+
+// Brief snap — when scrolling near the brief section, lock to it
+let briefSnapping=false;
+const briefObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting && e.intersectionRatio>0.15 && e.intersectionRatio<0.85 && !briefSnapping){
+      briefSnapping=true;
+      document.getElementById('brief').scrollIntoView({behavior:'smooth',block:'start'});
+      setTimeout(()=>{briefSnapping=false;},1200);
+    }
+  });
+},{threshold:[0.2,0.5]});
+briefObs.observe(document.getElementById('brief'));
+
 function togMob(){document.getElementById('mbB').classList.toggle('act');document.getElementById('nk').classList.toggle('opn');}
 document.addEventListener('click',e=>{if(e.target.closest('.nk a')){document.getElementById('mbB').classList.remove('act');document.getElementById('nk').classList.remove('opn');}});
 
@@ -326,19 +340,23 @@ function build(){
   const sectors=l==='it'?['Fashion & Lusso','Corporate','Entertainment','Architettura','Tech & Innovation']:['Fashion & Luxury','Corporate','Entertainment','Architecture','Tech & Innovation'];
   document.getElementById('bfSector').innerHTML=sectors.map(s=>`<div class="bf-card" onclick="selBf(this,'sector','${s}',0)">${s}</div>`).join('');
 
-  // Brief: goals
+  // Brief: goals — use data attributes to avoid apostrophe issues in onclick
   const goals=bfOpts.goals[l]||bfOpts.goals.en;
-  document.getElementById('bfGoal').innerHTML=goals.map(g=>{
+  const goalEl=document.getElementById('bfGoal');
+  goalEl.innerHTML=goals.map((g,i)=>{
     const isOther=g==='Other'||g==='Altro';
-    return `<div class="bf-card${isOther?' other':''}" onclick="selBfOther(this,'goal','${isOther?'':g}',1,'bfGoalOther','bfGoalTxt',${isOther})">${g}</div>`;
+    return `<div class="bf-card${isOther?' other':''}" data-key="goal" data-val="${isOther?'__other__':g.replace(/"/g,'&quot;')}" data-btn="1" data-other-id="bfGoalOther" data-txt-id="bfGoalTxt" data-is-other="${isOther}">${g}</div>`;
   }).join('');
+  goalEl.querySelectorAll('.bf-card').forEach(c=>c.addEventListener('click',function(){handleBfCard(this);}));
 
   // Brief: whys
   const whys=bfOpts.whys[l]||bfOpts.whys.en;
-  document.getElementById('bfWhy').innerHTML=whys.map(w=>{
+  const whyEl=document.getElementById('bfWhy');
+  whyEl.innerHTML=whys.map((w,i)=>{
     const isOther=w==='Other'||w==='Altro';
-    return `<div class="bf-card${isOther?' other':''}" onclick="selBfOther(this,'why','${isOther?'':w}',2,'bfWhyOther','bfWhyTxt',${isOther})">${w}</div>`;
+    return `<div class="bf-card${isOther?' other':''}" data-key="why" data-val="${isOther?'__other__':w.replace(/"/g,'&quot;')}" data-btn="2" data-other-id="bfWhyOther" data-txt-id="bfWhyTxt" data-is-other="${isOther}">${w}</div>`;
   }).join('');
+  whyEl.querySelectorAll('.bf-card').forEach(c=>c.addEventListener('click',function(){handleBfCard(this);}));
 
   // Placeholders for "other" inputs
   document.getElementById('bfGoalTxt').placeholder=l==='it'?'Descrivi il tuo obiettivo...':'Describe your goal...';
@@ -354,11 +372,21 @@ function selBf(el,key,val,btnIdx){
   document.getElementById('bfN'+btnIdx).disabled=false;
 }
 
-function selBfOther(el,key,val,btnIdx,otherId,txtId,isOther){
+// Unified handler for goal/why cards with data attributes (avoids apostrophe issues)
+function handleBfCard(el){
+  const key=el.dataset.key;
+  const val=el.dataset.val;
+  const btnIdx=el.dataset.btn;
+  const otherId=el.dataset.otherId;
+  const txtId=el.dataset.txtId;
+  const isOther=el.dataset.isOther==='true';
+
   el.parentElement.querySelectorAll('.bf-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
+
   const otherBox=document.getElementById(otherId);
   const txtInput=document.getElementById(txtId);
+
   if(isOther){
     otherBox.classList.add('vis');
     txtInput.focus();
