@@ -399,7 +399,7 @@ async function generateProjectImage(sector, goal, description, service) {
         'Authorization': `Bearer ${OPENAI_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'gpt-image-2',
         prompt,
         n: 1,
         size: '1536x1024',
