@@ -164,8 +164,11 @@ textarea { min-height: 100px; resize: vertical; }
       <a href="#" onclick="showSection('team')" data-section="team">Team</a>
       <a href="#" onclick="showSection('contact')" data-section="contact">Contact</a>
       <a href="#" onclick="showSection('clients')" data-section="clients">Clients</a>
-      <div class="sidebar-label">AI & Settings</div>
+      <div class="sidebar-label">Brief & AI</div>
+      <a href="#" onclick="showSection('briefQuestions')" data-section="briefQuestions">Brief Questions</a>
+      <a href="#" onclick="showSection('submissions')" data-section="submissions">Submissions</a>
       <a href="#" onclick="showSection('aicontext')" data-section="aicontext">AI Context</a>
+      <div class="sidebar-label">Settings</div>
       <a href="#" onclick="showSection('onboarding')" data-section="onboarding">Onboarding</a>
       <a href="#" onclick="showSection('settings')" data-section="settings">Settings</a>
     </div>
@@ -245,7 +248,7 @@ function showSection(name) {
   const renderers = {
     hero: renderHero, manifesto: renderManifesto, services: renderServices,
     work: renderWork, team: renderTeam, contact: renderContact,
-    clients: renderClients, aicontext: renderAIContext, onboarding: renderOnboarding, settings: renderSettings
+    clients: renderClients, briefQuestions: renderBriefQuestions, submissions: renderSubmissions, aicontext: renderAIContext, onboarding: renderOnboarding, settings: renderSettings
   };
   if (renderers[name]) renderers[name](area);
 }
@@ -434,6 +437,83 @@ function renderOnboarding(el) {
       <h3>Question 3</h3>
       ${field('Question', `onboarding.${editLang}.q3.question`)}
     </div>`;
+}
+
+function renderBriefQuestions(el) {
+  // Ensure brief_questions structure exists in content
+  if (!content.brief_questions) {
+    content.brief_questions = {
+      sectors: { en: ['Fashion & Luxury','Corporate','Entertainment','Architecture','Tech & Innovation'], it: ['Fashion & Lusso','Corporate','Entertainment','Architettura','Tech & Innovation'] },
+      goals: { en: ['Launch a new product or experience','Engage & retain our audience','Transform a physical space','Innovate our communication'], it: ['Lanciare un nuovo prodotto o esperienza','Coinvolgere e fidelizzare il pubblico','Trasformare uno spazio fisico','Innovare la nostra comunicazione'] },
+      whys: { en: ['We need to stand out from competitors','Our audience expects innovation','We want to create lasting impact','We\'re exploring new technologies'], it: ['Dobbiamo distinguerci dai competitor','Il nostro pubblico si aspetta innovazione','Vogliamo creare un impatto duraturo','Stiamo esplorando nuove tecnologie'] }
+    };
+  }
+  const bq = content.brief_questions;
+  const renderList = (key, title) => {
+    const items = bq[key]?.[editLang] || [];
+    return `<div class="card">
+      <h3>${title} (${editLang.toUpperCase()})</h3>
+      <div id="bq_${key}" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem">
+        ${items.map((item, i) => `<div style="display:flex;gap:.5rem;align-items:center">
+          <input type="text" value="${item.replace(/"/g,'&quot;')}" style="flex:1;margin:0" oninput="content.brief_questions.${key}.${editLang}[${i}]=this.value">
+          <button class="btn btn-sm btn-danger" onclick="content.brief_questions.${key}.${editLang}.splice(${i},1);renderBriefQuestions(document.getElementById('contentArea'))">✕</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="content.brief_questions.${key}.${editLang}.push('New option');renderBriefQuestions(document.getElementById('contentArea'))">+ Add option</button>
+    </div>`;
+  };
+  el.innerHTML = `
+    <h2>Brief Questions</h2>
+    <p class="subtitle">Manage the options shown in each step of the project brief flow. "Other" is added automatically.</p>
+    ${langTabs("renderBriefQuestions(document.getElementById('contentArea'))")}
+    ${renderList('sectors', 'Step 1 — Sectors')}
+    ${renderList('goals', 'Step 2 — Goals')}
+    ${renderList('whys', 'Step 3 — Why')}
+  `;
+}
+
+async function renderSubmissions(el) {
+  el.innerHTML = '<h2>Submissions</h2><p class="subtitle">Loading...</p>';
+  try {
+    const res = await fetch('/api/submissions');
+    const subs = await res.json();
+    if (!subs.length) {
+      el.innerHTML = '<h2>Submissions</h2><p class="subtitle">No submissions yet.</p>';
+      return;
+    }
+    el.innerHTML = `
+      <h2>Submissions</h2>
+      <p class="subtitle">${subs.length} submission(s) received.</p>
+      ${subs.map(s => `<div class="card" style="position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <h3>${s.name || s.company || 'Anonymous'} ${s.email ? '— ' + s.email : ''}</h3>
+            <p style="font-size:.75rem;color:var(--text2)">${new Date(s.created_at).toLocaleString()}</p>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="deleteSub(${s.id})">Delete</button>
+        </div>
+        <div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.85rem">
+          <div><strong>Sector:</strong> ${s.sector || '—'}</div>
+          <div><strong>Goal:</strong> ${s.goal || '—'}</div>
+          <div><strong>Why:</strong> ${s.why || '—'}</div>
+          <div><strong>Budget:</strong> ${s.budget || '—'}</div>
+          <div><strong>Company:</strong> ${s.company || '—'}</div>
+          <div><strong>Website:</strong> ${s.website ? '<a href="'+s.website+'" target="_blank" style="color:var(--accent)">'+s.website+'</a>' : '—'}</div>
+          <div style="grid-column:span 2"><strong>Description:</strong> ${s.description || '—'}</div>
+          <div><strong>KPI:</strong> ${s.kpi || '—'}</div>
+          <div><strong>Target:</strong> ${s.target || '—'}</div>
+        </div>
+      </div>`).join('')}
+    `;
+  } catch(e) {
+    el.innerHTML = '<h2>Submissions</h2><p class="subtitle">Error loading submissions.</p>';
+  }
+}
+
+async function deleteSub(id) {
+  if (!confirm('Delete this submission?')) return;
+  await fetch('/api/submissions/' + id, { method: 'DELETE' });
+  renderSubmissions(document.getElementById('contentArea'));
 }
 
 function renderAIContext(el) {

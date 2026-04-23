@@ -88,7 +88,7 @@ section{padding:10rem 3rem}
 .tm .bio{font-size:.75rem;line-height:1.5;color:var(--g3)}
 
 /* ====== BRIEF — snap + horizontal ====== */
-#brief{border-bottom:1px solid var(--g2);padding:6rem 0;overflow:hidden;scroll-snap-align:start;scroll-margin-top:70px}
+#brief{border-bottom:1px solid var(--g2);padding:6rem 0;overflow:hidden}
 .bf-header{padding:0 3rem;margin-bottom:3rem}
 .bf-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:0}
 .bf-track::-webkit-scrollbar{display:none}
@@ -214,6 +214,7 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
     <div class="bf-panel" id="bfP0"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q1">What's your world?</h3>
       <div class="bf-cards" id="bfSector"></div>
+      <div class="bf-other" id="bfSectorOther"><input id="bfSectorTxt" placeholder="Your sector..."></div>
       <button class="bf-btn" id="bfN0" onclick="bfScroll(1)" disabled>Next →</button>
       <div class="bf-dots"><span class="act"></span><span></span><span></span><span></span></div>
     </div></div>
@@ -237,6 +238,10 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
     <div class="bf-panel" id="bfP3"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q4">The details</h3>
       <div class="bf-form">
+        <div class="bf-row">
+          <div><label data-i18n="brief.name">Your name</label><input id="bfName" placeholder="Name Surname"></div>
+          <div><label>Email</label><input id="bfEmail" type="email" placeholder="you@company.com"></div>
+        </div>
         <div class="bf-row">
           <div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div>
           <div><label>Website</label><input id="bfUrl" placeholder="https://"></div>
@@ -285,18 +290,23 @@ function initTilt(){document.querySelectorAll('.sc,.wi,.tm').forEach(el=>{el.add
 
 window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scr',window.scrollY>50);});
 
-// Brief snap — when scrolling near the brief section, lock to it
+// Brief snap — snap to brief header when it enters viewport (desktop only)
 let briefSnapping=false;
-const briefObs=new IntersectionObserver(es=>{
-  es.forEach(e=>{
-    if(e.isIntersecting && e.intersectionRatio>0.15 && e.intersectionRatio<0.85 && !briefSnapping){
-      briefSnapping=true;
-      document.getElementById('brief').scrollIntoView({behavior:'smooth',block:'start'});
-      setTimeout(()=>{briefSnapping=false;},1200);
-    }
-  });
-},{threshold:[0.2,0.5]});
-briefObs.observe(document.getElementById('brief'));
+if(window.innerWidth>=768){
+  const briefObs=new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(e.isIntersecting && !briefSnapping){
+        briefSnapping=true;
+        const navH=document.getElementById('nav').offsetHeight;
+        const y=document.getElementById('brief').getBoundingClientRect().top+window.scrollY-navH;
+        window.scrollTo({top:y,behavior:'smooth'});
+        setTimeout(()=>{briefSnapping=false;},1500);
+      }
+    });
+  },{threshold:0.5});
+  const bfHeader=document.querySelector('.bf-header');
+  if(bfHeader) briefObs.observe(bfHeader);
+}
 
 function togMob(){document.getElementById('mbB').classList.toggle('act');document.getElementById('nk').classList.toggle('opn');}
 document.addEventListener('click',e=>{if(e.target.closest('.nk a')){document.getElementById('mbB').classList.remove('act');document.getElementById('nk').classList.remove('opn');}});
@@ -304,15 +314,19 @@ document.addEventListener('click',e=>{if(e.target.closest('.nk a')){document.get
 let D=null,lang='en',bf={sector:null,goal:null,why:null},chM=[];
 const IC={cube:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 4L4 14v20l20 10 20-10V14L24 4z"/><path d="M4 14l20 10m0 0l20-10M24 24v20"/></svg>',play:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/><path d="M18 16l14 8-14 8V16z"/></svg>',headset:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="32" height="24" rx="2"/><path d="M16 38h16M24 32v6"/></svg>',signal:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 24c0-8.8 7.2-16 16-16s16 7.2 16 16"/><path d="M14 24c0-5.5 4.5-10 10-10s10 4.5 10 10"/><circle cx="24" cy="24" r="4"/><path d="M24 28v12M18 40h12"/></svg>',gamepad:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="10" y="6" width="28" height="36" rx="3"/><path d="M18 36h12"/><circle cx="24" cy="22" r="8"/></svg>',brain:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="12"/><path d="M24 4v8m0 24v8M4 24h8m24 0h8"/></svg>'};
 
-// Brief question options — bilingual
+// Brief question default options — bilingual (CMS overrides these)
 const bfOpts={
+  sectors:{
+    en:['Fashion & Luxury','Corporate','Entertainment','Architecture','Tech & Innovation'],
+    it:['Fashion & Lusso','Corporate','Entertainment','Architettura','Tech & Innovation']
+  },
   goals:{
-    en:['Launch a new product or experience','Engage & retain our audience','Transform a physical space','Innovate our communication','Other'],
-    it:['Lanciare un nuovo prodotto o esperienza','Coinvolgere e fidelizzare il pubblico','Trasformare uno spazio fisico','Innovare la nostra comunicazione','Altro']
+    en:['Launch a new product or experience','Engage & retain our audience','Transform a physical space','Innovate our communication'],
+    it:['Lanciare un nuovo prodotto o esperienza','Coinvolgere e fidelizzare il pubblico','Trasformare uno spazio fisico','Innovare la nostra comunicazione']
   },
   whys:{
-    en:['We need to stand out from competitors','Our audience expects innovation','We want to create lasting impact','We\'re exploring new technologies','Other'],
-    it:['Dobbiamo distinguerci dai competitor','Il nostro pubblico si aspetta innovazione','Vogliamo creare un impatto duraturo','Stiamo esplorando nuove tecnologie','Altro']
+    en:['We need to stand out from competitors','Our audience expects innovation','We want to create lasting impact','We are exploring new technologies'],
+    it:['Dobbiamo distinguerci dai competitor','Il nostro pubblico si aspetta innovazione','Vogliamo creare un impatto duraturo','Stiamo esplorando nuove tecnologie']
   }
 };
 
@@ -320,7 +334,7 @@ async function load(){try{const r=await fetch('/api/content');D=await r.json();}
 
 function build(){
   if(!D)return;const l=lang;
-  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?','brief.q3':l==='it'?'Perché?':'Why?','brief.q4':l==='it'?'I dettagli':'The details','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
+  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?','brief.q3':l==='it'?'Perché?':'Why?','brief.q4':l==='it'?'I dettagli':'The details','brief.name':l==='it'?'Il tuo nome':'Your name','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
   document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(m[k])el.innerHTML=m[k];});
 
   const sv=D.services?.items||[];
@@ -335,43 +349,37 @@ function build(){
   const ct=D.contact||{};if(ct.email){document.getElementById('cEmail').href=`mailto:${ct.email}`;document.getElementById('cEmail').textContent=ct.email;}
   if(ct.company)document.getElementById('cMeta').innerHTML=`<p>${ct.company} — ${ct.location||''}</p><p><a href="https://${ct.website||''}">${ct.website||''}</a></p>`;
 
-  // Brief: sectors
-  const sectors=l==='it'?['Fashion & Lusso','Corporate','Entertainment','Architettura','Tech & Innovation']:['Fashion & Luxury','Corporate','Entertainment','Architecture','Tech & Innovation'];
-  document.getElementById('bfSector').innerHTML=sectors.map(s=>`<div class="bf-card" onclick="selBf(this,'sector','${s}',0)">${s}</div>`).join('');
+  // Brief questions — load from CMS (brief_questions) or use defaults
+  const bq=D.brief_questions||{};
+  const otherLabel=l==='it'?'Altro':'Other';
 
-  // Brief: goals — use data attributes to avoid apostrophe issues in onclick
-  const goals=bfOpts.goals[l]||bfOpts.goals.en;
-  const goalEl=document.getElementById('bfGoal');
-  goalEl.innerHTML=goals.map((g,i)=>{
-    const isOther=g==='Other'||g==='Altro';
-    return `<div class="bf-card${isOther?' other':''}" data-key="goal" data-val="${isOther?'__other__':g.replace(/"/g,'&quot;')}" data-btn="1" data-other-id="bfGoalOther" data-txt-id="bfGoalTxt" data-is-other="${isOther}">${g}</div>`;
-  }).join('');
-  goalEl.querySelectorAll('.bf-card').forEach(c=>c.addEventListener('click',function(){handleBfCard(this);}));
+  // Helper: render a step's cards with "Other" always at the end
+  function renderBfCards(containerId, key, otherId, txtId, btnIdx, placeholder) {
+    const defaults=bfOpts[key]?.[l]||bfOpts[key]?.en||[];
+    const cmsItems=bq[key]?.[l];
+    // Use CMS items if available, otherwise defaults. Filter out any existing "Other"/"Altro"
+    let items=(cmsItems&&cmsItems.length?cmsItems:defaults).filter(x=>x!=='Other'&&x!=='Altro');
+    // Always add "Other" at the end
+    items.push(otherLabel);
+    const el=document.getElementById(containerId);
+    el.innerHTML=items.map(g=>{
+      const isOther=g===otherLabel;
+      return `<div class="bf-card${isOther?' other':''}" data-key="${key}" data-val="${isOther?'__other__':g.replace(/"/g,'&quot;')}" data-btn="${btnIdx}" data-other-id="${otherId}" data-txt-id="${txtId}" data-is-other="${isOther}">${g}</div>`;
+    }).join('');
+    el.querySelectorAll('.bf-card').forEach(c=>c.addEventListener('click',function(){handleBfCard(this);}));
+    const txtEl=document.getElementById(txtId);
+    if(txtEl)txtEl.placeholder=placeholder;
+  }
 
-  // Brief: whys
-  const whys=bfOpts.whys[l]||bfOpts.whys.en;
-  const whyEl=document.getElementById('bfWhy');
-  whyEl.innerHTML=whys.map((w,i)=>{
-    const isOther=w==='Other'||w==='Altro';
-    return `<div class="bf-card${isOther?' other':''}" data-key="why" data-val="${isOther?'__other__':w.replace(/"/g,'&quot;')}" data-btn="2" data-other-id="bfWhyOther" data-txt-id="bfWhyTxt" data-is-other="${isOther}">${w}</div>`;
-  }).join('');
-  whyEl.querySelectorAll('.bf-card').forEach(c=>c.addEventListener('click',function(){handleBfCard(this);}));
-
-  // Placeholders for "other" inputs
-  document.getElementById('bfGoalTxt').placeholder=l==='it'?'Descrivi il tuo obiettivo...':'Describe your goal...';
-  document.getElementById('bfWhyTxt').placeholder=l==='it'?'Dicci perché...':'Tell us why...';
+  renderBfCards('bfSector','sectors','bfSectorOther','bfSectorTxt',0,l==='it'?'Il tuo settore...':'Your sector...');
+  renderBfCards('bfGoal','goals','bfGoalOther','bfGoalTxt',1,l==='it'?'Descrivi il tuo obiettivo...':'Describe your goal...');
+  renderBfCards('bfWhy','whys','bfWhyOther','bfWhyTxt',2,l==='it'?'Dicci perché...':'Tell us why...');
 
   initRv();initTilt();
 }
 
 // Brief selection with "Other" support
-function selBf(el,key,val,btnIdx){
-  el.parentElement.querySelectorAll('.bf-card').forEach(c=>c.classList.remove('sel'));
-  el.classList.add('sel');bf[key]=val;
-  document.getElementById('bfN'+btnIdx).disabled=false;
-}
-
-// Unified handler for goal/why cards with data attributes (avoids apostrophe issues)
+// Unified handler for all brief cards with data attributes
 function handleBfCard(el){
   const key=el.dataset.key;
   const val=el.dataset.val;
@@ -410,7 +418,9 @@ async function bfSubmit(){
   document.getElementById('wfCta').innerHTML='';showSpinner();
   try{
     const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      sector:bf.sector,goal:bf.goal,why:bf.why,
+      name:document.getElementById('bfName').value,
+      email:document.getElementById('bfEmail').value,
+      sector:bf.sectors||bf.sector,goal:bf.goals||bf.goal,why:bf.whys||bf.why,
       company:document.getElementById('bfCo').value,
       website:document.getElementById('bfUrl').value,
       description:document.getElementById('bfDesc').value,

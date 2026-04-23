@@ -34,6 +34,22 @@ async function initDB() {
       password TEXT NOT NULL,
       role TEXT DEFAULT 'admin'
     );
+    CREATE TABLE IF NOT EXISTS submissions (
+      id SERIAL PRIMARY KEY,
+      name TEXT,
+      email TEXT,
+      sector TEXT,
+      goal TEXT,
+      why TEXT,
+      company TEXT,
+      website TEXT,
+      description TEXT,
+      kpi TEXT,
+      target TEXT,
+      budget TEXT,
+      workflow JSONB,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `);
 
   // Seed default admin if no users exist
@@ -371,11 +387,22 @@ function generateFallbackWorkflow(sector, service, lang) {
 }
 
 app.post('/api/workflow', chatRateLimit, async (req, res) => {
-  const { sector, service, company, website, description, lang } = req.body;
+  const { name, email, sector, goal, why: whyR, service, company, website, description, kpi, target, budget, lang } = req.body;
+
+  // Save submission to DB
+  async function saveSubmission(workflow) {
+    try {
+      await pool.query(
+        'INSERT INTO submissions (name, email, sector, goal, why, company, website, description, kpi, target, budget, workflow) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
+        [name, email, sector, goal || service, whyR, company, website, description, kpi, target, budget, workflow ? JSON.stringify(workflow) : null]
+      );
+    } catch(e) { console.error('Save submission error:', e); }
+  }
 
   if (!OPENAI_KEY) {
-    // Fallback: generate a smart static workflow
-    return res.json({ workflow: generateFallbackWorkflow(sector, service, lang) });
+    const wf = generateFallbackWorkflow(sector, service, lang);
+    await saveSubmission(wf);
+    return res.json({ workflow: wf });
   }
 
   try {
@@ -428,13 +455,36 @@ Respond ONLY with the JSON array, no markdown, no explanation.`;
     const text = data.choices?.[0]?.message?.content || '';
     const match = text.match(/\[[\s\S]*\]/);
     if (match) {
-      res.json({ workflow: JSON.parse(match[0]) });
+      const wf = JSON.parse(match[0]);
+      await saveSubmission(wf);
+      res.json({ workflow: wf });
     } else {
+      await saveSubmission(null);
       res.status(500).json({ error: 'Failed to parse workflow' });
     }
   } catch (e) {
     console.error('Workflow error:', e);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// --- Submissions API (admin only) ---
+app.get('/api/submissions', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM submissions ORDER BY created_at DESC LIMIT 100');
+    res.json(rows);
+  } catch(e) {
+    console.error('Submissions error:', e);
+    res.status(500).json({ error: 'Failed to load submissions' });
+  }
+});
+
+app.delete('/api/submissions/:id', requireAuth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM submissions WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch(e) {
+    res.status(500).json({ error: 'Failed to delete' });
   }
 });
 
