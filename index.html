@@ -15,56 +15,13 @@
   --ac:#c8ff00;--acd:rgba(200,255,0,0.08);
   --f:'Inter',-apple-system,sans-serif;--d:'Space Grotesk',sans-serif;
 }
+html{scroll-behavior:smooth}
 html,body{margin:0;background:var(--bk);color:var(--wh);font-family:var(--f);overflow-x:hidden}
-html.lenis,html.lenis body{height:auto}
-.lenis.lenis-smooth{scroll-behavior:auto!important}
 ::selection{background:var(--ac);color:var(--bk)}
 
-#c{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
-
-/* ====== CARD SECTIONS — sticky fullscreen ====== */
-.card{
-  position:sticky;top:0;
-  min-height:100vh;width:100%;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--bk);
-  z-index:1;
-  overflow:hidden;
-}
-/* z-index set inline per card — spacers break nth-child */
-
-/* Card inner — content area with padding */
-.card-inner{
-  width:100%;max-width:1400px;
-  padding:6rem 3rem;
-  position:relative;z-index:2;
-}
-
-/* Card background overlay — shader shows through, content readable */
-.card-bg{
-  position:absolute;inset:0;
-  background:rgba(5,5,5,.88);
-  backdrop-filter:blur(8px);
-  transition:opacity .8s;
-  z-index:1;
-}
-/* Hero has transparent bg to show shader fully */
-#hero .card-bg{background:rgba(5,5,5,.3);backdrop-filter:none}
-
-/* Card entrance animation driven by GSAP */
-.card-content{
-  position:relative;z-index:2;
-  opacity:0;transform:translateY(60px);
-  transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1);
-}
-.card.active .card-content{opacity:1;transform:translateY(0)}
-
-/* Spacers between cards — scroll runway for transitions */
-.card-spacer{height:50vh;position:relative;z-index:0}
-
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all .5s}
-nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;transition:all .4s}
+nav.scr{background:rgba(5,5,5,.92);backdrop-filter:blur(30px)}
 .nl{font-family:var(--d);font-size:1.5rem;font-weight:700;letter-spacing:.2em;color:var(--wh);text-decoration:none}
 .nk{display:flex;gap:2.5rem;align-items:center;list-style:none}
 .nk a{color:var(--g3);text-decoration:none;font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:color .3s}
@@ -76,13 +33,14 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .mb span:nth-child(1){top:0}.mb span:nth-child(2){top:8px}.mb span:nth-child(3){top:16px}
 .mb.act span:nth-child(1){top:8px;transform:rotate(45deg)}.mb.act span:nth-child(2){opacity:0}.mb.act span:nth-child(3){top:8px;transform:rotate(-45deg)}
 
-/* TYPOGRAPHY */
+/* SECTIONS */
+section{padding:10rem 3rem}
 .sl{font-size:.7rem;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--ac);margin-bottom:1.2rem}
 .st{font-family:var(--d);font-size:clamp(2rem,4.5vw,3.8rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;margin-bottom:2rem}
 
 /* HERO */
-#hero{justify-content:center}
-#hero .card-inner{text-align:center;max-width:900px;padding:0 2rem}
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:1px solid var(--g2)}
+.hc{max-width:900px;padding:0 2rem}
 .hp{font-size:.75rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--ac);margin-bottom:2rem}
 .ht{font-family:var(--d);font-size:clamp(3.5rem,9vw,8rem);font-weight:800;line-height:.9;letter-spacing:-.04em;margin-bottom:2rem}
 .ht em{font-style:normal;-webkit-text-stroke:2px var(--ac);color:transparent}
@@ -91,19 +49,17 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .hcta{display:inline-flex;align-items:center;gap:.75rem;background:var(--ac);color:var(--bk);text-decoration:none;padding:1rem 2.5rem;font-weight:700;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;transition:all .4s cubic-bezier(.16,1,.3,1)}
 .hcta:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 10px 40px rgba(200,255,0,.15)}
 .hcta svg{width:14px;height:14px;transition:transform .3s}.hcta:hover svg{transform:translateX(4px)}
-.si{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%)}
-.si span{display:block;width:1px;height:60px;background:linear-gradient(to bottom,var(--ac),transparent);margin:0 auto;animation:sp 2.5s infinite}
-@keyframes sp{0%,100%{opacity:.2;transform:scaleY(.4)}50%{opacity:.6;transform:scaleY(1)}}
 
 /* MANIFESTO */
+#manifesto{border-bottom:1px solid var(--g2)}
 .mt{font-family:var(--d);font-size:clamp(1.4rem,2.8vw,2rem);font-weight:400;line-height:1.7;color:var(--g4);max-width:900px}
 .mt strong{color:var(--ac);font-weight:600}
 
 /* SERVICES */
+#services{border-bottom:1px solid var(--g2)}
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:var(--g2);margin-top:3rem}
-.sc{background:rgba(5,5,5,.95);padding:2.5rem;transition:all .5s cubic-bezier(.16,1,.3,1);cursor:default;transform-style:preserve-3d;will-change:transform}
-.sc:hover{background:rgba(17,17,17,.95)}
-.sc.hl{border-left:2px solid var(--ac)}
+.sc{background:var(--bk);padding:2.5rem;transition:all .4s;cursor:default;transform-style:preserve-3d}
+.sc:hover{background:var(--g1)}
 .si2{width:36px;height:36px;margin-bottom:1.2rem;color:var(--g3);transition:color .3s}.sc:hover .si2{color:var(--ac)}
 .sc h3{font-family:var(--d);font-size:1.2rem;font-weight:600;margin-bottom:.8rem;transition:transform .3s}.sc:hover h3{transform:translateX(4px)}
 .sc p{font-size:.82rem;line-height:1.7;color:var(--g3)}
@@ -112,8 +68,9 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .sc:hover .stg span{border-color:var(--ac);color:var(--ac)}
 
 /* WORK */
+#work{border-bottom:1px solid var(--g2)}
 .wg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--g2);margin-top:3rem}
-.wi{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--g1);cursor:pointer;transform-style:preserve-3d;will-change:transform;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.wi{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--g1);cursor:pointer;transition:transform .5s cubic-bezier(.16,1,.3,1)}
 .wib{position:absolute;inset:-10px;background-size:cover;background-position:center;transition:all .8s cubic-bezier(.16,1,.3,1);filter:grayscale(100%) brightness(.5)}
 .wi:hover .wib{transform:scale(1.08);filter:grayscale(30%) brightness(.7)}
 .wio{position:absolute;inset:0;background:linear-gradient(0deg,rgba(5,5,5,.95) 0%,transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem;opacity:0;transition:opacity .4s}
@@ -121,15 +78,14 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .wic{font-size:.6rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ac);margin-bottom:.4rem}
 .wit{font-family:var(--d);font-size:1.2rem;font-weight:600}
 .wicl{font-size:.8rem;color:var(--g3);margin-top:.2rem}
-.wi.ft{grid-column:span 2;aspect-ratio:8/3}
-
 .csl{font-size:.6rem;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--g3);margin:3rem 0 1.5rem;text-align:center}
 .clist{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem 1rem;font-size:.78rem;color:var(--g3);line-height:2.2}
 .clist span{transition:color .3s;cursor:default}.clist span:hover{color:var(--ac)}
 
 /* TEAM */
+#team{border-bottom:1px solid var(--g2)}
 .tg{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;margin-top:3rem}
-.tm{text-align:center;transform-style:preserve-3d;will-change:transform;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.tm{text-align:center;transition:transform .4s}
 .tp{width:100%;aspect-ratio:3/4;background:var(--g1);margin-bottom:1.2rem;overflow:hidden;filter:grayscale(100%);transition:filter .5s}
 .tm:hover .tp{filter:grayscale(0)}
 .tpl{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--d);font-size:2rem;font-weight:700;color:var(--g3);opacity:.2}
@@ -137,10 +93,26 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .tm .rl{font-size:.7rem;color:var(--ac);font-weight:500;letter-spacing:.08em;margin-bottom:.6rem}
 .tm .bio{font-size:.75rem;line-height:1.5;color:var(--g3)}
 
-/* BRIEF */
-.bf-inner{max-width:650px;margin:0 auto;text-align:center}
-.bf-step{display:none;animation:fu .6s forwards}.bf-step.act{display:block}
-@keyframes fu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+/* ====== BRIEF — HORIZONTAL SCROLL ====== */
+#brief{border-bottom:1px solid var(--g2);padding:6rem 0;overflow:hidden}
+.bf-header{padding:0 3rem;margin-bottom:3rem}
+.bf-track{
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  gap:0;
+}
+.bf-track::-webkit-scrollbar{display:none}
+.bf-panel{
+  flex:0 0 100vw;
+  min-height:50vh;
+  scroll-snap-align:start;
+  display:flex;align-items:center;justify-content:center;
+  padding:2rem 3rem;
+}
+.bf-panel-inner{max-width:600px;width:100%;text-align:center}
 .bf-cards{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin:2rem 0}
 .bf-card{padding:.8rem 1.2rem;border:1px solid var(--g2);color:var(--g4);cursor:pointer;font-size:.85rem;font-weight:500;transition:all .3s;font-family:var(--f)}
 .bf-card:hover{border-color:var(--g3);color:var(--wh)}
@@ -152,21 +124,22 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .bf-form textarea{min-height:100px;resize:vertical}
 .bf-btn{background:var(--ac);color:var(--bk);border:0;padding:.85rem 2rem;font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:var(--f);transition:all .3s}
 .bf-btn:hover{opacity:.85}.bf-btn:disabled{opacity:.3;cursor:default}
-.bf-back{background:0;border:0;color:var(--g3);font-size:.78rem;cursor:pointer;font-family:var(--f);margin-right:1rem;transition:color .3s}.bf-back:hover{color:var(--wh)}
+.bf-dots{display:flex;gap:.5rem;justify-content:center;margin-top:2rem}
+.bf-dots span{width:8px;height:8px;border-radius:50%;background:var(--g2);transition:all .3s;cursor:pointer}
+.bf-dots span.act{background:var(--ac);width:24px;border-radius:4px}
 
-/* WORKFLOW OVERLAY — standalone fullscreen */
+/* WORKFLOW OVERLAY */
 #wf-overlay{position:fixed;inset:0;z-index:2000;background:var(--bk);overflow-y:auto;display:none;animation:fu .6s forwards}
 #wf-overlay.open{display:block}
 .wf-wrap{max-width:700px;margin:0 auto;padding:6rem 2rem}
 .wf-close{position:fixed;top:2rem;right:2rem;background:0;border:1px solid var(--g2);color:var(--g3);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:all .3s;z-index:2001}
 .wf-close:hover{border-color:var(--ac);color:var(--ac)}
-/* Spinner */
 .wf-spinner{text-align:center;padding:4rem 0}
 .wf-spinner-ring{width:60px;height:60px;border:2px solid var(--g2);border-top-color:var(--ac);border-radius:50%;margin:0 auto 2rem;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .wf-spinner-msg{font-size:.9rem;color:var(--g4);transition:opacity .3s}
 .wf-spinner-sub{font-size:.7rem;color:var(--g3);margin-top:.5rem;letter-spacing:.1em}
-
+@keyframes fu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .wf-phase{border-left:2px solid var(--ac);padding:1.2rem 0 1.2rem 1.5rem;position:relative;text-align:left;opacity:0;animation:fu .5s forwards}
 .wf-phase::before{content:'';position:absolute;left:-5px;top:1.2rem;width:8px;height:8px;border-radius:50%;background:var(--ac)}
 .wf-phase h4{font-family:var(--d);font-size:1rem;font-weight:600;margin-bottom:.2rem}
@@ -174,15 +147,14 @@ nav.scr{background:rgba(5,5,5,.9);backdrop-filter:blur(30px)}
 .wf-phase p{font-size:.8rem;color:var(--g4);line-height:1.5;margin-bottom:.4rem}
 .wf-phase .tools{display:flex;flex-wrap:wrap;gap:.25rem}
 .wf-phase .tools span{font-size:.55rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .4rem;border:1px solid var(--g2);color:var(--g3)}
-.wf-loading{padding:3rem;color:var(--g3);font-size:.85rem}
 
 /* CONTACT */
-#contact-card{text-align:center}
+#contact{text-align:center;padding:8rem 3rem}
 .ce{font-family:var(--d);font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;color:var(--wh);text-decoration:none;display:inline-block;margin:1rem 0;transition:all .4s}
 .ce:hover{color:var(--ac)}
 .cm{font-size:.82rem;color:var(--g3);line-height:2}.cm a{color:var(--g3);text-decoration:none;transition:color .3s}.cm a:hover{color:var(--ac)}
 
-footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--g3);background:var(--bk);position:relative;z-index:20}
+footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--g3)}
 
 /* CHAT */
 #chtgl{position:fixed;bottom:2rem;right:2rem;z-index:1100;width:52px;height:52px;border-radius:50%;background:var(--ac);color:var(--bk);border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .4s;box-shadow:0 4px 20px rgba(200,255,0,.15)}
@@ -198,10 +170,15 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 .chia input{flex:1;background:var(--bk);border:1px solid var(--g2);color:var(--wh);padding:.6rem 1rem;font-family:var(--f);font-size:.82rem;outline:none;transition:border-color .3s}.chia input:focus{border-color:var(--ac)}
 .chia button{background:var(--ac);color:var(--bk);border:0;padding:.6rem 1rem;font-weight:700;font-size:.75rem;cursor:pointer;font-family:var(--f)}
 
-@media(max-width:1024px){.tg{grid-template-columns:repeat(2,1fr)}.wg{grid-template-columns:repeat(2,1fr)}.wi.ft{grid-column:span 1;aspect-ratio:4/3}}
+/* REVEAL */
+.rv{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+.rv.vis{opacity:1;transform:translateY(0)}
+
+@media(max-width:1024px){.tg{grid-template-columns:repeat(2,1fr)}.wg{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:768px){
   nav{padding:1rem 1.5rem}.nk{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,5,.98);backdrop-filter:blur(30px);flex-direction:column;justify-content:center;gap:2rem;opacity:0;pointer-events:none;transition:opacity .3s}.nk.opn{opacity:1;pointer-events:all}.nk a{font-size:1.1rem}.mb{display:block}
-  .card-inner{padding:4rem 1.5rem}.sg{grid-template-columns:1fr}.wg{grid-template-columns:1fr}.wio{opacity:1}.tg{grid-template-columns:1fr 1fr;gap:1.5rem}
+  section{padding:6rem 1.5rem}.sg{grid-template-columns:1fr}.wg{grid-template-columns:1fr}.wio{opacity:1}.tg{grid-template-columns:1fr 1fr;gap:1.5rem}
+  .bf-header{padding:0 1.5rem}
   footer{flex-direction:column;gap:.5rem;text-align:center;padding:1.5rem}
   #chtp{width:calc(100vw - 2rem);right:1rem;bottom:5rem}#chtgl{bottom:1.5rem;right:1.5rem}
 }
@@ -209,89 +186,90 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
 
 <nav id="nav"><a href="#hero" class="nl">WHY</a>
-  <ul class="nk" id="nk"><li><a href="#services">Services</a></li><li><a href="#work">Work</a></li><li><a href="#team">Team</a></li><li><a href="#brief">Start a project</a></li><li><button class="ls" id="lsB" onclick="toggleLang()">IT</button></li></ul>
+  <ul class="nk" id="nk"><li><a href="#services" data-i18n="nav.services">Services</a></li><li><a href="#work" data-i18n="nav.work">Work</a></li><li><a href="#team" data-i18n="nav.team">Team</a></li><li><a href="#brief" data-i18n="nav.brief">Start a project</a></li><li><button class="ls" id="lsB" onclick="toggleLang()">IT</button></li></ul>
   <button class="mb" id="mbB" onclick="togMob()"><span></span><span></span><span></span></button>
 </nav>
 
-<!-- ====== CARD STACK ====== -->
-
-<div class="card active" id="hero" data-world="hero" style="z-index:10">
-  <div class="card-bg"></div>
-  <div class="card-inner card-content" style="opacity:1;transform:none">
+<section id="hero">
+  <div class="hc">
     <p class="hp" data-i18n="hero.pre">Creative Technology Studio</p>
     <h1 class="ht" data-i18n="hero.title">Ideas into<br><em>Systems</em></h1>
     <p class="hs" data-i18n="hero.sub"><mark>We transform ideas into dynamic, evolutionary communication systems.</mark> Technology changes fast. The right question doesn't.</p>
     <a href="#brief" class="hcta"><span data-i18n="hero.cta">Start a project</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
   </div>
-  <div class="si"><span></span></div>
-</div>
-<div class="card-spacer"></div>
+</section>
 
-<div class="card" id="manifesto" data-world="manifesto" style="z-index:11">
-  <div class="card-bg"></div>
-  <div class="card-inner card-content">
+<section id="manifesto">
+  <div class="rv">
     <p class="sl" data-i18n="manifesto.label">Manifesto</p>
     <p class="mt" data-i18n="manifesto.text">Trends come and go. The metaverse, NFTs, the next big thing — they rise and fade. We don't chase technology. We ask <strong>why</strong>. Because when you start from the right question, you build systems that evolve, communicate, and last — no matter what comes next.</p>
   </div>
-</div>
-<div class="card-spacer"></div>
+</section>
 
-<div class="card" id="services" data-world="services" style="z-index:12">
-  <div class="card-bg"></div>
-  <div class="card-inner card-content">
-    <p class="sl" data-i18n="services.label">What we do</p>
-    <h2 class="st" data-i18n="services.title">Systems that communicate, evolve, engage.</h2>
-    <div class="sg" id="sGrid"></div>
+<section id="services">
+  <div class="rv"><p class="sl" data-i18n="services.label">What we do</p><h2 class="st" data-i18n="services.title">Systems that communicate, evolve, engage.</h2></div>
+  <div class="sg" id="sGrid"></div>
+</section>
+
+<section id="work">
+  <div class="rv"><p class="sl" data-i18n="work.label">Selected Work</p><h2 class="st" data-i18n="work.title">Case studies</h2></div>
+  <div class="wg" id="wGrid"></div>
+  <p class="csl" data-i18n="clients.label">Trusted by</p>
+  <div class="clist" id="cList"></div>
+</section>
+
+<section id="team">
+  <div class="rv"><p class="sl" data-i18n="team.label">The team</p><h2 class="st" data-i18n="team.title">25 years of convergence between creativity and technology.</h2></div>
+  <div class="tg" id="tGrid"></div>
+</section>
+
+<!-- BRIEF — horizontal scroll -->
+<section id="brief">
+  <div class="bf-header rv">
+    <p class="sl" data-i18n="brief.label">Start a project</p>
+    <h2 class="st" data-i18n="brief.title">Let's build something together.</h2>
   </div>
-</div>
-<div class="card-spacer"></div>
-
-<div class="card" id="work" data-world="work" style="z-index:13">
-  <div class="card-bg"></div>
-  <div class="card-inner card-content">
-    <p class="sl" data-i18n="work.label">Selected Work</p>
-    <h2 class="st" data-i18n="work.title">Case studies</h2>
-    <div class="wg" id="wGrid"></div>
-    <p class="csl" data-i18n="clients.label">Trusted by</p>
-    <div class="clist" id="cList"></div>
-  </div>
-</div>
-<div class="card-spacer"></div>
-
-<div class="card" id="team" data-world="team" style="z-index:14">
-  <div class="card-bg"></div>
-  <div class="card-inner card-content">
-    <p class="sl" data-i18n="team.label">The team</p>
-    <h2 class="st" data-i18n="team.title">25 years of convergence between creativity and technology.</h2>
-    <div class="tg" id="tGrid"></div>
-  </div>
-</div>
-<div class="card-spacer"></div>
-
-<div class="card" id="brief" data-world="brief" style="z-index:15">
-  <div class="card-bg"></div>
-  <div class="card-inner card-content">
-    <div class="bf-inner">
-      <div class="bf-step act" id="bfS0"><p class="sl">Start a project</p><h2 class="st">What's your world?</h2><div class="bf-cards" id="bfSector"></div><button class="bf-btn" id="bfN0" onclick="bfNext(0)" disabled>Next</button></div>
-      <div class="bf-step" id="bfS1"><p class="sl">Start a project</p><h2 class="st">What are you looking for?</h2><div class="bf-cards" id="bfService"></div><div><button class="bf-back" onclick="bfPrev(1)">← Back</button><button class="bf-btn" id="bfN1" onclick="bfNext(1)" disabled>Next</button></div></div>
-      <div class="bf-step" id="bfS2"><p class="sl">Start a project</p><h2 class="st">Tell us about your project</h2><div class="bf-form"><div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div><div><label>Website</label><input id="bfUrl" placeholder="https://"></div><div><label>Project description</label><textarea id="bfDesc" placeholder="What do you want to build?"></textarea></div></div><div><button class="bf-back" onclick="bfPrev(2)">← Back</button><button class="bf-btn" onclick="bfSubmit()">Generate workflow →</button></div></div>
-      <div class="bf-step" id="bfS3"><p class="sl">Your workflow</p><h2 class="st">Here's how we'd build it together.</h2><div id="bfWf"></div><div style="text-align:center;margin-top:2rem"><a href="mailto:info@justwhy.it" class="hcta">Let's talk →</a></div></div>
+  <div class="bf-track" id="bfTrack">
+    <div class="bf-panel" id="bfP0">
+      <div class="bf-panel-inner">
+        <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q1">What's your world?</h3>
+        <div class="bf-cards" id="bfSector"></div>
+        <button class="bf-btn" id="bfN0" onclick="bfScroll(1)" disabled>Next →</button>
+        <div class="bf-dots"><span class="act"></span><span></span><span></span></div>
+      </div>
+    </div>
+    <div class="bf-panel" id="bfP1">
+      <div class="bf-panel-inner">
+        <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q2">What are you looking for?</h3>
+        <div class="bf-cards" id="bfService"></div>
+        <div><button class="bf-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);margin-right:.5rem" onclick="bfScroll(0)">←</button><button class="bf-btn" id="bfN1" onclick="bfScroll(2)" disabled>Next →</button></div>
+        <div class="bf-dots"><span></span><span class="act"></span><span></span></div>
+      </div>
+    </div>
+    <div class="bf-panel" id="bfP2">
+      <div class="bf-panel-inner">
+        <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q3">Tell us about your project</h3>
+        <div class="bf-form">
+          <div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div>
+          <div><label>Website</label><input id="bfUrl" placeholder="https://"></div>
+          <div><label data-i18n="brief.desc">Project description</label><textarea id="bfDesc" placeholder="What do you want to build?"></textarea></div>
+        </div>
+        <div><button class="bf-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);margin-right:.5rem" onclick="bfScroll(1)">←</button><button class="bf-btn" onclick="bfSubmit()" data-i18n="brief.submit">Generate workflow →</button></div>
+        <div class="bf-dots"><span></span><span></span><span class="act"></span></div>
+      </div>
     </div>
   </div>
-</div>
-<div class="card-spacer"></div>
+</section>
 
-<div class="card" id="contact-card" data-world="contact" style="z-index:16">
-  <div class="card-bg"></div>
-  <div class="card-inner card-content">
-    <p class="sl">Get in touch</p>
+<section id="contact">
+  <div class="rv">
+    <p class="sl" data-i18n="contact.label">Get in touch</p>
     <a href="mailto:info@justwhy.it" class="ce" id="cEmail">info@justwhy.it</a>
     <div class="cm" id="cMeta"><p>WHY srl — Roma, Italia</p><p><a href="https://justwhy.it">justwhy.it</a></p></div>
   </div>
-</div>
+</section>
 
 <footer><span>&copy; 2025 WHY srl.</span><span>Roma, Italia</span></footer>
 
@@ -310,100 +288,21 @@ footer{padding:2rem 3rem;border-top:1px solid var(--g2);display:flex;justify-con
 <button id="chtgl" onclick="togChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button>
 <div id="chtp"><div class="chh"><h4>WHY AI</h4><span>GPT</span></div><div class="chms" id="chMs"><div class="chm ast" id="chW">Hi! Ask me anything about WHY.</div></div><div class="chia"><input id="chIn" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendCh()"><button onclick="sendCh()">Send</button></div></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
 <script>
 // =============================================
-// SPRING MOUSE
+// SCROLL REVEAL
 // =============================================
-const sp={x:0,y:0,tx:0,ty:0};
-function upSp(){sp.x+=(sp.tx-sp.x)*.08;sp.y+=(sp.ty-sp.y)*.08;}
-document.addEventListener('mousemove',e=>{sp.tx=e.clientX;sp.ty=e.clientY;});
-document.addEventListener('touchmove',e=>{sp.tx=e.touches[0].clientX;sp.ty=e.touches[0].clientY;},{passive:true});
+const rvObs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:.1,rootMargin:'0px 0px -60px 0px'});
+function initRv(){document.querySelectorAll('.rv').forEach(el=>rvObs.observe(el));}
+initRv();
 
-// =============================================
-// THREE.JS SHADER
-// =============================================
-(function(){
-const cn=document.getElementById('c');
-const R=new THREE.WebGLRenderer({canvas:cn,antialias:true,alpha:true});
-R.setPixelRatio(Math.min(window.devicePixelRatio,2));R.setSize(window.innerWidth,window.innerHeight);
-const scene=new THREE.Scene();
-const cam=new THREE.PerspectiveCamera(50,window.innerWidth/window.innerHeight,.1,100);cam.position.set(0,0,5);
-const mob=window.innerWidth<768;
-const geo=new THREE.PlaneGeometry(14,8,mob?80:140,mob?50:85);
-
-const N=`vec3 mod289(vec3 x){return x-floor(x/289.)*289.;}vec4 mod289(vec4 x){return x-floor(x/289.)*289.;}vec4 permute(vec4 x){return mod289(((x*34.)+1.)*x);}vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-.85373472095314*r;}float snoise(vec3 v){const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;vec3 i1=min(g,l.zxy);vec3 i2=max(g,l.zxy);vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;i=mod289(i);vec4 p=permute(permute(permute(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;vec4 sh=-step(h,vec4(0.));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}`;
-
-const mat=new THREE.ShaderMaterial({
-  uniforms:{uTime:{value:0},uMouse:{value:new THREE.Vector2()},uWaveAmp:{value:1.2},uFreqX:{value:.4},uFreqY:{value:.4},uSpeed:{value:.3},uLineFreq:{value:mob?30:50},uLineSharp:{value:.35},uLineAngle:{value:0},uBright:{value:.7},uAccStr:{value:.6}},
-  vertexShader:N+`uniform float uTime;uniform vec2 uMouse;uniform float uWaveAmp;uniform float uFreqX;uniform float uFreqY;uniform float uSpeed;varying vec2 vUv;varying float vD;varying float vMD;void main(){vUv=uv;vec3 pos=position;float n1=snoise(vec3(pos.x*uFreqX,pos.y*uFreqY,uTime*uSpeed))*uWaveAmp;float n2=snoise(vec3(pos.x*.8+50.,pos.y*.6,uTime*uSpeed*.7))*uWaveAmp*.4;pos.z=n1+n2;vec2 mP=uMouse*vec2(7.,4.);float d=distance(pos.xy,mP);pos.z+=smoothstep(3.,0.,d)*.8;vMD=d;vD=pos.z;gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.);}`,
-  fragmentShader:`uniform float uTime;uniform float uLineFreq;uniform float uLineSharp;uniform float uLineAngle;uniform float uBright;uniform float uAccStr;varying vec2 vUv;varying float vD;varying float vMD;void main(){float a=uLineAngle;vec2 ru=vec2(vUv.x*cos(a)-vUv.y*sin(a),vUv.x*sin(a)+vUv.y*cos(a));float lp=ru.x*uLineFreq+vD*3.;float li=abs(sin(lp));float th=smoothstep(0.,.5,1.-abs(vUv.y-.5)*2.)*.12;float e=uLineSharp-th;float pat=smoothstep(e,e+.04,li);vec3 col=vec3(pat)*uBright;float glow=smoothstep(2.5,0.,vMD);col=mix(col,vec3(.784,1.,.0),glow*pat*uAccStr);col*=sin(vUv.x*3.14159)*.25+.75;float ef=smoothstep(0.,.08,vUv.x)*smoothstep(1.,.92,vUv.x)*smoothstep(0.,.1,vUv.y)*smoothstep(1.,.9,vUv.y);gl_FragColor=vec4(col,pat*.8*ef);}`,
-  transparent:true,side:THREE.DoubleSide,depthWrite:false
-});
-const mesh=new THREE.Mesh(geo,mat);mesh.rotation.x=-.3;scene.add(mesh);
-
-// Shader worlds — each card has distinct shader params
-const W={
-  hero:     {camZ:5,camY:0,rotX:-.3,waveAmp:1.2,freqX:.4,freqY:.4,lineFreq:mob?30:50,lineAngle:0,bright:.7,speed:.3,accStr:.6},
-  manifesto:{camZ:3.8,camY:.8,rotX:-.4,waveAmp:.7,freqX:.7,freqY:.3,lineFreq:mob?40:70,lineAngle:.15,bright:.45,speed:.2,accStr:.4},
-  services: {camZ:3,camY:1.2,rotX:-.45,waveAmp:.4,freqX:.9,freqY:.9,lineFreq:mob?50:90,lineAngle:.78,bright:.35,speed:.15,accStr:.3},
-  work:     {camZ:4,camY:.5,rotX:-.35,waveAmp:1.6,freqX:.25,freqY:.4,lineFreq:mob?22:38,lineAngle:-.2,bright:.55,speed:.35,accStr:.5},
-  team:     {camZ:3.5,camY:1,rotX:-.38,waveAmp:.5,freqX:.5,freqY:.8,lineFreq:mob?45:80,lineAngle:1.57,bright:.4,speed:.12,accStr:.35},
-  brief:    {camZ:2.5,camY:1.8,rotX:-.5,waveAmp:2,freqX:.2,freqY:.25,lineFreq:mob?18:30,lineAngle:0,bright:.75,speed:.4,accStr:.7},
-  contact:  {camZ:6,camY:-.5,rotX:-.2,waveAmp:1.5,freqX:.3,freqY:.3,lineFreq:mob?35:55,lineAngle:3.14,bright:.6,speed:.25,accStr:.5},
-};
-let cur={...W.hero},tgt={...W.hero};
-
-function animate(){
-  requestAnimationFrame(animate);upSp();
-  for(const k in cur)cur[k]+=(tgt[k]-cur[k])*.04;
-  const u=mat.uniforms;u.uTime.value+=.008;
-  u.uMouse.value.set(sp.x/window.innerWidth*2-1,-(sp.y/window.innerHeight*2-1));
-  u.uWaveAmp.value=cur.waveAmp;u.uFreqX.value=cur.freqX;u.uFreqY.value=cur.freqY;
-  u.uLineFreq.value=cur.lineFreq;u.uLineSharp.value=.35;u.uLineAngle.value=cur.lineAngle;
-  u.uBright.value=cur.bright;u.uSpeed.value=cur.speed;u.uAccStr.value=cur.accStr;
-  cam.position.z=cur.camZ;cam.position.y=cur.camY;mesh.rotation.x=cur.rotX;
-  cam.position.x=(sp.x/window.innerWidth*2-1)*.3;cam.rotation.y=(sp.x/window.innerWidth*2-1)*.05;
-  R.render(scene,cam);
-}
-animate();
-
-// Lenis
-const lenis=new Lenis({duration:1.4,easing:t=>Math.min(1,1.001-Math.pow(2,-10*t)),smoothWheel:true,wheelMultiplier:0.8});
-function raf(time){lenis.raf(time);requestAnimationFrame(raf);}requestAnimationFrame(raf);
-gsap.registerPlugin(ScrollTrigger);
-lenis.on('scroll',ScrollTrigger.update);
-gsap.ticker.add(t=>{lenis.raf(t*1000);});gsap.ticker.lagSmoothing(0);
-
-// Card activation — when a card enters, transition shader world + animate content
-document.querySelectorAll('.card[data-world]').forEach(card=>{
-  const world=card.dataset.world;
-  ScrollTrigger.create({
-    trigger:card,start:'top 70%',end:'bottom 30%',
-    onEnter:()=>{
-      document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
-      card.classList.add('active');
-      if(W[world])tgt={...W[world]};
-    },
-    onEnterBack:()=>{
-      document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
-      card.classList.add('active');
-      if(W[world])tgt={...W[world]};
-    },
-  });
-});
-
-window.addEventListener('resize',()=>{cam.aspect=window.innerWidth/window.innerHeight;cam.updateProjectionMatrix();R.setSize(window.innerWidth,window.innerHeight);});
-})();
-
-// =============================================
 // TILT
-// =============================================
-function initTilt(){document.querySelectorAll('.sc,.wi,.tm').forEach(el=>{el.addEventListener('mousemove',e=>{const r=el.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(800px) rotateY(${x*10}deg) rotateX(${-y*10}deg) translateZ(8px)`;});el.addEventListener('mouseleave',()=>{el.style.transform='';});});}
+function initTilt(){document.querySelectorAll('.sc,.wi,.tm').forEach(el=>{el.addEventListener('mousemove',e=>{const r=el.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;el.style.transform=`perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateZ(4px)`;});el.addEventListener('mouseleave',()=>{el.style.transform='';});});}
+
+// NAV
+window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scr',window.scrollY>50);});
+function togMob(){document.getElementById('mbB').classList.toggle('act');document.getElementById('nk').classList.toggle('opn');}
+document.addEventListener('click',e=>{if(e.target.closest('.nk a')){document.getElementById('mbB').classList.remove('act');document.getElementById('nk').classList.remove('opn');}});
 
 // =============================================
 // CONTENT
@@ -415,124 +314,71 @@ async function load(){try{const r=await fetch('/api/content');D=await r.json();}
 
 function build(){
   if(!D)return;const l=lang;
-  // i18n
-  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
+  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':l==='it'?'Ci hanno scelto':'Trusted by','team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':l==='it'?'Contatti':'Get in touch','brief.label':l==='it'?'Inizia un progetto':'Start a project','brief.title':l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.','brief.q1':l==='it'?'Qual è il tuo mondo?':'What\'s your world?','brief.q2':l==='it'?'Cosa stai cercando?':'What are you looking for?','brief.q3':l==='it'?'Parlaci del tuo progetto':'Tell us about your project','brief.desc':l==='it'?'Descrizione del progetto':'Project description','brief.submit':l==='it'?'Genera workflow →':'Generate workflow →','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':l==='it'?'Inizia un progetto':'Start a project'};
   document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(m[k])el.innerHTML=m[k];});
 
   const sv=D.services?.items||[];
-  document.getElementById('sGrid').innerHTML=sv.map((s,i)=>`<div class="sc" style="animation:fu .5s ${i*.06}s forwards"><div class="si2">${IC[s.icon]||IC.cube}</div><h3>${s[l].title}</h3><p>${s[l].desc}</p><div class="stg">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
+  document.getElementById('sGrid').innerHTML=sv.map((s,i)=>`<div class="sc rv"><div class="si2">${IC[s.icon]||IC.cube}</div><h3>${s[l].title}</h3><p>${s[l].desc}</p><div class="stg">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
 
   const wk=D.work?.items||[];const ck=l==='it'?'category_it':'category_en';
-  document.getElementById('wGrid').innerHTML=wk.map((w,i)=>{const bg=w.image?`url(${w.image})`:`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;return `<div class="wi" style="animation:fu .5s ${i*.05}s forwards"><div class="wib" style="background:${bg};background-size:cover;background-position:center"></div><div class="wio"><span class="wic">${w[ck]}</span><h3 class="wit">${w.title}</h3><span class="wicl">${w.client}</span></div></div>`;}).join('');
+  document.getElementById('wGrid').innerHTML=wk.map((w,i)=>{const bg=w.image?`url(${w.image})`:`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;return `<div class="wi rv"><div class="wib" style="background:${bg};background-size:cover;background-position:center"></div><div class="wio"><span class="wic">${w[ck]}</span><h3 class="wit">${w.title}</h3><span class="wicl">${w.client}</span></div></div>`;}).join('');
 
   document.getElementById('cList').innerHTML=(D.clients||[]).map(c=>`<span>${c}</span>`).join('');
-  document.getElementById('tGrid').innerHTML=(D.team?.members||[]).map((m,i)=>`<div class="tm" style="animation:fu .5s ${i*.08}s forwards"><div class="tp">${m.photo?`<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">`:`<span class="tpl">${m.initials}</span>`}</div><h3>${m.name}</h3><p class="rl">${m.role}</p><p class="bio">${m[l].bio}</p></div>`).join('');
+  document.getElementById('tGrid').innerHTML=(D.team?.members||[]).map((m,i)=>`<div class="tm rv"><div class="tp">${m.photo?`<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">`:`<span class="tpl">${m.initials}</span>`}</div><h3>${m.name}</h3><p class="rl">${m.role}</p><p class="bio">${m[l].bio}</p></div>`).join('');
 
   const ct=D.contact||{};if(ct.email){document.getElementById('cEmail').href=`mailto:${ct.email}`;document.getElementById('cEmail').textContent=ct.email;}
+  if(ct.company)document.getElementById('cMeta').innerHTML=`<p>${ct.company} — ${ct.location||''}</p><p><a href="https://${ct.website||''}">${ct.website||''}</a></p>`;
 
-  // Brief cards
-  const sectors=l==='it'?['Fashion & Lusso','Corporate','Entertainment','Architettura','Tech']:['Fashion & Luxury','Corporate','Entertainment','Architecture','Tech'];
+  const sectors=l==='it'?['Fashion & Lusso','Corporate','Entertainment','Architettura','Tech & Innovation']:['Fashion & Luxury','Corporate','Entertainment','Architecture','Tech & Innovation'];
   document.getElementById('bfSector').innerHTML=sectors.map(s=>`<div class="bf-card" onclick="selBf(this,'sector','${s}')">${s}</div>`).join('');
   document.getElementById('bfService').innerHTML=sv.map(s=>`<div class="bf-card" onclick="selBf(this,'service','${s[l].title}')">${s[l].title}</div>`).join('');
 
-  initTilt();
+  initRv();initTilt();
 }
 
+// BRIEF — horizontal scroll
 function selBf(el,t,v){el.parentElement.querySelectorAll('.bf-card').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');bf[t]=v;document.getElementById('bfN'+(t==='sector'?0:1)).disabled=false;}
-function bfNext(s){document.getElementById('bfS'+s).classList.remove('act');document.getElementById('bfS'+(s+1)).classList.add('act');}
-function bfPrev(s){document.getElementById('bfS'+s).classList.remove('act');document.getElementById('bfS'+(s-1)).classList.add('act');}
 
-// Spinner messages — bilingual
-const spinnerMsgs={
-  en:['Gathering information','Analyzing website','Analyzing context','Researching best solutions & technologies','Estimating effort','Generating output'],
-  it:['Recupero informazioni','Analisi web site','Analisi del contesto','Ricerca delle migliori soluzioni e tecnologie','Stima effort','Elaborazione output']
-};
-let spinnerInterval=null;
+function bfScroll(panelIdx){
+  const track=document.getElementById('bfTrack');
+  const panel=document.getElementById('bfP'+panelIdx);
+  if(panel)track.scrollTo({left:panel.offsetLeft,behavior:'smooth'});
+}
+
+// Spinner
+const spinMsgs={en:['Gathering information','Analyzing website','Analyzing context','Researching best solutions & technologies','Estimating effort','Generating output'],it:['Recupero informazioni','Analisi web site','Analisi del contesto','Ricerca delle migliori soluzioni e tecnologie','Stima effort','Elaborazione output']};
+let spinInt=null;
 
 function showSpinner(){
-  const msgs=spinnerMsgs[lang]||spinnerMsgs.en;
-  let idx=0;
-  const wfc=document.getElementById('wfContent');
-  wfc.innerHTML=`<div class="wf-spinner"><div class="wf-spinner-ring"></div><div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div><div class="wf-spinner-sub" id="spinSub">${idx+1}/${msgs.length}</div></div>`;
-  spinnerInterval=setInterval(()=>{
-    idx=(idx+1)%msgs.length;
-    const el=document.getElementById('spinMsg');
-    const sub=document.getElementById('spinSub');
-    if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}
-    if(sub)sub.textContent=`${idx+1}/${msgs.length}`;
-  },2500);
+  const msgs=spinMsgs[lang]||spinMsgs.en;let idx=0;
+  document.getElementById('wfContent').innerHTML=`<div class="wf-spinner"><div class="wf-spinner-ring"></div><div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div><div class="wf-spinner-sub" id="spinSub">1/${msgs.length}</div></div>`;
+  spinInt=setInterval(()=>{idx=(idx+1)%msgs.length;const el=document.getElementById('spinMsg');const sub=document.getElementById('spinSub');if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}if(sub)sub.textContent=`${idx+1}/${msgs.length}`;},2500);
 }
-
-function stopSpinner(){if(spinnerInterval){clearInterval(spinnerInterval);spinnerInterval=null;}}
+function stopSpinner(){if(spinInt){clearInterval(spinInt);spinInt=null;}}
 
 async function bfSubmit(){
-  // Open workflow overlay
-  const ov=document.getElementById('wf-overlay');
-  ov.classList.add('open');
+  const ov=document.getElementById('wf-overlay');ov.classList.add('open');
   document.getElementById('wfTitle').textContent=lang==='it'?'Ecco come lo costruiremmo insieme.':'Here\'s how we\'d build it together.';
-  document.getElementById('wfCta').innerHTML='';
-  showSpinner();
-
+  document.getElementById('wfCta').innerHTML='';showSpinner();
   try{
     const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sector:bf.sector,service:bf.service,company:document.getElementById('bfCo').value,website:document.getElementById('bfUrl').value,description:document.getElementById('bfDesc').value,lang})});
-    const d=await r.json();
-    stopSpinner();
+    const d=await r.json();stopSpinner();
     const wfc=document.getElementById('wfContent');
-    if(d.workflow){
-      wfc.innerHTML=d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.2}s"><div class="dur">${lang==='it'?'Fase':'Phase'} ${p.id} — ${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
-      document.getElementById('wfCta').innerHTML=`<a href="mailto:info@justwhy.it" class="hcta">${lang==='it'?'Parliamone →':'Let\'s talk →'}</a>`;
-    }else{
-      wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore nella generazione. Contattaci a info@justwhy.it':'Error generating workflow. Contact us at info@justwhy.it'}</p>`;
-    }
-  }catch(e){
-    stopSpinner();
-    document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione. Riprova.':'Connection error. Try again.'}</p>`;
-  }
+    if(d.workflow){wfc.innerHTML=d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.2}s"><div class="dur">${lang==='it'?'Fase':'Phase'} ${p.id} — ${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');document.getElementById('wfCta').innerHTML=`<a href="mailto:info@justwhy.it" class="hcta">${lang==='it'?'Parliamone →':'Let\'s talk →'}</a>`;}
+    else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
+  }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }
-
 function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
 
+// I18N
 function toggleLang(){lang=lang==='en'?'it':'en';document.documentElement.lang=lang;document.getElementById('lsB').textContent=lang==='en'?'IT':'EN';if(D)build();document.getElementById('chW').textContent=lang==='it'?'Ciao! Chiedimi quello che vuoi su WHY.':'Hi! Ask me anything about WHY.';}
 
-// CHAT — non-streaming, works with GPT-5.x
+// CHAT
 let chO=false;
 function togChat(){chO=!chO;document.getElementById('chtp').classList.toggle('opn',chO);if(chO)document.getElementById('chIn').focus();}
-
-async function sendCh(){
-  const inp=document.getElementById('chIn');
-  const t=inp.value.trim();if(!t)return;inp.value='';
-  chM.push({role:'user',content:t});
-  apCh('usr',t);
-  const ty=apCh('ast','...');
-
-  try{
-    const r=await fetch('/api/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:chM,profile:{sector:bf.sector,interest:bf.service},lang})
-    });
-    if(!r.ok){
-      const err=await r.json().catch(()=>({error:'Unknown error'}));
-      ty.textContent=lang==='it'?'Errore. Riprova.':'Error. Try again.';
-      console.error('Chat error:',err);
-      return;
-    }
-    const data=await r.json();
-    ty.textContent=data.content||'...';
-    chM.push({role:'assistant',content:data.content});
-    scrCh();
-  }catch(e){
-    ty.textContent=lang==='it'?'Errore di connessione.':'Connection error.';
-    console.error('Chat fetch error:',e);
-  }
-}
-
+async function sendCh(){const inp=document.getElementById('chIn');const t=inp.value.trim();if(!t)return;inp.value='';chM.push({role:'user',content:t});apCh('usr',t);const ty=apCh('ast','...');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chM,profile:{sector:bf.sector,interest:bf.service},lang})});if(!r.ok){ty.textContent=lang==='it'?'Errore. Riprova.':'Error. Try again.';return;}const data=await r.json();ty.textContent=data.content||'...';chM.push({role:'assistant',content:data.content});scrCh();}catch(e){ty.textContent=lang==='it'?'Errore di connessione.':'Connection error.';}}
 function apCh(c,t){const el=document.getElementById('chMs');const d=document.createElement('div');d.className='chm '+c;d.textContent=t;el.appendChild(d);scrCh();return d;}
 function scrCh(){document.getElementById('chMs').scrollTop=document.getElementById('chMs').scrollHeight;}
-
-window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scr',window.scrollY>50);});
-function togMob(){document.getElementById('mbB').classList.toggle('act');document.getElementById('nk').classList.toggle('opn');}
-document.addEventListener('click',e=>{if(e.target.closest('.nk a')){document.getElementById('mbB').classList.remove('act');document.getElementById('nk').classList.remove('opn');}});
 
 load();
 </script>
