@@ -1069,9 +1069,24 @@ load();
   const SS=256;
   function sampleFromCanvas(ctx,count,spX,spY,zD){
     const id=ctx.getImageData(0,0,SS,SS).data;
+    // Detect: white-on-transparent OR dark-on-white? Count opaque vs transparent pixels
+    let opaqueCount=0,brightOpaqueCount=0;
+    for(let i=0;i<id.length;i+=4){
+      if(id[i+3]>128){opaqueCount++;if(id[i]+id[i+1]+id[i+2]>600)brightOpaqueCount++;}
+    }
+    const totalPx=SS*SS;
+    // If >80% of pixels are opaque AND most are bright → it's dark-on-white, sample dark pixels
+    const invertMode=opaqueCount>totalPx*0.8&&brightOpaqueCount>opaqueCount*0.5;
     const cands=[];
     for(let y=0;y<SS;y++)for(let x=0;x<SS;x++){
-      if(id[(y*SS+x)*4+3]>128)cands.push((x/SS-.5)*spX,(.5-y/SS)*spY);
+      const i=(y*SS+x)*4;
+      if(invertMode){
+        // Sample dark pixels (the silhouette drawn dark on white/light bg)
+        if(id[i+3]>128&&(id[i]+id[i+1]+id[i+2])<400)cands.push((x/SS-.5)*spX,(.5-y/SS)*spY);
+      }else{
+        // Standard: sample opaque pixels (white/colored on transparent)
+        if(id[i+3]>128)cands.push((x/SS-.5)*spX,(.5-y/SS)*spY);
+      }
     }
     if(cands.length<2)return null;
     const n2=cands.length/2;
@@ -1094,13 +1109,15 @@ load();
   }
   function loadImageAndSample(src,count,spX,spY,zD){
     return new Promise(resolve=>{
-      const img=new Image();img.crossOrigin='anonymous';
+      const img=new Image();
       img.onload=()=>{
         const cv=document.createElement('canvas');cv.width=SS;cv.height=SS;
         const cx=cv.getContext('2d');cx.drawImage(img,0,0,SS,SS);
-        resolve(sampleFromCanvas(cx,count,spX,spY,zD));
+        const r=sampleFromCanvas(cx,count,spX,spY,zD);
+        console.log('[particles] sampled shape:',r?'ok ('+count+' pts)':'EMPTY');
+        resolve(r);
       };
-      img.onerror=()=>resolve(null);
+      img.onerror=(e)=>{console.warn('[particles] image load error:',e);resolve(null);};
       img.src=src;
     });
   }
@@ -1167,16 +1184,22 @@ load();
     try{
       const shRes=await fetch('/api/particle-shapes');
       const shapes=await shRes.json();
+      console.log('[particles] API returned',shapes.length,'shapes');
       if(shapes.length){
         const promises=shapes.map(s=>loadImageAndSample(s.image_data,CFG.figCount,CFG.spreadX,CFG.spreadY,1.5));
         const results=await Promise.all(promises);
         allShapes=results.filter(r=>r!==null);
+        console.log('[particles] loaded',allShapes.length,'shapes from API');
       }
-    }catch(e){}
+    }catch(e){console.warn('[particles] API error:',e);}
 
-    // Fallback to procedural shapes if no uploaded shapes
-    if(allShapes.length<2){
+    // Supplement with procedural shapes if we need more for morphing (min 2)
+    if(allShapes.length===0){
+      console.log('[particles] no uploaded shapes, using all procedural fallbacks');
       allShapes=fallbackDrawFns.map(fn=>sampleDrawFn(fn,CFG.figCount,CFG.spreadX,CFG.spreadY*1.1,1.5));
+    }else if(allShapes.length===1){
+      console.log('[particles] only 1 uploaded shape, adding procedural supplement');
+      allShapes.push(sampleDrawFn(fallbackDrawFns[0],CFG.figCount,CFG.spreadX,CFG.spreadY*1.1,1.5));
     }
 
     initScene(allShapes);
