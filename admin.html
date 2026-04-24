@@ -899,6 +899,15 @@ async function renderParticles(el) {
       ${pSlider('Edge max distance', 'edgeMaxDist', 0.5, 4.0, 0.1)}
     </div>
 
+    <div class="card">
+      <h3>Mobile</h3>
+      <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+        <input type="checkbox" ${particleSettings.mobileTouchEnabled ? 'checked' : ''} onchange="particleSettings.mobileTouchEnabled=this.checked" style="width:18px;height:18px;accent-color:var(--ac,#c8ff00)">
+        <span>Enable touch interaction on mobile</span>
+      </label>
+      <p style="font-size:.8rem;color:#888;margin-top:.5rem">When disabled, particles won't react to touch/swipe on mobile devices (better scroll UX).</p>
+    </div>
+
     <div style="margin-top:1.5rem;display:flex;gap:1rem">
       <button class="btn" onclick="saveParticleSettings()">Save Settings</button>
     </div>
