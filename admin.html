@@ -376,6 +376,10 @@ function renderWork(el) {
         </div>`).join('')}
       </div>
       <input type="file" accept="image/*" multiple onchange="uploadWorkImage(${i},'gallery',this)" style="font-size:.8rem;margin-bottom:1rem">
+      <label style="margin-top:1rem">Preview Video URL <span style="font-size:.7rem;color:var(--text2)">(YouTube or Vimeo — plays on hover in grid)</span></label>
+      <input type="text" value="${item.preview_video||''}" onchange="setNestedValue(content,'work.items.${i}.preview_video',this.value)" placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..." style="width:100%;padding:.5rem .75rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:.82rem;margin-bottom:1rem">
+      <label>Detail Page Video URL <span style="font-size:.7rem;color:var(--text2)">(YouTube or Vimeo — shown in case history page)</span></label>
+      <input type="text" value="${item.detail_video||''}" onchange="setNestedValue(content,'work.items.${i}.detail_video',this.value)" placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..." style="width:100%;padding:.5rem .75rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:.82rem;margin-bottom:1rem">
       <div style="margin-top:.5rem"><button class="btn btn-sm btn-danger" onclick="removeWorkItem(${i})">Remove project</button></div>
     </div>`;
   });
