@@ -52,6 +52,18 @@ async function initDB() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
     ALTER TABLE submissions ADD COLUMN IF NOT EXISTS image TEXT;
+    CREATE TABLE IF NOT EXISTS particle_shapes (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      image_data TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS particle_settings (
+      id TEXT PRIMARY KEY DEFAULT 'main',
+      data JSONB NOT NULL DEFAULT '{}',
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS contact_requests (
       id SERIAL PRIMARY KEY,
       name TEXT,
@@ -741,6 +753,73 @@ app.post('/api/upload-photo', requireAuth, express.json({ limit: '5mb' }), async
     console.error('Upload error:', e);
     res.status(500).json({ error: 'Upload failed' });
   }
+});
+
+// --- Particle Shapes API ---
+app.get('/api/particle-shapes', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, name, image_data, sort_order FROM particle_shapes ORDER BY sort_order ASC, id ASC');
+    res.json(rows);
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Failed to load shapes' }); }
+});
+
+app.post('/api/particle-shapes', requireAuth, express.json({ limit: '5mb' }), async (req, res) => {
+  try {
+    const { name, image_data } = req.body;
+    if (!name || !image_data) return res.status(400).json({ error: 'name and image_data required' });
+    const maxOrder = await pool.query('SELECT COALESCE(MAX(sort_order),0)+1 as next FROM particle_shapes');
+    const { rows } = await pool.query(
+      'INSERT INTO particle_shapes (name, image_data, sort_order) VALUES ($1, $2, $3) RETURNING id, name, sort_order',
+      [name, image_data, maxOrder.rows[0].next]
+    );
+    res.json(rows[0]);
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Failed to save shape' }); }
+});
+
+app.put('/api/particle-shapes/:id', requireAuth, async (req, res) => {
+  try {
+    const { name, sort_order } = req.body;
+    await pool.query('UPDATE particle_shapes SET name=COALESCE($1,name), sort_order=COALESCE($2,sort_order) WHERE id=$3',
+      [name, sort_order, req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Failed to update shape' }); }
+});
+
+app.delete('/api/particle-shapes/:id', requireAuth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM particle_shapes WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Failed to delete shape' }); }
+});
+
+app.put('/api/particle-shapes-order', requireAuth, async (req, res) => {
+  try {
+    const { order } = req.body; // array of ids in desired order
+    if (!Array.isArray(order)) return res.status(400).json({ error: 'order array required' });
+    for (let i = 0; i < order.length; i++) {
+      await pool.query('UPDATE particle_shapes SET sort_order=$1 WHERE id=$2', [i, order[i]]);
+    }
+    res.json({ ok: true });
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Failed to reorder' }); }
+});
+
+// --- Particle Settings API ---
+app.get('/api/particle-settings', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT data FROM particle_settings WHERE id=$1', ['main']);
+    res.json(rows.length ? rows[0].data : {});
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Failed to load settings' }); }
+});
+
+app.put('/api/particle-settings', requireAuth, async (req, res) => {
+  try {
+    const data = req.body;
+    await pool.query(`
+      INSERT INTO particle_settings (id, data, updated_at) VALUES ('main', $1, NOW())
+      ON CONFLICT (id) DO UPDATE SET data=$1, updated_at=NOW()
+    `, [JSON.stringify(data)]);
+    res.json({ ok: true });
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Failed to save settings' }); }
 });
 
 // --- Health check (Render uses this) ---

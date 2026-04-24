@@ -169,6 +169,8 @@ textarea { min-height: 100px; resize: vertical; }
       <a href="#" onclick="showSection('submissions')" data-section="submissions">Submissions</a>
       <a href="#" onclick="showSection('contactReqs')" data-section="contactReqs">Contact Requests</a>
       <a href="#" onclick="showSection('aicontext')" data-section="aicontext">AI Context</a>
+      <div class="sidebar-label">Visual</div>
+      <a href="#" onclick="showSection('particles')" data-section="particles">Particles</a>
       <div class="sidebar-label">Settings</div>
       <a href="#" onclick="showSection('privacy')" data-section="privacy">Privacy Policy</a>
       <a href="#" onclick="showSection('onboarding')" data-section="onboarding">Onboarding</a>
@@ -250,7 +252,7 @@ function showSection(name) {
   const renderers = {
     hero: renderHero, manifesto: renderManifesto, services: renderServices,
     work: renderWork, team: renderTeam, contact: renderContact,
-    clients: renderClients, briefQuestions: renderBriefQuestions, submissions: renderSubmissions, contactReqs: renderContactReqs, aicontext: renderAIContext, privacy: renderPrivacy, onboarding: renderOnboarding, settings: renderSettings
+    clients: renderClients, briefQuestions: renderBriefQuestions, submissions: renderSubmissions, contactReqs: renderContactReqs, aicontext: renderAIContext, particles: renderParticles, privacy: renderPrivacy, onboarding: renderOnboarding, settings: renderSettings
   };
   if (renderers[name]) renderers[name](area);
 }
@@ -718,6 +720,189 @@ function removeWorkItem(itemIndex) {
   if (!confirm('Remove this project?')) return;
   content.work.items.splice(itemIndex, 1);
   renderWork(document.getElementById('contentArea'));
+}
+
+// ===== PARTICLES MANAGEMENT =====
+let particleShapes = [];
+let particleSettings = {
+  color: '#c8ff00', bgColor: '#c8ff00',
+  figCount: 1500, bgCount: 500, burstCount: 250,
+  figSize: 3.0, bgSize: 0.12, burstSize: 4.0,
+  figOpacity: 0.8, bgOpacity: 0.22,
+  holdTime: 5.5, morphDuration: 2.2,
+  edgeOpacity: 0.08, edgeMaxDist: 1.8,
+  spreadX: 38, spreadY: 45,
+};
+
+async function loadParticleData() {
+  const [shapesRes, settingsRes] = await Promise.all([
+    fetch('/api/particle-shapes'),
+    fetch('/api/particle-settings')
+  ]);
+  particleShapes = await shapesRes.json();
+  const s = await settingsRes.json();
+  if (s && Object.keys(s).length) particleSettings = { ...particleSettings, ...s };
+}
+
+async function saveParticleSettings() {
+  await fetch('/api/particle-settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(particleSettings)
+  });
+  const toast = document.getElementById('saveToast');
+  toast.textContent = 'Particle settings saved ✓';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function uploadParticleShape() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/png,image/svg+xml,image/webp';
+  input.multiple = true;
+  input.onchange = async () => {
+    for (const file of input.files) {
+      if (file.size > 3 * 1024 * 1024) { alert('File too large (max 3MB): ' + file.name); continue; }
+      const dataUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = e => r(e.target.result); fr.readAsDataURL(file); });
+      const name = file.name.replace(/\.[^.]+$/, '');
+      await fetch('/api/particle-shapes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, image_data: dataUrl })
+      });
+    }
+    await loadParticleData();
+    renderParticles(document.getElementById('contentArea'));
+  };
+  input.click();
+}
+
+async function deleteParticleShape(id) {
+  if (!confirm('Delete this shape?')) return;
+  await fetch('/api/particle-shapes/' + id, { method: 'DELETE' });
+  await loadParticleData();
+  renderParticles(document.getElementById('contentArea'));
+}
+
+async function moveParticleShape(id, dir) {
+  const idx = particleShapes.findIndex(s => s.id === id);
+  const swapIdx = idx + dir;
+  if (swapIdx < 0 || swapIdx >= particleShapes.length) return;
+  const order = particleShapes.map(s => s.id);
+  [order[idx], order[swapIdx]] = [order[swapIdx], order[idx]];
+  await fetch('/api/particle-shapes-order', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order })
+  });
+  await loadParticleData();
+  renderParticles(document.getElementById('contentArea'));
+}
+
+async function renameParticleShape(id) {
+  const shape = particleShapes.find(s => s.id === id);
+  const name = prompt('Shape name:', shape?.name || '');
+  if (!name) return;
+  await fetch('/api/particle-shapes/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name })
+  });
+  await loadParticleData();
+  renderParticles(document.getElementById('contentArea'));
+}
+
+function pSlider(label, key, min, max, step, unit='') {
+  const val = particleSettings[key];
+  return `<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+    <span style="min-width:130px;font-size:.78rem;color:var(--text2)">${label}</span>
+    <input type="range" min="${min}" max="${max}" step="${step}" value="${val}"
+      style="flex:1;accent-color:var(--accent)"
+      oninput="particleSettings['${key}']=parseFloat(this.value);this.nextElementSibling.textContent=this.value+'${unit}'">
+    <span style="min-width:55px;font-size:.78rem;text-align:right">${val}${unit}</span>
+  </div>`;
+}
+
+function pColor(label, key) {
+  const val = particleSettings[key];
+  return `<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+    <span style="min-width:130px;font-size:.78rem;color:var(--text2)">${label}</span>
+    <input type="color" value="${val}" style="width:40px;height:28px;border:1px solid var(--border);background:var(--bg);cursor:pointer"
+      oninput="particleSettings['${key}']=this.value">
+  </div>`;
+}
+
+async function renderParticles(el) {
+  await loadParticleData();
+  el.innerHTML = `
+    <h2>Particle System</h2>
+    <p class="subtitle">Upload PNG silhouettes and configure the interactive particle background.</p>
+
+    <div class="card">
+      <h3 style="display:flex;justify-content:space-between;align-items:center">
+        Shapes (${particleShapes.length})
+        <button class="btn btn-sm" onclick="uploadParticleShape()">+ Upload PNG</button>
+      </h3>
+      <p style="font-size:.78rem;color:var(--text2);margin-bottom:1rem">
+        Upload white silhouettes on transparent background (PNG). The particles will fill the opaque areas.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1rem">
+        ${particleShapes.map((s,i) => `
+          <div style="background:var(--bg);border:1px solid var(--border);padding:.5rem;position:relative">
+            <img src="${s.image_data}" style="width:100%;aspect-ratio:1;object-fit:contain;background:#111;display:block;image-rendering:auto">
+            <div style="padding:.4rem 0 .2rem;font-size:.75rem;text-align:center;color:var(--text2)">${s.name}</div>
+            <div style="display:flex;gap:.3rem;justify-content:center">
+              <button class="btn btn-sm btn-outline" style="padding:2px 6px;font-size:.7rem" onclick="moveParticleShape(${s.id},-1)" ${i===0?'disabled':''}>&#9650;</button>
+              <button class="btn btn-sm btn-outline" style="padding:2px 6px;font-size:.7rem" onclick="moveParticleShape(${s.id},1)" ${i===particleShapes.length-1?'disabled':''}>&#9660;</button>
+              <button class="btn btn-sm btn-outline" style="padding:2px 6px;font-size:.7rem" onclick="renameParticleShape(${s.id})">&#9998;</button>
+              <button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.7rem" onclick="deleteParticleShape(${s.id})">&#10005;</button>
+            </div>
+          </div>
+        `).join('')}
+        ${particleShapes.length === 0 ? '<p style="grid-column:1/-1;color:var(--text2);font-size:.85rem;padding:2rem;text-align:center">No shapes uploaded yet. Upload PNG silhouettes to create particle figures.<br>Fallback: built-in procedural shapes (human, phone, laptop, etc.)</p>' : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Figure Layer</h3>
+      ${pColor('Color', 'color')}
+      ${pSlider('Particles', 'figCount', 500, 3000, 100)}
+      ${pSlider('Point size', 'figSize', 1.0, 6.0, 0.5)}
+      ${pSlider('Opacity', 'figOpacity', 0.3, 1.0, 0.05)}
+      ${pSlider('Spread X', 'spreadX', 15, 60, 1)}
+      ${pSlider('Spread Y', 'spreadY', 15, 60, 1)}
+    </div>
+
+    <div class="card">
+      <h3>Background Layer</h3>
+      ${pColor('BG Color', 'bgColor')}
+      ${pSlider('BG Particles', 'bgCount', 100, 1000, 50)}
+      ${pSlider('BG Size', 'bgSize', 0.05, 0.5, 0.01)}
+      ${pSlider('BG Opacity', 'bgOpacity', 0.05, 0.5, 0.01)}
+    </div>
+
+    <div class="card">
+      <h3>Morphing</h3>
+      ${pSlider('Hold time', 'holdTime', 2, 15, 0.5, 's')}
+      ${pSlider('Morph duration', 'morphDuration', 0.5, 5, 0.1, 's')}
+    </div>
+
+    <div class="card">
+      <h3>Click Burst</h3>
+      ${pSlider('Burst particles', 'burstCount', 50, 500, 25)}
+      ${pSlider('Burst size', 'burstSize', 1.0, 8.0, 0.5)}
+    </div>
+
+    <div class="card">
+      <h3>Edges / Wireframe</h3>
+      ${pSlider('Edge opacity', 'edgeOpacity', 0, 0.3, 0.01)}
+      ${pSlider('Edge max distance', 'edgeMaxDist', 0.5, 4.0, 0.1)}
+    </div>
+
+    <div style="margin-top:1.5rem;display:flex;gap:1rem">
+      <button class="btn" onclick="saveParticleSettings()">Save Settings</button>
+    </div>
+  `;
 }
 
 async function changePassword() {
