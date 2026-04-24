@@ -1112,9 +1112,15 @@ load();
       const img=new Image();
       img.onload=()=>{
         const cv=document.createElement('canvas');cv.width=SS;cv.height=SS;
-        const cx=cv.getContext('2d');cx.drawImage(img,0,0,SS,SS);
+        const cx=cv.getContext('2d');
+        // Preserve aspect ratio: fit image inside SS×SS, centered
+        const ar=img.naturalWidth/img.naturalHeight;
+        let dw,dh,dx,dy;
+        if(ar>=1){dw=SS;dh=SS/ar;dx=0;dy=(SS-dh)/2;}
+        else{dh=SS;dw=SS*ar;dy=0;dx=(SS-dw)/2;}
+        cx.drawImage(img,dx,dy,dw,dh);
         const r=sampleFromCanvas(cx,count,spX,spY,zD);
-        console.log('[particles] sampled shape:',r?'ok ('+count+' pts)':'EMPTY');
+        console.log('[particles] sampled shape:',r?'ok ('+count+' pts)':'EMPTY','ar='+ar.toFixed(2));
         resolve(r);
       };
       img.onerror=(e)=>{console.warn('[particles] image load error:',e);resolve(null);};
