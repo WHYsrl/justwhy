@@ -342,6 +342,13 @@ function renderWork(el) {
       ${field('Section Label', `work.${editLang}.label`)}
       ${field('Section Title', `work.${editLang}.title`)}
       <div style="margin-top:1rem;display:flex;align-items:center;gap:.75rem">
+        <label style="margin:0;white-space:nowrap">Work Section</label>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <input type="checkbox" ${content.work?.section_enabled !== false ? 'checked' : ''} onchange="content.work.section_enabled=this.checked" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">
+          <span style="font-size:.8rem;color:var(--text2)">${content.work?.section_enabled !== false ? 'Visible on homepage' : 'Hidden — entire Work section is disabled'}</span>
+        </div>
+      </div>
+      <div style="margin-top:.75rem;display:flex;align-items:center;gap:.75rem">
         <label style="margin:0;white-space:nowrap">Case Histories Section</label>
         <div style="display:flex;align-items:center;gap:.5rem">
           <input type="checkbox" id="chkCaseHistories" ${content.work?.case_histories_enabled !== false ? 'checked' : ''} onchange="content.work.case_histories_enabled=this.checked" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">

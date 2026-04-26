@@ -512,6 +512,9 @@ function build(){
   const sv=D.services?.items||[];
   document.getElementById('sGrid').innerHTML=sv.map(s=>`<div class="sc rv"><div class="si2">${IC[s.icon]||IC.cube}</div><h3>${s[l].title}</h3><p>${s[l].desc}</p><div class="stg">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
 
+  const workVisible=D.work?.section_enabled!==false;
+  document.getElementById('work').style.display=workVisible?'':'none';
+  document.querySelectorAll('a[href="#work"]').forEach(a=>{a.closest('li').style.display=workVisible?'':'none';});
   const wk=D.work?.items||[];const ck=l==='it'?'category_it':'category_en';
   const chEnabled=D.work?.case_histories_enabled!==false;
   document.getElementById('wGrid').innerHTML=wk.map((w,wi)=>{const bg=w.image?`url(${w.image})`:`linear-gradient(135deg,${(w.gradient||['#111','#222']).join(',')})`;const pv=getEmbedUrl(w.preview_video);return `<div class="wi rv${pv?' has-vid':''}"${chEnabled?' onclick="openCh('+wi+')"':''} style="${chEnabled?'':'cursor:default'}"${pv?' data-vid="'+pv+'"':''}><div class="wib" style="background:${bg};background-size:cover;background-position:center"></div><div class="wio"><span class="wic">${w[ck]}</span><h3 class="wit">${w.title}</h3><span class="wicl">${w.client}</span></div></div>`;}).join('');
