@@ -757,21 +757,26 @@ async function sendWorkflowEmail({ email, name, workflow, image, lang }) {
       </td>
     </tr>`).join('');
 
-  // Parse base64 image for attachment
-  let imgAttachment = null;
+  // Embed image inline via CID attachment (compatible with Gmail, Outlook, Apple Mail)
   let imgHtmlBlock = '';
+  let imgInlineAttachment = null;
   if (image && image.startsWith('data:image/')) {
     try {
       const [meta, b64] = image.split(',');
       const mimeMatch = meta.match(/data:(image\/\w+);/);
       const mime = mimeMatch ? mimeMatch[1] : 'image/png';
       const ext = mime.split('/')[1] || 'png';
-      imgAttachment = { content: b64, filename: `why-project-visual.${ext}`, type: mime };
+      imgInlineAttachment = {
+        content: b64,
+        filename: `why-project-visual.${ext}`,
+        type: mime,
+        content_id: 'project-visual',
+      };
       imgHtmlBlock = `<tr><td style="padding:20px;border-bottom:1px solid #1a1a1a;text-align:center">
-        <p style="color:#c8ff00;font-size:12px;font-weight:700;letter-spacing:2px;margin:0 0 12px">${it ? 'PROJECT VISUAL' : 'PROJECT VISUAL'}</p>
-        <p style="color:#666;font-size:13px;margin:0">${it ? '📎 Il visual del progetto è allegato a questa email' : '📎 The project visual is attached to this email'}</p>
+        <p style="color:#c8ff00;font-size:12px;font-weight:700;letter-spacing:2px;margin:0 0 12px">PROJECT VISUAL</p>
+        <img src="cid:project-visual" alt="Project Visual" style="max-width:100%;height:auto;border:1px solid #1a1a1a;display:block;margin:0 auto" />
       </td></tr>`;
-    } catch(e) { console.error('Image attachment parse error:', e); }
+    } catch(e) { console.error('Image embed error:', e); }
   }
 
   const htmlBody = `
@@ -811,7 +816,7 @@ async function sendWorkflowEmail({ email, name, workflow, image, lang }) {
         to: [email],
         subject: it ? 'Il tuo workflow personalizzato — WHY' : 'Your custom workflow — WHY',
         html: htmlBody,
-        ...(imgAttachment ? { attachments: [imgAttachment] } : {})
+        ...(imgInlineAttachment ? { attachments: [imgInlineAttachment] } : {})
       })
     });
     const result = await resp.json();
