@@ -193,6 +193,23 @@ section{padding:10rem 3rem;position:relative;z-index:1}
 .wf-phase .tools{display:flex;flex-wrap:wrap;gap:.25rem}
 .wf-phase .tools span{font-size:.55rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .5rem;border:1px solid rgba(200,255,0,.15);color:var(--ac);background:rgba(200,255,0,.04)}
 .wf-hint{font-size:.7rem;color:var(--ac);text-align:center;margin-top:1.2rem;letter-spacing:.1em;opacity:.6}
+.wf-carousel{position:relative;overflow:hidden;max-width:600px;margin:0 auto}
+.wf-carousel-track{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.wf-carousel .wf-phase{flex:0 0 100%;scroll-snap-align:none;border-left:none;opacity:1;animation:none}
+.wf-nav{display:flex;justify-content:center;align-items:center;gap:1.5rem;margin-top:1.5rem}
+.wf-nav button{background:0;border:1px solid var(--g2);color:var(--g4);width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;font-size:1.2rem}
+.wf-nav button:hover:not(:disabled){border-color:var(--ac);color:var(--ac)}
+.wf-nav button:disabled{opacity:.2;cursor:default}
+.wf-nav .wf-nav-count{font-size:.75rem;color:var(--g3);letter-spacing:.1em;font-weight:600}
+.wf-progress{max-width:600px;margin:1.5rem auto 0;height:2px;background:var(--g2);position:relative;overflow:hidden}
+.wf-progress-fill{height:100%;background:var(--ac);transition:width .5s cubic-bezier(.4,0,.2,1);width:0}
+.wf-timeline{max-width:600px;margin:1.2rem auto 0;display:flex;justify-content:space-between;align-items:flex-start}
+.wf-timeline-item{text-align:center;flex:1;position:relative;font-size:.6rem;color:var(--g3);letter-spacing:.06em}
+.wf-timeline-item.active{color:var(--ac)}
+.wf-timeline-item .tl-dot{width:8px;height:8px;border-radius:50%;background:var(--g2);margin:0 auto .4rem;transition:all .4s}
+.wf-timeline-item.active .tl-dot{background:var(--ac);box-shadow:0 0 8px rgba(200,255,0,.4)}
+.wf-timeline-item.done .tl-dot{background:var(--ac)}
+.wf-timeline-item .tl-weeks{font-weight:700;font-size:.7rem;display:block;margin-top:.2rem}
 .wf-logo{display:block;width:120px;margin:0 auto 2rem;opacity:.4;filter:brightness(3) contrast(1.3)}
 .wf-img{max-width:800px;margin:0 auto 2.5rem;overflow:hidden;animation:fu .8s forwards;border:1px solid rgba(200,255,0,.1);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(200,255,0,.05)}
 .wf-img img{width:100%;display:block}
@@ -340,7 +357,7 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
         <div class="bf-row"><div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div><div><label>Website</label><input id="bfUrl" placeholder="https://"></div></div>
         <div><label data-i18n="brief.desc">Project description</label><textarea id="bfDesc" placeholder="What do you want to build?"></textarea></div>
         <div class="bf-row"><div><label>KPI</label><input id="bfKpi" placeholder="e.g. engagement, conversions, awareness"></div><div><label>Target</label><input id="bfTarget" placeholder="e.g. Gen Z, luxury consumers, B2B"></div></div>
-        <div><label>Budget</label><select id="bfBudget"><option value="" disabled selected>Select budget range</option><option value="5K-10K">€ 5.000 – 10.000</option><option value="10K-25K">€ 10.000 – 25.000</option><option value="25K-50K">€ 25.000 – 50.000</option><option value="50K-100K">€ 50.000 – 100.000</option><option value="100K-250K">€ 100.000 – 250.000</option><option value="250K-500K">€ 250.000 – 500.000</option><option value="500K+">€ 500.000+</option></select></div>
+        <div class="bf-row"><div><label data-i18n="brief.timeline">Timeline</label><select id="bfTimeline"><option value="" disabled selected data-i18n="brief.timeline_ph">Select available time</option><option value="non so" data-i18n="brief.timeline_dk">I don't know</option><option value="2 settimane">2 settimane / 2 weeks</option><option value="4 settimane">4 settimane / 4 weeks</option><option value="8 settimane">8 settimane / 8 weeks</option><option value="12 settimane">12 settimane / 12 weeks</option><option value="oltre 12 settimane">Oltre 12 settimane / 12+ weeks</option></select></div><div><label>Budget</label><select id="bfBudget"><option value="" disabled selected>Select budget range</option><option value="non so" data-i18n="brief.budget_dk">I don't know</option><option value="5K-10K">€ 5.000 – 10.000</option><option value="10K-25K">€ 10.000 – 25.000</option><option value="25K-50K">€ 25.000 – 50.000</option><option value="50K-100K">€ 50.000 – 100.000</option><option value="100K-250K">€ 100.000 – 250.000</option><option value="250K-500K">€ 250.000 – 500.000</option><option value="500K+">€ 500.000+</option></select></div></div>
       </div>
       <div><button class="bf-back" onclick="bfScroll(2)">←</button><button class="bf-btn" onclick="bfSubmit()" data-i18n="brief.submit">Generate workflow →</button></div>
       <div class="bf-dots"><span></span><span></span><span></span><span class="act"></span></div>
@@ -600,9 +617,54 @@ function handleBfCard(el){
 function bfScroll(i){const t=document.getElementById('bfTrack');const p=document.getElementById('bfP'+i);if(p)t.scrollTo({left:p.offsetLeft,behavior:'smooth'});}
 
 const spinMsgs={en:['Gathering information','Analyzing website','Analyzing context','Researching best solutions & technologies','Estimating effort','Generating visual','Generating output'],it:['Recupero informazioni','Analisi web site','Analisi del contesto','Ricerca delle migliori soluzioni e tecnologie','Stima effort','Generazione visual','Elaborazione output']};
-let spinInt=null,spinRaf=null,spinCleanup=null;
+let spinInt=null,spinRaf=null,spinCleanup=null,spinParticleRaf=null;
 
 let wfWantEmail=false,wfUserEmail='';
+
+function startParticleSpinner(){
+  const cvs=document.getElementById('particleSpinner');if(!cvs)return;
+  const ctx=cvs.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  cvs.width=60*dpr;cvs.height=60*dpr;ctx.scale(dpr,dpr);
+  const W=60,H=60,cx=W/2,cy=H/2;
+  const pts=[];
+  for(let i=0;i<20;i++){
+    const a=Math.random()*Math.PI*2,r=8+Math.random()*14;
+    pts.push({a,r,speed:0.3+Math.random()*0.8,size:1+Math.random()*2,phase:Math.random()*Math.PI*2});
+  }
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,W,H);t+=0.016;
+    // Orbiting particles
+    pts.forEach(p=>{
+      const ca=p.a+t*p.speed;
+      const pulse=p.r+Math.sin(t*2+p.phase)*3;
+      const x=cx+Math.cos(ca)*pulse;
+      const y=cy+Math.sin(ca)*pulse;
+      const alpha=0.4+0.6*Math.abs(Math.sin(t*1.5+p.phase));
+      ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);
+      ctx.fillStyle=`rgba(200,255,0,${alpha})`;ctx.fill();
+    });
+    // Central glow
+    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,8+Math.sin(t*3)*2);
+    grad.addColorStop(0,'rgba(200,255,0,0.3)');grad.addColorStop(1,'rgba(200,255,0,0)');
+    ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);ctx.fillStyle=grad;ctx.fill();
+    // Connecting lines
+    ctx.strokeStyle='rgba(200,255,0,0.08)';ctx.lineWidth=0.5;
+    for(let i=0;i<pts.length;i++){
+      const ai=pts[i].a+t*pts[i].speed,ri=pts[i].r+Math.sin(t*2+pts[i].phase)*3;
+      const xi=cx+Math.cos(ai)*ri,yi=cy+Math.sin(ai)*ri;
+      for(let j=i+1;j<pts.length;j++){
+        const aj=pts[j].a+t*pts[j].speed,rj=pts[j].r+Math.sin(t*2+pts[j].phase)*3;
+        const xj=cx+Math.cos(aj)*rj,yj=cy+Math.sin(aj)*rj;
+        const d=Math.hypot(xi-xj,yi-yj);
+        if(d<20){ctx.beginPath();ctx.moveTo(xi,yi);ctx.lineTo(xj,yj);ctx.stroke();}
+      }
+    }
+    spinParticleRaf=requestAnimationFrame(draw);
+  }
+  draw();
+}
 
 function showSpinner(){
   const msgs=spinMsgs[lang]||spinMsgs.en;let idx=0;
@@ -647,18 +709,20 @@ function showSpinner(){
       <p style="color:var(--g3);font-size:.78rem;margin-top:.4rem">${it?'Puoi chiudere questa pagina.':'You can close this page.'}</p>
     </div>
     <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--g2)">
+      <canvas id="particleSpinner" width="60" height="60" style="display:block;margin:0 auto 1rem;width:60px;height:60px"></canvas>
       <div class="wf-spinner-msg" id="spinMsg" style="font-size:.85rem;color:var(--g3)">${msgs[0]}</div>
-      <div class="wf-spinner-sub" id="spinSub" style="font-size:.65rem;color:var(--g3);margin-top:.3rem">1/${msgs.length}</div>
     </div>
   </div>`;
 
   // --- Message rotation (starts immediately) ---
   spinInt=setInterval(()=>{
     idx=(idx+1)%msgs.length;
-    const el=document.getElementById('spinMsg');const sub=document.getElementById('spinSub');
+    const el=document.getElementById('spinMsg');
     if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}
-    if(sub)sub.textContent=`${idx+1}/${msgs.length}`;
   },2500);
+
+  // --- Particle spinner animation ---
+  startParticleSpinner();
 }
 
 function showEmailOption(){
@@ -684,8 +748,8 @@ function startWaitGame(){
   const introEl=wfc.querySelector('.wf-wait-intro');
   // Replace intro with game, keep status bar at bottom
   const statusHtml=`<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--g2);text-align:center">
+    <canvas id="particleSpinner" width="60" height="60" style="display:block;margin:0 auto .8rem;width:60px;height:60px"></canvas>
     <div class="wf-spinner-msg" id="spinMsg" style="font-size:.85rem;color:var(--g3)">${(spinMsgs[lang]||spinMsgs.en)[0]}</div>
-    <div class="wf-spinner-sub" id="spinSub" style="font-size:.65rem;color:var(--g3);margin-top:.3rem"></div>
   </div>`;
   const gameHtml=`<div class="wf-spinner" style="text-align:center">
     <h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">${it?'WHY Catch':'WHY Catch'}</h3>
@@ -696,6 +760,7 @@ function startWaitGame(){
   </div>`;
   if(introEl)introEl.outerHTML=gameHtml;
   else wfc.innerHTML=gameHtml;
+  startParticleSpinner();
 
   // Initialize game canvas
   const cvs=document.getElementById('spinCvs');if(!cvs)return;
@@ -952,6 +1017,7 @@ function startWaitGame(){
 function stopSpinner(){
   if(spinInt){clearInterval(spinInt);spinInt=null;}
   if(spinRaf){cancelAnimationFrame(spinRaf);spinRaf=null;}
+  if(spinParticleRaf){cancelAnimationFrame(spinParticleRaf);spinParticleRaf=null;}
   if(spinCleanup){
     const{cvs,onMove,onLeave,onClick}=spinCleanup;
     cvs.removeEventListener('mousemove',onMove);
@@ -963,17 +1029,75 @@ function stopSpinner(){
 
 let wfPendingResult=null;
 
+function parseDurationWeeks(dur){
+  if(!dur)return 0;
+  const m=dur.match(/(\d+)(?:\s*[-–]\s*(\d+))?/);
+  if(!m)return 0;
+  return m[2]?Math.ceil((parseInt(m[1])+parseInt(m[2]))/2):parseInt(m[1]);
+}
+
 function showWfResult(d){
   stopSpinner();
   const wfc=document.getElementById('wfContent');
   const ov=document.getElementById('wf-overlay');
   if(d.workflow){
-    const hint=lang==='it'?'← Scorri per esplorare le fasi →':'← Swipe to explore phases →';
+    const phases=d.workflow;
+    const it=lang==='it';
     const imgHtml=d.image?`<div class="wf-img"><img src="${d.image}" alt="Project visualization"></div>`:'';
-    wfc.innerHTML=`${imgHtml}<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${hint}</p>`;
-    document.getElementById('wfCta').innerHTML=`<button class="hcta" onclick="openCt()" style="border:0;cursor:pointer">${lang==='it'?'Parliamone →':'Let\'s talk →'}</button>`;
-    if(!ov.classList.contains('open')){ov.classList.add('open');} // reopen if user was browsing
+
+    // Calculate cumulative weeks
+    const cumWeeks=[0];
+    phases.forEach((p,i)=>{cumWeeks.push(cumWeeks[i]+parseDurationWeeks(p.duration));});
+    const totalWeeks=cumWeeks[cumWeeks.length-1];
+
+    // Build cards
+    const cardsHtml=phases.map((p,i)=>`<div class="wf-phase"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
+
+    // Build timeline dots
+    const tlHtml=phases.map((p,i)=>`<div class="wf-timeline-item${i===0?' active':''}" data-tli="${i}"><div class="tl-dot"></div><span class="tl-weeks">${it?'S':'W'}${cumWeeks[i+1]}</span></div>`).join('');
+
+    wfc.innerHTML=`${imgHtml}
+      <div class="wf-carousel" id="wfCarousel">
+        <div class="wf-carousel-track" id="wfCarouselTrack">${cardsHtml}</div>
+      </div>
+      <div class="wf-nav">
+        <button id="wfPrev" onclick="wfSlide(-1)" disabled>&#8592;</button>
+        <span class="wf-nav-count" id="wfNavCount">1 / ${phases.length}</span>
+        <button id="wfNext" onclick="wfSlide(1)"${phases.length<=1?' disabled':''}>&#8594;</button>
+      </div>
+      <div class="wf-progress"><div class="wf-progress-fill" id="wfProgressFill" style="width:${100/phases.length}%"></div></div>
+      <div class="wf-timeline" id="wfTimeline">${tlHtml}</div>
+      <div style="text-align:center;margin-top:1rem;font-size:.75rem;color:var(--g3)">${it?'Totale':'Total'}: <strong style="color:var(--ac)">${totalWeeks} ${it?'settimane':'weeks'}</strong></div>`;
+
+    window._wfSlideIdx=0;
+    window._wfSlideCount=phases.length;
+
+    // Swipe support
+    let sx=0;
+    const track=document.getElementById('wfCarouselTrack');
+    track.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
+    track.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50){wfSlide(dx<0?1:-1);}},{passive:true});
+
+    document.getElementById('wfCta').innerHTML=`<button class="hcta" onclick="openCt()" style="border:0;cursor:pointer">${it?'Parliamone →':'Let\'s talk →'}</button>`;
+    if(!ov.classList.contains('open')){ov.classList.add('open');}
   }else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
+}
+
+function wfSlide(dir){
+  const idx=window._wfSlideIdx+dir;
+  const count=window._wfSlideCount;
+  if(idx<0||idx>=count)return;
+  window._wfSlideIdx=idx;
+  document.getElementById('wfCarouselTrack').style.transform=`translateX(-${idx*100}%)`;
+  document.getElementById('wfPrev').disabled=idx===0;
+  document.getElementById('wfNext').disabled=idx===count-1;
+  document.getElementById('wfNavCount').textContent=`${idx+1} / ${count}`;
+  document.getElementById('wfProgressFill').style.width=`${((idx+1)/count)*100}%`;
+  // Update timeline
+  document.querySelectorAll('.wf-timeline-item').forEach((el,i)=>{
+    el.classList.toggle('done',i<idx);
+    el.classList.toggle('active',i===idx);
+  });
 }
 
 async function bfSubmit(){
@@ -992,6 +1116,7 @@ async function bfSubmit(){
       kpi:document.getElementById('bfKpi').value,
       target:document.getElementById('bfTarget').value,
       budget:document.getElementById('bfBudget').value,
+      timeline:document.getElementById('bfTimeline').value,
       lang
     })});
     const d=await r.json();

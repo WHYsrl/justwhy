@@ -52,6 +52,7 @@ async function initDB() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
     ALTER TABLE submissions ADD COLUMN IF NOT EXISTS image TEXT;
+    ALTER TABLE submissions ADD COLUMN IF NOT EXISTS timeline TEXT;
     CREATE TABLE IF NOT EXISTS particle_shapes (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -589,14 +590,14 @@ function generateFallbackWorkflow(sector, service, lang) {
 }
 
 app.post('/api/workflow', chatRateLimit, async (req, res) => {
-  const { name, email, sector, goal, why: whyR, service, company, website, description, kpi, target, budget, lang } = req.body;
+  const { name, email, sector, goal, why: whyR, service, company, website, description, kpi, target, budget, timeline, lang } = req.body;
 
   // Save submission to DB
   async function saveSubmission(workflow, image) {
     try {
       await pool.query(
-        'INSERT INTO submissions (name, email, sector, goal, why, company, website, description, kpi, target, budget, workflow, image) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
-        [name, email, sector, goal || service, whyR, company, website, description, kpi, target, budget, workflow ? JSON.stringify(workflow) : null, image || null]
+        'INSERT INTO submissions (name, email, sector, goal, why, company, website, description, kpi, target, budget, timeline, workflow, image) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',
+        [name, email, sector, goal || service, whyR, company, website, description, kpi, target, budget, timeline, workflow ? JSON.stringify(workflow) : null, image || null]
       );
     } catch(e) { console.error('Save submission error:', e); }
   }
@@ -610,7 +611,7 @@ app.post('/api/workflow', chatRateLimit, async (req, res) => {
   }
 
   try {
-    const { sector, goal, why: whyReason, service, company, website, description, kpi, target, budget, lang } = req.body;
+    const { sector, goal, why: whyReason, service, company, website, description, kpi, target, budget, timeline, lang } = req.body;
 
     const wfPrompt = `You are a senior creative technology strategist at WHY (justwhy.it), a Rome-based creative technology studio.
 
@@ -632,6 +633,7 @@ A potential client submitted this brief:
 - KPI: ${kpi || 'not specified'}
 - Target audience: ${target || 'not specified'}
 - Budget range: ${budget || 'not specified'}
+- Available timeline: ${timeline || 'not specified'}
 
 THINK carefully about what this client actually needs. Then generate a workflow as a JSON array.
 
@@ -643,6 +645,7 @@ RULES:
 5. "deliverables" — name real, tangible outputs. Not "Report" but "Competitive UX Audit of top 5 ${sector || ''} competitors" or "Interactive prototype with 3 user flows".
 6. DO NOT include technologies WHY doesn't use for this type of project. If the project is a website, don't mention Unreal Engine. If it's a VR experience, don't mention Google Analytics.
 7. Duration must be realistic for the scope.
+8. TIMELINE CONSTRAINT: If the client specified an available timeline (e.g. "4 settimane"), the SUM of all phase durations MUST NOT exceed that limit. Compress phases, run them in parallel, or merge them to fit. If the timeline is "non so" or not specified, use your best judgment for realistic timing.
 
 Each phase: { "id": number, "title": string, "duration": string, "description": string (${lang === 'it' ? 'in Italian' : 'in English'}), "deliverables": [2-3 items], "tools": [1-3 relevant tools] }
 
