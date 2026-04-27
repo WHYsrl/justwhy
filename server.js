@@ -715,8 +715,22 @@ async function sendWorkflowEmail({ email, name, workflow, image, lang }) {
       </td>
     </tr>`).join('');
 
-  // Don't embed base64 images in email (too large, blocked by clients). Use text fallback.
-  const imgNote = image ? `<tr><td style="padding:16px 20px;color:#666;font-size:13px;font-style:italic;border-bottom:1px solid #1a1a1a">${it ? '📎 Un visual del progetto è stato generato — lo troverai nella proposta completa su justwhy.it' : '📎 A project visual has been generated — you\'ll find it in the full proposal on justwhy.it'}</td></tr>` : '';
+  // Parse base64 image for attachment
+  let imgAttachment = null;
+  let imgHtmlBlock = '';
+  if (image && image.startsWith('data:image/')) {
+    try {
+      const [meta, b64] = image.split(',');
+      const mimeMatch = meta.match(/data:(image\/\w+);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+      const ext = mime.split('/')[1] || 'png';
+      imgAttachment = { content: b64, filename: `why-project-visual.${ext}`, type: mime };
+      imgHtmlBlock = `<tr><td style="padding:20px;border-bottom:1px solid #1a1a1a;text-align:center">
+        <p style="color:#c8ff00;font-size:12px;font-weight:700;letter-spacing:2px;margin:0 0 12px">${it ? 'PROJECT VISUAL' : 'PROJECT VISUAL'}</p>
+        <p style="color:#666;font-size:13px;margin:0">${it ? '📎 Il visual del progetto è allegato a questa email' : '📎 The project visual is attached to this email'}</p>
+      </td></tr>`;
+    } catch(e) { console.error('Image attachment parse error:', e); }
+  }
 
   const htmlBody = `
   <div style="background:#050505;padding:40px 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
@@ -729,7 +743,7 @@ async function sendWorkflowEmail({ email, name, workflow, image, lang }) {
         <p style="color:#ccc;font-size:15px;line-height:1.7;margin:0 0 10px">${greeting}</p>
         <p style="color:#ccc;font-size:15px;line-height:1.7;margin:0 0 25px">${it ? 'Ecco il workflow personalizzato che WHY AI ha elaborato per il tuo progetto:' : 'Here\'s the custom workflow WHY AI has crafted for your project:'}</p>
         <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #1a1a1a;margin-top:10px">
-          ${imgNote}
+          ${imgHtmlBlock}
           ${phasesHtml}
         </table>
         <div style="text-align:center;margin-top:30px">
@@ -754,7 +768,8 @@ async function sendWorkflowEmail({ email, name, workflow, image, lang }) {
         from: 'WHY AI <ai@justwhy.it>',
         to: [email],
         subject: it ? 'Il tuo workflow personalizzato — WHY' : 'Your custom workflow — WHY',
-        html: htmlBody
+        html: htmlBody,
+        ...(imgAttachment ? { attachments: [imgAttachment] } : {})
       })
     });
     const result = await resp.json();

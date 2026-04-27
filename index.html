@@ -739,7 +739,32 @@ function confirmWfEmail(){
 }
 function closeWfKeepAlive(){
   document.getElementById('wf-overlay').classList.remove('open');
-  // workflow fetch continues in background — result shown when done
+  // Replace brief form with "processing" state so user doesn't re-submit
+  const brief=document.getElementById('brief');
+  if(brief){
+    const it=lang==='it';
+    brief.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:3rem 2rem">
+      <canvas id="briefSpinner" width="60" height="60" style="display:block;margin:0 auto 1.5rem;width:60px;height:60px"></canvas>
+      <h3 style="font-family:var(--d);font-size:1.3rem;font-weight:700;margin-bottom:.8rem">${it?'WHY AI sta elaborando la tua proposta...':'WHY AI is crafting your proposal...'}</h3>
+      <p style="color:var(--g4);font-size:.85rem;line-height:1.7;max-width:400px">${it?'Tempo stimato: 2 — 5 minuti. Il risultato apparirà automaticamente.':'Estimated time: 2 — 5 minutes. The result will appear automatically.'}</p>
+      <button onclick="document.getElementById('wf-overlay').classList.add('open')" class="hcta" style="border:0;cursor:pointer;margin-top:2rem;font-size:.85rem">${it?'Mostra stato elaborazione →':'Show processing status →'}</button>
+    </div>`;
+    // Start a mini particle spinner in the brief section too
+    setTimeout(()=>{
+      const c=document.getElementById('briefSpinner');if(!c)return;
+      const ctx=c.getContext('2d');const dpr=window.devicePixelRatio||1;
+      c.width=60*dpr;c.height=60*dpr;ctx.scale(dpr,dpr);
+      const pts=[];for(let i=0;i<16;i++){pts.push({a:Math.random()*Math.PI*2,r:8+Math.random()*14,speed:0.3+Math.random()*0.8,size:1+Math.random()*2,phase:Math.random()*Math.PI*2});}
+      let t=0;(function draw(){ctx.clearRect(0,0,60,60);t+=0.016;
+        pts.forEach(p=>{const ca=p.a+t*p.speed,pulse=p.r+Math.sin(t*2+p.phase)*3;
+          ctx.beginPath();ctx.arc(30+Math.cos(ca)*pulse,30+Math.sin(ca)*pulse,p.size,0,Math.PI*2);
+          ctx.fillStyle=`rgba(200,255,0,${0.4+0.6*Math.abs(Math.sin(t*1.5+p.phase))})`;ctx.fill();});
+        const g=ctx.createRadialGradient(30,30,0,30,30,8+Math.sin(t*3)*2);
+        g.addColorStop(0,'rgba(200,255,0,0.3)');g.addColorStop(1,'rgba(200,255,0,0)');
+        ctx.beginPath();ctx.arc(30,30,10,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+        requestAnimationFrame(draw);})();
+    },50);
+  }
 }
 
 function startWaitGame(){
