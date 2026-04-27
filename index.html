@@ -619,7 +619,7 @@ function bfScroll(i){const t=document.getElementById('bfTrack');const p=document
 const spinMsgs={en:['Gathering information','Analyzing website','Analyzing context','Researching best solutions & technologies','Estimating effort','Generating visual','Generating output'],it:['Recupero informazioni','Analisi web site','Analisi del contesto','Ricerca delle migliori soluzioni e tecnologie','Stima effort','Generazione visual','Elaborazione output']};
 let spinInt=null,spinRaf=null,spinCleanup=null,spinParticleRaf=null;
 
-let wfWantEmail=false,wfUserEmail='';
+let wfWantEmail=false,wfUserEmail='',wfActive=false,wfDone=false,wfLastResult=null;
 
 function startParticleSpinner(){
   const cvs=document.getElementById('particleSpinner');if(!cvs)return;
@@ -1080,7 +1080,7 @@ function formatDurationShort(days){
 }
 
 function showWfResult(d){
-  stopSpinner();
+  stopSpinner();wfDone=true;
   const wfc=document.getElementById('wfContent');
   const ov=document.getElementById('wf-overlay');
   if(d.workflow){
@@ -1144,7 +1144,7 @@ function wfSlide(dir){
 }
 
 async function bfSubmit(){
-  wfWantEmail=false;wfPendingResult=null;
+  wfWantEmail=false;wfPendingResult=null;wfActive=true;wfDone=false;
   const ov=document.getElementById('wf-overlay');ov.classList.add('open');
   document.getElementById('wfTitle').textContent=lang==='it'?'Ecco come lo costruiremmo insieme.':'Here\'s how we\'d build it together.';
   document.getElementById('wfCta').innerHTML='';showSpinner();
@@ -1163,11 +1163,84 @@ async function bfSubmit(){
       lang
     })});
     const d=await r.json();
+    wfLastResult=d;
     // Email is sent automatically server-side — just show results
     showWfResult(d);
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }
 function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
+
+// --- Exit intent: offer email delivery ---
+let wfExitShown=false;
+function showExitEmailModal(){
+  if(wfExitShown||wfWantEmail)return; // already shown or already confirmed email
+  wfExitShown=true;
+  const it=lang==='it';
+  const email=wfUserEmail||document.getElementById('bfEmail')?.value||'';
+  const m=document.createElement('div');
+  m.id='wfExitModal';
+  m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(5,5,5,.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;padding:2rem;animation:fu .3s';
+  m.innerHTML=`<div style="background:var(--g1);border:1px solid var(--g2);max-width:420px;width:100%;padding:2.5rem;text-align:center">
+    <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;border:2px solid var(--ac);margin-bottom:1.5rem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" width="24" height="24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    </div>
+    <h3 style="font-family:var(--d);font-size:1.2rem;font-weight:700;margin-bottom:.6rem;color:var(--wh)">${it?'Stai per uscire!':'Before you go!'}</h3>
+    <p style="color:var(--g4);font-size:.85rem;line-height:1.7;margin-bottom:1.5rem">${wfDone
+      ?(it?'Possiamo inviarti il workflow generato via email, così non lo perdi.':'We can send you the generated workflow via email so you don\'t lose it.')
+      :(it?'Il tuo workflow è ancora in elaborazione. Possiamo inviarti il risultato via email appena pronto.':'Your workflow is still being processed. We can send you the result via email as soon as it\'s ready.')
+    }</p>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <input id="wfExitEmail" type="email" value="${email}" style="flex:1;background:rgba(255,255,255,.03);border:1px solid var(--g2);color:var(--wh);padding:.7rem .8rem;font-family:var(--f);font-size:.85rem;outline:none" placeholder="you@email.com">
+      <button onclick="confirmExitEmail()" style="background:var(--ac);color:var(--bk);border:0;padding:.7rem 1.2rem;font-weight:700;font-size:.8rem;cursor:pointer;font-family:var(--f);white-space:nowrap">${it?'Invia':'Send'}</button>
+    </div>
+    <button onclick="dismissExitModal()" style="background:0;border:0;color:var(--g3);font-size:.78rem;cursor:pointer;font-family:var(--f);padding:.5rem">${it?'No grazie, esci':'No thanks, leave'}</button>
+  </div>`;
+  document.body.appendChild(m);
+  const inp=document.getElementById('wfExitEmail');
+  if(inp)inp.focus();
+}
+
+function confirmExitEmail(){
+  const inp=document.getElementById('wfExitEmail');
+  const em=inp?.value.trim();
+  if(!em||!em.includes('@')){if(inp)inp.style.borderColor='#f44';return;}
+  wfWantEmail=true;wfUserEmail=em;
+  // Send email with workflow result if available, otherwise server will send when ready
+  const payload={email:em,name:document.getElementById('bfName')?.value||'',lang};
+  if(wfLastResult){payload.workflow=wfLastResult.workflow;payload.image=wfLastResult.image;}
+  fetch('/api/send-workflow-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+  // Show confirmation
+  const modal=document.getElementById('wfExitModal');
+  if(modal){
+    const it=lang==='it';
+    modal.querySelector('div').innerHTML=`<div style="padding:2rem;text-align:center">
+      <div style="color:var(--ac);font-size:2rem;margin-bottom:1rem">✓</div>
+      <p style="color:var(--ac);font-size:.95rem;font-weight:600;margin-bottom:.5rem">${it?'Riceverai il risultato a':'You\'ll receive the result at'} ${em}</p>
+      <p style="color:var(--g3);font-size:.8rem">${it?'Puoi chiudere la pagina in sicurezza.':'You can safely close the page.'}</p>
+      <button onclick="dismissExitModal()" style="background:0;border:1px solid var(--g2);color:var(--g4);padding:.6rem 1.5rem;margin-top:1.5rem;cursor:pointer;font-family:var(--f);font-size:.8rem">${it?'Rimani sul sito':'Stay on site'}</button>
+    </div>`;
+  }
+}
+
+function dismissExitModal(){
+  const m=document.getElementById('wfExitModal');
+  if(m)m.remove();
+}
+
+// beforeunload — browser native prompt as fallback
+window.addEventListener('beforeunload',function(e){
+  if((wfActive||wfDone)&&!wfWantEmail){
+    showExitEmailModal();
+    e.preventDefault();
+    e.returnValue='';
+  }
+});
+// Mouse leave top of page — early exit intent detection (desktop)
+document.addEventListener('mouseout',function(e){
+  if(e.clientY<=0&&(wfActive||wfDone)&&!wfWantEmail){
+    showExitEmailModal();
+  }
+});
 
 // BRIEF CLOSE
 function closeBrief(){
