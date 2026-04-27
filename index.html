@@ -490,7 +490,21 @@ if(window.innerWidth>=768){
 function togMob(){document.getElementById('mbB').classList.toggle('act');document.getElementById('nkMob').classList.toggle('opn');}
 document.addEventListener('click',e=>{if(e.target.closest('.nk a')){document.getElementById('mbB').classList.remove('act');document.getElementById('nk').classList.remove('opn');}});
 
-let D=null,lang='en',bf={sector:null,goal:null,why:null},chM=[];
+// Auto-detect language: Italian for Italy, English for rest of world
+function detectLang(){
+  try{
+    // 1. Check navigator.languages / navigator.language
+    const navLangs=(navigator.languages||[navigator.language||'']).map(l=>l.toLowerCase());
+    const hasIt=navLangs.some(l=>l==='it'||l.startsWith('it-'));
+    // 2. Check timezone (Europe/Rome = Italy)
+    const tz=(Intl.DateTimeFormat().resolvedOptions().timeZone||'').toLowerCase();
+    const romeZone=tz==='europe/rome';
+    // If browser language is Italian OR timezone is Rome → Italian
+    if(hasIt||romeZone)return'it';
+    return'en';
+  }catch(e){return'en';}
+}
+let D=null,lang=detectLang(),bf={sector:null,goal:null,why:null},chM=[];
 const IC={cube:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 4L4 14v20l20 10 20-10V14L24 4z"/><path d="M4 14l20 10m0 0l20-10M24 24v20"/></svg>',play:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="20"/><path d="M18 16l14 8-14 8V16z"/></svg>',headset:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="32" height="24" rx="2"/><path d="M16 38h16M24 32v6"/></svg>',signal:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 24c0-8.8 7.2-16 16-16s16 7.2 16 16"/><path d="M14 24c0-5.5 4.5-10 10-10s10 4.5 10 10"/><circle cx="24" cy="24" r="4"/><path d="M24 28v12M18 40h12"/></svg>',gamepad:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="10" y="6" width="28" height="36" rx="3"/><path d="M18 36h12"/><circle cx="24" cy="22" r="8"/></svg>',brain:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="12"/><path d="M24 4v8m0 24v8M4 24h8m24 0h8"/></svg>'};
 
 // Brief question default options — bilingual (CMS overrides these)
@@ -518,7 +532,15 @@ function getEmbedUrl(url){
   return null;
 }
 
-async function load(){try{const r=await fetch('/api/content');D=await r.json();}catch(e){}if(D)build();}
+async function load(){
+  // Apply detected language to DOM
+  document.documentElement.lang=lang;
+  const lt=lang==='en'?'IT':'EN';
+  const b1=document.getElementById('lsB');if(b1)b1.textContent=lt;
+  const b2=document.getElementById('lsB2');if(b2)b2.textContent=lt;
+  const chW=document.getElementById('chW');if(chW)chW.textContent=lang==='it'?'Ciao! Chiedimi quello che vuoi su WHY.':'Hi! Ask me anything about WHY.';
+  try{const r=await fetch('/api/content');D=await r.json();}catch(e){}if(D)build();
+}
 
 function build(){
   if(!D)return;const l=lang;

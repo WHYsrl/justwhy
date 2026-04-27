@@ -300,7 +300,7 @@ ${aiContext ? '\nAdditional context from the team:\n' + aiContext : ''}
 ${profileContext}
 
 Guidelines:
-- CRITICAL: Always respond in the same language the user writes in. If they write in Italian, respond in Italian. If in English, respond in English.${lang ? ` The site is currently set to ${lang === 'it' ? 'Italian' : 'English'}.` : ''}
+- CRITICAL LANGUAGE RULE: ${lang === 'it' ? 'The site is set to ITALIAN. You MUST respond in Italian regardless of the language the user writes in. Always reply in Italian.' : 'The site is set to ENGLISH. Respond in English by default. If the user writes in another language, respond in that same language.'}
 - Be concise, professional, and warm. Match WHY's tone: bold, tech-forward, substance over buzzwords.
 - Answer questions about services, capabilities, team, and approach.
 - If asked about pricing or timelines, explain that each project is custom and suggest scheduling a call at info@justwhy.it.
