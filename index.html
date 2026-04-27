@@ -660,6 +660,7 @@ const spinMsgs={en:['Gathering information','Analyzing website','Analyzing conte
 let spinInt=null,spinRaf=null,spinCleanup=null,spinParticleRaf=null;
 
 let wfWantEmail=false,wfUserEmail='',wfActive=false,wfDone=false,wfLastResult=null;
+const _njIsMob=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
 function startParticleSpinner(){
   const cvs=document.getElementById('particleSpinner');if(!cvs)return;
@@ -737,9 +738,9 @@ function showSpinner(){
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           WHY Memory — ${it?'trova le coppie':'find the pairs'}
         </button>
-        <button onclick="startSnakeGame()" class="wf-wait-btn" style="background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.7rem 1.2rem;font-weight:600;font-size:.78rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;gap:.6rem">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 12h4l2-4 4 8 2-4h4"/></svg>
-          WHY Snake — ${it?'classico rivisitato':'classic reimagined'}
+        <button onclick="${_njIsMob?'startNinjaGame':'startSnakeGame'}()" class="wf-wait-btn" style="background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.7rem 1.2rem;font-weight:600;font-size:.78rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;gap:.6rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">${_njIsMob?'<path d="M14.5 3.5L3 15l3 3 11.5-11.5M10 8l6 6"/>':'<path d="M4 12h4l2-4 4 8 2-4h4"/>'}</svg>
+          ${_njIsMob?(it?'WHY Ninja — taglia i cubi!':'WHY Ninja — slice the cubes!'):(it?'WHY Snake — classico rivisitato':'WHY Snake — classic reimagined')}
         </button>
       </div>
       <button onclick="closeWfKeepAlive()" class="wf-wait-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);padding:.85rem 1.5rem;font-weight:600;font-size:.82rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.6rem">
@@ -1122,7 +1123,9 @@ const SFX=(function(){
     eat(){tone(440,0.08,'square',0.08);setTimeout(()=>tone(660,0.06,'square',0.06),50);},
     die(){tone(300,0.15,'sawtooth',0.1);setTimeout(()=>tone(200,0.2,'sawtooth',0.08),100);setTimeout(()=>tone(120,0.3,'sawtooth',0.06),200);},
     win(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'sine',0.12),i*100));},
-    click(){tone(600,0.05,'sine',0.06);}
+    click(){tone(600,0.05,'sine',0.06);},
+    slice(){tone(1200,0.08,'sawtooth',0.1);setTimeout(()=>tone(1800,0.06,'sine',0.08),40);},
+    whoosh(){tone(400,0.12,'sawtooth',0.04);}
   };
 })();
 
@@ -1131,9 +1134,12 @@ function showPlayAnother(container){
   const it=lang==='it';
   const div=document.createElement('div');
   div.style.cssText='margin-top:1rem;display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap';
+  const thirdGame=_njIsMob
+    ?`<button onclick="startNinjaGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Ninja</button>`
+    :`<button onclick="startSnakeGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Snake</button>`;
   div.innerHTML=`<button onclick="startWaitGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Catch</button>
     <button onclick="startMemoryGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Memory</button>
-    <button onclick="startSnakeGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Snake</button>`;
+    ${thirdGame}`;
   const label=document.createElement('p');
   label.style.cssText='color:var(--g3);font-size:.7rem;margin-top:.8rem;text-align:center';
   label.textContent=it?'Prova un altro gioco:':'Try another game:';
@@ -1194,6 +1200,167 @@ function memFlip(el){
 }
 
 // ===== WHY SNAKE =====
+function startNinjaGame(){
+  const it=lang==='it';
+  replaceWithGame(`<h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">WHY Ninja</h3>
+    <p class="wf-game-hint" style="margin-bottom:.8rem">${it?'Taglia i cubi con il dito!':'Slice the cubes with your finger!'}</p>
+    <canvas id="njCvs" width="300" height="400" style="touch-action:none;border:1px solid var(--g2)"></canvas>
+    <div style="margin-top:.8rem;font-size:.8rem;color:var(--g3)">${it?'Punti':'Score'}: <span id="njScore">0</span> &nbsp; ${it?'Vite':'Lives'}: <span id="njLives">3</span></div>`);
+  const cvs=document.getElementById('njCvs');if(!cvs)return;
+  const ctx=cvs.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=300,H=400;
+  cvs.width=W*dpr;cvs.height=H*dpr;cvs.style.width=W+'px';cvs.style.height=H+'px';ctx.scale(dpr,dpr);
+
+  let score=0,lives=3,alive=true,cubes=[],sliceTrail=[],raf=null,lastSpawn=0;
+  const GRAVITY=0.15,SPAWN_INT=900;
+
+  // 3D cube projection helpers
+  function project3D(x,y,z,cx,cy,s){
+    const scale=s/(s+z);
+    return{px:cx+x*scale,py:cy+y*scale,s:scale};
+  }
+  function drawCube(c){
+    const sz=c.size*0.5;const cx=c.x,cy=c.y,rz=c.rz,rx=c.rx;
+    // Simple isometric cube — 3 visible faces
+    const cos=Math.cos,sin=Math.sin;
+    // Vertices of a cube centered at 0
+    const verts=[[-1,-1,-1],[ 1,-1,-1],[ 1, 1,-1],[-1, 1,-1],[-1,-1, 1],[ 1,-1, 1],[ 1, 1, 1],[-1, 1, 1]];
+    // Rotate and project
+    const pts=verts.map(([vx,vy,vz])=>{
+      // Rotate Y (rz)
+      let x2=vx*cos(rz)-vz*sin(rz),z2=vx*sin(rz)+vz*cos(rz),y2=vy;
+      // Rotate X (rx)
+      let y3=y2*cos(rx)-z2*sin(rx),z3=y2*sin(rx)+z2*cos(rx);
+      return{px:cx+x2*sz,py:cy+y3*sz,z:z3};
+    });
+    // Faces: [indices, shade]
+    const faces=[
+      [[0,1,2,3],0.3], // front
+      [[4,5,6,7],0.5], // back
+      [[0,1,5,4],0.2], // top
+      [[2,3,7,6],0.6], // bottom
+      [[1,2,6,5],0.4], // right
+      [[0,3,7,4],0.5], // left
+    ];
+    // Sort faces by avg z (painter's algo)
+    faces.sort((a,b)=>{
+      const az=a[0].reduce((s,i)=>s+pts[i].z,0)/4;
+      const bz=b[0].reduce((s,i)=>s+pts[i].z,0)/4;
+      return az-bz;
+    });
+    faces.forEach(([idxs,shade])=>{
+      ctx.beginPath();
+      idxs.forEach((i,j)=>{j===0?ctx.moveTo(pts[i].px,pts[i].py):ctx.lineTo(pts[i].px,pts[i].py);});
+      ctx.closePath();
+      const r=Math.floor(200*(1-shade)),g=Math.floor(255*(1-shade));
+      ctx.fillStyle=c.sliced?`rgba(${r},${g},0,${c.alpha})`:`rgba(${r},${g},0,${0.85*c.alpha})`;
+      ctx.fill();
+      ctx.strokeStyle=`rgba(200,255,0,${0.3*c.alpha})`;ctx.lineWidth=1;ctx.stroke();
+    });
+    // W label on front
+    if(!c.sliced&&c.alpha>0.5){
+      ctx.fillStyle=`rgba(5,5,5,${c.alpha})`;ctx.font=`bold ${Math.floor(sz*0.8)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('W',cx,cy);
+    }
+  }
+
+  function spawnCube(){
+    const x=40+Math.random()*(W-80);
+    const vy=-5-Math.random()*4;
+    const vx=(Math.random()-0.5)*3;
+    const size=30+Math.random()*18;
+    cubes.push({x,y:H+size,vx,vy,rz:Math.random()*Math.PI*2,rx:Math.random()*Math.PI*2,
+      drz:0.02+Math.random()*0.04,drx:0.01+Math.random()*0.03,
+      size,sliced:false,alpha:1,missed:false});
+  }
+
+  function sliceAt(x,y){
+    if(!alive)return;
+    let hit=false;
+    cubes.forEach(c=>{
+      if(c.sliced)return;
+      const dx=x-c.x,dy=y-c.y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<c.size*0.7){
+        c.sliced=true;score++;hit=true;SFX.slice();
+        document.getElementById('njScore').textContent=score;
+        // Spawn 2 halves
+        cubes.push({x:c.x-8,y:c.y,vx:c.vx-2,vy:c.vy-1,rz:c.rz,rx:c.rx,drz:c.drz*2,drx:c.drx*2,size:c.size*0.6,sliced:true,alpha:1,missed:false});
+        cubes.push({x:c.x+8,y:c.y,vx:c.vx+2,vy:c.vy-1,rz:c.rz+1,rx:c.rx,drz:-c.drz*2,drx:c.drx*2,size:c.size*0.6,sliced:true,alpha:1,missed:false});
+      }
+    });
+    if(!hit)SFX.whoosh();
+  }
+
+  function gameOver(){
+    alive=false;cancelAnimationFrame(raf);SFX.die();
+    ctx.fillStyle='rgba(5,5,5,.75)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#c8ff00';ctx.font='bold 18px sans-serif';ctx.textAlign='center';
+    ctx.fillText(it?'Game Over!':'Game Over!',W/2,H/2-15);
+    ctx.font='14px sans-serif';ctx.fillStyle='#999';
+    ctx.fillText((it?'Punti: ':'Score: ')+score,W/2,H/2+10);
+    ctx.fillText(it?'Tap per ricominciare':'Tap to restart',W/2,H/2+35);
+    cvs.addEventListener('touchstart',function restart(){cvs.removeEventListener('touchstart',restart);startNinjaGame();},{once:true});
+    cvs.addEventListener('click',function restart(){cvs.removeEventListener('click',restart);startNinjaGame();},{once:true});
+    showPlayAnother(cvs.parentElement);
+  }
+
+  function loop(ts){
+    if(!alive)return;
+    raf=requestAnimationFrame(loop);
+    // Spawn
+    if(ts-lastSpawn>SPAWN_INT){lastSpawn=ts;spawnCube();}
+    // Update
+    cubes.forEach(c=>{
+      c.x+=c.vx;c.y+=c.vy;c.vy+=GRAVITY;c.rz+=c.drz;c.rx+=c.drx;
+      if(c.sliced)c.alpha=Math.max(0,c.alpha-0.02);
+    });
+    // Check missed (fell below without being sliced)
+    cubes.forEach(c=>{
+      if(!c.sliced&&!c.missed&&c.y>H+60){
+        c.missed=true;lives--;SFX.miss();
+        document.getElementById('njLives').textContent=lives;
+        if(lives<=0)gameOver();
+      }
+    });
+    // Remove dead cubes
+    cubes=cubes.filter(c=>c.alpha>0&&c.y<H+120);
+    // Draw
+    ctx.fillStyle='#0a0a0a';ctx.fillRect(0,0,W,H);
+    // Slice trail
+    if(sliceTrail.length>1){
+      ctx.strokeStyle='rgba(200,255,0,.5)';ctx.lineWidth=3;ctx.lineCap='round';
+      ctx.beginPath();sliceTrail.forEach((p,i)=>{i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();
+      ctx.strokeStyle='rgba(200,255,0,.15)';ctx.lineWidth=8;
+      ctx.beginPath();sliceTrail.forEach((p,i)=>{i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();
+    }
+    // Fade trail
+    if(sliceTrail.length>0){sliceTrail=sliceTrail.slice(-8);}
+    // Draw cubes (non-sliced first, then sliced halves)
+    cubes.filter(c=>!c.sliced).forEach(c=>drawCube(c));
+    cubes.filter(c=>c.sliced).forEach(c=>drawCube(c));
+    // HUD
+    ctx.fillStyle='rgba(200,255,0,.15)';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+    for(let i=0;i<lives;i++){ctx.fillStyle='#c8ff00';ctx.fillRect(10+i*18,10,14,14);ctx.fillStyle='rgba(5,5,5,.5)';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.fillText('W',10+i*18+7,21);}
+  }
+
+  // Touch / mouse controls
+  let isSwiping=false;
+  function getPos(e){const r=cvs.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*(W/r.width),y:(t.clientY-r.top)*(H/r.height)};}
+  cvs.addEventListener('touchstart',e=>{e.preventDefault();isSwiping=true;sliceTrail=[];const p=getPos(e);sliceTrail.push(p);},{passive:false});
+  cvs.addEventListener('touchmove',e=>{e.preventDefault();if(!isSwiping)return;const p=getPos(e);sliceTrail.push(p);sliceAt(p.x,p.y);},{passive:false});
+  cvs.addEventListener('touchend',()=>{isSwiping=false;setTimeout(()=>{sliceTrail=[];},200);});
+  // Mouse fallback (for testing on desktop)
+  cvs.addEventListener('mousedown',e=>{isSwiping=true;sliceTrail=[];const p=getPos(e);sliceTrail.push(p);});
+  cvs.addEventListener('mousemove',e=>{if(!isSwiping)return;const p=getPos(e);sliceTrail.push(p);sliceAt(p.x,p.y);});
+  cvs.addEventListener('mouseup',()=>{isSwiping=false;setTimeout(()=>{sliceTrail=[];},200);});
+
+  raf=requestAnimationFrame(loop);
+  // Cleanup
+  const origStop=stopSpinner;
+  stopSpinner=function(){cancelAnimationFrame(raf);alive=false;origStop();stopSpinner=origStop;};
+}
+
 function startSnakeGame(){
   const it=lang==='it';
   replaceWithGame(`<h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">WHY Snake</h3>
