@@ -440,6 +440,7 @@ CRITICAL REQUIREMENTS:
 - ${briefData.company ? `The "${briefData.company}" brand must appear naturally in the scene (on screens, signage, UI, or product)` : 'No text in the image'}
 - Dark, premium aesthetic: near-black background (#050505), electric lime (#c8ff00) for UI accents and highlights
 - Cinematic lighting, photorealistic, shot like a premium case study photograph
+- HUMAN ANATOMY: If people appear in the scene, pay extreme attention to correct human anatomy — proper number of fingers (5 per hand), natural proportions, realistic faces, correct body posture. No deformed hands, extra limbs, or uncanny features.
 - The image should make the client say "YES, this is exactly what I want"
 
 Respond ONLY with the prompt text, nothing else.` }],
@@ -492,7 +493,7 @@ async function generateProjectImage(briefData, workflow) {
       fetchClientLogo(briefData.website)
     ]);
 
-    const finalPrompt = smartPrompt || `A sophisticated concept visualization for a ${briefData.sector || 'technology'} project by ${briefData.company || 'a client'}. Goal: ${briefData.goal || 'innovation'}. ${briefData.description ? briefData.description.slice(0, 300) : ''} Dark background (#050505), electric lime (#c8ff00) accents. Cinematic, photorealistic, ultra high quality.`;
+    const finalPrompt = smartPrompt || `A sophisticated concept visualization for a ${briefData.sector || 'technology'} project by ${briefData.company || 'a client'}. Goal: ${briefData.goal || 'innovation'}. ${briefData.description ? briefData.description.slice(0, 300) : ''} Dark background (#050505), electric lime (#c8ff00) accents. Cinematic, photorealistic, ultra high quality. If people appear, ensure correct human anatomy: proper number of fingers, natural proportions, realistic faces.`;
 
     console.log('Image prompt:', finalPrompt.slice(0, 120) + '...');
     if (logoData) console.log('Client logo fetched successfully');

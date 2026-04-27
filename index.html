@@ -706,10 +706,24 @@ function showSpinner(){
     </div>
     <p style="color:var(--g3);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.5rem">${it?'Nel frattempo puoi:':'In the meantime you can:'}</p>
     <div style="display:flex;flex-direction:column;gap:.8rem;max-width:380px;margin:0 auto">
-      <button onclick="startWaitGame()" class="wf-wait-btn" style="background:var(--ac);color:var(--bk);border:0;padding:1rem 1.5rem;font-weight:700;font-size:.85rem;cursor:pointer;font-family:var(--f);letter-spacing:.05em;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.6rem">
+      <button onclick="showGamePicker()" class="wf-wait-btn" style="background:var(--ac);color:var(--bk);border:0;padding:1rem 1.5rem;font-weight:700;font-size:.85rem;cursor:pointer;font-family:var(--f);letter-spacing:.05em;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.6rem">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        ${it?'Gioca a WHY Catch':'Play WHY Catch'}
+        ${it?'Gioca mentre aspetti':'Play while you wait'}
       </button>
+      <div id="wfGamePicker" style="display:none;margin-top:.5rem;flex-direction:column;gap:.5rem;max-width:380px;margin-left:auto;margin-right:auto">
+        <button onclick="startWaitGame()" class="wf-wait-btn" style="background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.7rem 1.2rem;font-weight:600;font-size:.78rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;gap:.6rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          WHY Catch — ${it?'cattura i nodi!':'catch the nodes!'}
+        </button>
+        <button onclick="startMemoryGame()" class="wf-wait-btn" style="background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.7rem 1.2rem;font-weight:600;font-size:.78rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;gap:.6rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          WHY Memory — ${it?'trova le coppie':'find the pairs'}
+        </button>
+        <button onclick="startSnakeGame()" class="wf-wait-btn" style="background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.7rem 1.2rem;font-weight:600;font-size:.78rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;gap:.6rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 12h4l2-4 4 8 2-4h4"/></svg>
+          WHY Snake — ${it?'classico rivisitato':'classic reimagined'}
+        </button>
+      </div>
       <button onclick="closeWfKeepAlive()" class="wf-wait-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);padding:.85rem 1.5rem;font-weight:600;font-size:.82rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.6rem">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         ${it?'Continua a navigare il sito':'Continue browsing the site'}
@@ -1061,6 +1075,129 @@ function startWaitGame(){
   spinCleanup={cvs,onMove,onLeave,onClick};
 }
 
+function showGamePicker(){
+  const gp=document.getElementById('wfGamePicker');
+  if(gp)gp.style.display=gp.style.display==='flex'?'none':'flex';
+}
+
+// Helper: replace game area keeping spinner status bar
+function replaceWithGame(gameHtml){
+  const wfc=document.getElementById('wfContent');
+  const it=lang==='it';
+  const statusHtml=`<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--g2);text-align:center">
+    <canvas id="particleSpinner" width="60" height="60" style="display:block;margin:0 auto .8rem;width:60px;height:60px"></canvas>
+    <div class="wf-spinner-msg" id="spinMsg" style="font-size:.85rem;color:var(--g3)">${(spinMsgs[lang]||spinMsgs.en)[0]}</div>
+  </div>`;
+  const introEl=wfc.querySelector('.wf-wait-intro');
+  const full=`<div class="wf-spinner" style="text-align:center">${gameHtml}${statusHtml}</div>`;
+  if(introEl)introEl.outerHTML=full;else wfc.innerHTML=full;
+  startParticleSpinner();
+}
+
+// ===== WHY MEMORY =====
+function startMemoryGame(){
+  const it=lang==='it';
+  const icons=['cube','play','headset','signal','gamepad','brain'];
+  const pairs=[...icons,...icons];
+  // Shuffle
+  for(let i=pairs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pairs[i],pairs[j]]=[pairs[j],pairs[i]];}
+  const cardsHtml=pairs.map((ic,i)=>`<div class="mem-card" data-idx="${i}" data-icon="${ic}" onclick="memFlip(this)" style="width:60px;height:60px;background:rgba(200,255,0,.04);border:1px solid var(--g2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;font-size:1.4rem;color:var(--bk)">?</div>`).join('');
+  replaceWithGame(`<h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">WHY Memory</h3>
+    <p style="color:var(--g3);font-size:.75rem;margin-bottom:.8rem">${it?'Trova tutte le coppie!':'Find all the pairs!'}</p>
+    <div id="memBoard" style="display:grid;grid-template-columns:repeat(4,60px);gap:6px;justify-content:center;margin:0 auto">${cardsHtml}</div>
+    <div style="margin-top:.8rem;font-size:.8rem;color:var(--g3)">${it?'Mosse':'Moves'}: <span id="memMoves">0</span> · ${it?'Coppie':'Pairs'}: <span id="memPairs">0</span>/6</div>`);
+  window._mem={flipped:[],matched:0,moves:0,lock:false};
+}
+function memFlip(el){
+  const m=window._mem;if(!m||m.lock)return;
+  if(el.dataset.matched||m.flipped.includes(el))return;
+  // Reveal
+  el.innerHTML=IC[el.dataset.icon]||'?';
+  el.style.background='rgba(200,255,0,.15)';el.style.borderColor='var(--ac)';el.style.color='var(--ac)';
+  m.flipped.push(el);
+  if(m.flipped.length===2){
+    m.moves++;document.getElementById('memMoves').textContent=m.moves;
+    m.lock=true;
+    const[a,b]=m.flipped;
+    if(a.dataset.icon===b.dataset.icon){
+      a.dataset.matched=b.dataset.matched='1';
+      a.style.background='rgba(200,255,0,.25)';b.style.background='rgba(200,255,0,.25)';
+      m.matched++;document.getElementById('memPairs').textContent=m.matched;
+      m.flipped=[];m.lock=false;
+      if(m.matched===6){setTimeout(()=>{const it=lang==='it';document.getElementById('memBoard').insertAdjacentHTML('afterend',`<p style="color:var(--ac);font-weight:700;margin-top:.8rem">${it?'Completo! '+m.moves+' mosse':'Complete! '+m.moves+' moves'}</p>`);},300);}
+    }else{
+      setTimeout(()=>{a.innerHTML=b.innerHTML='?';a.style.background=b.style.background='rgba(200,255,0,.04)';a.style.borderColor=b.style.borderColor='var(--g2)';a.style.color=b.style.color='var(--bk)';m.flipped=[];m.lock=false;},700);
+    }
+  }
+}
+
+// ===== WHY SNAKE =====
+function startSnakeGame(){
+  const it=lang==='it';
+  replaceWithGame(`<h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">WHY Snake</h3>
+    <p class="wf-game-hint" style="margin-bottom:.8rem">${it?'Usa le frecce o swipe per muoverti':'Use arrows or swipe to move'}</p>
+    <canvas id="snkCvs" width="300" height="300" style="touch-action:none;border:1px solid var(--g2)"></canvas>
+    <div style="margin-top:.8rem;font-size:.8rem;color:var(--g3)">${it?'Punti':'Score'}: <span id="snkScore">0</span></div>`);
+  const cvs=document.getElementById('snkCvs');if(!cvs)return;
+  const ctx=cvs.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const S=300;cvs.width=S*dpr;cvs.height=S*dpr;cvs.style.width=S+'px';cvs.style.height=S+'px';ctx.scale(dpr,dpr);
+  const G=15,C=S/G; // grid size, cell size
+  let snake=[{x:7,y:7}],dir={x:1,y:0},food=null,score=0,alive=true,interval=null;
+  function placeFood(){
+    let p;do{p={x:Math.floor(Math.random()*G),y:Math.floor(Math.random()*G)};}while(snake.some(s=>s.x===p.x&&s.y===p.y));
+    food=p;
+  }
+  placeFood();
+  function draw(){
+    ctx.fillStyle='#0a0a0a';ctx.fillRect(0,0,S,S);
+    // Grid lines
+    ctx.strokeStyle='rgba(200,255,0,.03)';ctx.lineWidth=0.5;
+    for(let i=0;i<=G;i++){ctx.beginPath();ctx.moveTo(i*C,0);ctx.lineTo(i*C,S);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*C);ctx.lineTo(S,i*C);ctx.stroke();}
+    // Food
+    if(food){ctx.fillStyle='#c8ff00';ctx.beginPath();ctx.arc(food.x*C+C/2,food.y*C+C/2,C/3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(200,255,0,.15)';ctx.beginPath();ctx.arc(food.x*C+C/2,food.y*C+C/2,C/2,0,Math.PI*2);ctx.fill();}
+    // Snake
+    snake.forEach((s,i)=>{const a=1-i*0.04;ctx.fillStyle=i===0?'#c8ff00':`rgba(200,255,0,${Math.max(.2,a)})`;ctx.fillRect(s.x*C+1,s.y*C+1,C-2,C-2);});
+  }
+  function step(){
+    if(!alive)return;
+    const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+    // Wrap around
+    head.x=(head.x+G)%G;head.y=(head.y+G)%G;
+    // Self collision
+    if(snake.some(s=>s.x===head.x&&s.y===head.y)){alive=false;clearInterval(interval);
+      ctx.fillStyle='rgba(5,5,5,.7)';ctx.fillRect(0,0,S,S);ctx.fillStyle='#c8ff00';ctx.font='bold 16px sans-serif';ctx.textAlign='center';
+      ctx.fillText(it?'Game Over!':'Game Over!',S/2,S/2-10);ctx.font='13px sans-serif';ctx.fillStyle='#999';ctx.fillText((it?'Punti: ':'Score: ')+score,S/2,S/2+15);
+      ctx.fillText(it?'Tap per ricominciare':'Tap to restart',S/2,S/2+35);
+      cvs.onclick=()=>{cvs.onclick=null;startSnakeGame();};return;}
+    snake.unshift(head);
+    if(food&&head.x===food.x&&head.y===food.y){score++;document.getElementById('snkScore').textContent=score;placeFood();}
+    else{snake.pop();}
+    draw();
+  }
+  draw();
+  interval=setInterval(step,120);
+  // Controls — keyboard
+  const onKey=(e)=>{if(!alive)return;
+    if(e.key==='ArrowUp'&&dir.y!==1)dir={x:0,y:-1};
+    else if(e.key==='ArrowDown'&&dir.y!==-1)dir={x:0,y:1};
+    else if(e.key==='ArrowLeft'&&dir.x!==1)dir={x:-1,y:0};
+    else if(e.key==='ArrowRight'&&dir.x!==-1)dir={x:1,y:0};
+  };
+  document.addEventListener('keydown',onKey);
+  // Controls — swipe
+  let sx=0,sy=0;
+  cvs.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  cvs.addEventListener('touchend',e=>{if(!alive)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)){if(dx>20&&dir.x!==1)dir={x:1,y:0};else if(dx<-20&&dir.x!==-1)dir={x:-1,y:0};}
+    else{if(dy>20&&dir.y!==1)dir={x:0,y:1};else if(dy<-20&&dir.y!==-1)dir={x:0,y:-1};}
+  },{passive:true});
+  // Cleanup on stop
+  const origStop=stopSpinner;
+  stopSpinner=function(){clearInterval(interval);document.removeEventListener('keydown',onKey);origStop();stopSpinner=origStop;};
+}
+
 function stopSpinner(){
   if(spinInt){clearInterval(spinInt);spinInt=null;}
   if(spinRaf){cancelAnimationFrame(spinRaf);spinRaf=null;}
@@ -1322,8 +1459,15 @@ function togChat(){
   }
   if(chO)document.getElementById('chIn').focus();
 }
-async function sendCh(){const inp=document.getElementById('chIn');const t=inp.value.trim();if(!t)return;inp.value='';chM.push({role:'user',content:t});apCh('usr',t);const ty=apCh('ast','...');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chM,profile:{sector:bf.sector,goal:bf.goal},lang})});if(!r.ok){ty.textContent=lang==='it'?'Errore. Riprova.':'Error. Try again.';return;}const data=await r.json();ty.textContent=data.content||'...';chM.push({role:'assistant',content:data.content});scrCh();}catch(e){ty.textContent=lang==='it'?'Errore di connessione.':'Connection error.';}}
-function apCh(c,t){const el=document.getElementById('chMs');const d=document.createElement('div');d.className='chm '+c;d.textContent=t;el.appendChild(d);scrCh();return d;}
+function fmtChat(t){
+  // Sanitize HTML entities, then convert **bold** to <strong>
+  let s=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/\n/g,'<br>');
+  return s;
+}
+async function sendCh(){const inp=document.getElementById('chIn');const t=inp.value.trim();if(!t)return;inp.value='';chM.push({role:'user',content:t});apCh('usr',t);const ty=apCh('ast','...');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chM,profile:{sector:bf.sector,goal:bf.goal},lang})});if(!r.ok){ty.innerHTML=fmtChat(lang==='it'?'Errore. Riprova.':'Error. Try again.');return;}const data=await r.json();ty.innerHTML=fmtChat(data.content||'...');chM.push({role:'assistant',content:data.content});scrCh();}catch(e){ty.innerHTML=fmtChat(lang==='it'?'Errore di connessione.':'Connection error.');}}
+function apCh(c,t){const el=document.getElementById('chMs');const d=document.createElement('div');d.className='chm '+c;if(c==='ast')d.innerHTML=fmtChat(t);else d.textContent=t;el.appendChild(d);scrCh();return d;}
 function scrCh(){document.getElementById('chMs').scrollTop=document.getElementById('chMs').scrollHeight;}
 
 // =============================================
