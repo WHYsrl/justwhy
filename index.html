@@ -1054,11 +1054,29 @@ function stopSpinner(){
 
 let wfPendingResult=null;
 
-function parseDurationWeeks(dur){
+// Parse duration string into days. Understands days/giorni, weeks/settimane, months/mesi
+function parseDurationDays(dur){
   if(!dur)return 0;
-  const m=dur.match(/(\d+)(?:\s*[-–]\s*(\d+))?/);
+  const s=dur.toLowerCase();
+  const m=s.match(/(\d+)(?:\s*[-–]\s*(\d+))?/);
   if(!m)return 0;
-  return m[2]?Math.ceil((parseInt(m[1])+parseInt(m[2]))/2):parseInt(m[1]);
+  const avg=m[2]?Math.ceil((parseInt(m[1])+parseInt(m[2]))/2):parseInt(m[1]);
+  if(/month|mes/i.test(s))return avg*30;
+  if(/week|settiman/i.test(s))return avg*7;
+  if(/day|giorn/i.test(s))return avg;
+  // No unit found — guess from magnitude: <=14 assume weeks, >14 assume days
+  return avg<=14?avg*7:avg;
+}
+// Format days into human-readable string
+function formatDuration(days,it){
+  if(days===0)return '—';
+  if(days%7===0&&days>=7){const w=days/7;return w+' '+(it?(w===1?'settimana':'settimane'):(w===1?'week':'weeks'));}
+  return days+' '+(it?(days===1?'giorno':'giorni'):(days===1?'day':'days'));
+}
+// Short label for timeline dots: "D14" or "W2"
+function formatDurationShort(days){
+  if(days%7===0&&days>=7)return 'W'+(days/7);
+  return 'D'+days;
 }
 
 function showWfResult(d){
@@ -1070,16 +1088,16 @@ function showWfResult(d){
     const it=lang==='it';
     const imgHtml=d.image?`<div class="wf-img"><img src="${d.image}" alt="Project visualization"></div>`:'';
 
-    // Calculate cumulative weeks
-    const cumWeeks=[0];
-    phases.forEach((p,i)=>{cumWeeks.push(cumWeeks[i]+parseDurationWeeks(p.duration));});
-    const totalWeeks=cumWeeks[cumWeeks.length-1];
+    // Calculate cumulative days
+    const cumDays=[0];
+    phases.forEach((p,i)=>{cumDays.push(cumDays[i]+parseDurationDays(p.duration));});
+    const totalDays=cumDays[cumDays.length-1];
 
     // Build cards
     const cardsHtml=phases.map((p,i)=>`<div class="wf-phase"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
 
-    // Build timeline dots
-    const tlHtml=phases.map((p,i)=>`<div class="wf-timeline-item${i===0?' active':''}" data-tli="${i}"><div class="tl-dot"></div><span class="tl-weeks">${it?'S':'W'}${cumWeeks[i+1]}</span></div>`).join('');
+    // Build timeline dots with correct unit labels
+    const tlHtml=phases.map((p,i)=>`<div class="wf-timeline-item${i===0?' active':''}" data-tli="${i}"><div class="tl-dot"></div><span class="tl-weeks">${formatDurationShort(cumDays[i+1])}</span></div>`).join('');
 
     wfc.innerHTML=`${imgHtml}
       <div class="wf-carousel" id="wfCarousel">
@@ -1092,7 +1110,7 @@ function showWfResult(d){
       </div>
       <div class="wf-progress"><div class="wf-progress-fill" id="wfProgressFill" style="width:${100/phases.length}%"></div></div>
       <div class="wf-timeline" id="wfTimeline">${tlHtml}</div>
-      <div style="text-align:center;margin-top:1rem;font-size:.75rem;color:var(--g3)">${it?'Totale':'Total'}: <strong style="color:var(--ac)">${totalWeeks} ${it?'settimane':'weeks'}</strong></div>`;
+      <div style="text-align:center;margin-top:1rem;font-size:.75rem;color:var(--g3)">${it?'Totale':'Total'}: <strong style="color:var(--ac)">${formatDuration(totalDays,it)}</strong></div>`;
 
     window._wfSlideIdx=0;
     window._wfSlideCount=phases.length;
