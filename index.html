@@ -995,16 +995,8 @@ async function bfSubmit(){
       lang
     })});
     const d=await r.json();
-    // If user wants email, send it via API
-    if(wfWantEmail&&wfUserEmail&&d.workflow){
-      try{
-        await fetch('/api/send-workflow-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:wfUserEmail,name:document.getElementById('bfName').value,workflow:d.workflow,image:d.image,lang})});
-      }catch(e){console.error('Email send error:',e);}
-      // Also show results if overlay is still open
-      showWfResult(d);
-    }else{
-      showWfResult(d);
-    }
+    // Email is sent automatically server-side — just show results
+    showWfResult(d);
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }
 function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
