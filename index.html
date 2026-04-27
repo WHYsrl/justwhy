@@ -332,32 +332,32 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
     <div class="bf-panel" id="bfP0"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q1">What's your world?</h3>
       <div class="bf-cards" id="bfSector"></div>
-      <div class="bf-other" id="bfSectorOther"><input id="bfSectorTxt" placeholder="Your sector..."></div>
-      <button class="bf-btn" id="bfN0" onclick="bfScroll(1)" disabled>Next →</button>
+      <div class="bf-other" id="bfSectorOther"><input id="bfSectorTxt" data-ph-en="Your sector..." data-ph-it="Il tuo settore..."></div>
+      <button class="bf-btn" id="bfN0" onclick="bfScroll(1)" disabled data-i18n="brief.next">Next →</button>
       <div class="bf-dots"><span class="act"></span><span></span><span></span><span></span></div>
     </div></div>
     <div class="bf-panel" id="bfP1"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q2">What's your goal?</h3>
       <div class="bf-cards" id="bfGoal"></div>
-      <div class="bf-other" id="bfGoalOther"><input id="bfGoalTxt" placeholder="Describe your goal..."></div>
-      <div><button class="bf-back" onclick="bfScroll(0)">←</button><button class="bf-btn" id="bfN1" onclick="bfScroll(2)" disabled>Next →</button></div>
+      <div class="bf-other" id="bfGoalOther"><input id="bfGoalTxt" data-ph-en="Describe your goal..." data-ph-it="Descrivi il tuo obiettivo..."></div>
+      <div><button class="bf-back" onclick="bfScroll(0)">←</button><button class="bf-btn" id="bfN1" onclick="bfScroll(2)" disabled data-i18n="brief.next">Next →</button></div>
       <div class="bf-dots"><span></span><span class="act"></span><span></span><span></span></div>
     </div></div>
     <div class="bf-panel" id="bfP2"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q3">Why?</h3>
       <div class="bf-cards" id="bfWhy"></div>
-      <div class="bf-other" id="bfWhyOther"><input id="bfWhyTxt" placeholder="Tell us why..."></div>
-      <div><button class="bf-back" onclick="bfScroll(1)">←</button><button class="bf-btn" id="bfN2" onclick="bfScroll(3)" disabled>Next →</button></div>
+      <div class="bf-other" id="bfWhyOther"><input id="bfWhyTxt" data-ph-en="Tell us why..." data-ph-it="Dicci perché..."></div>
+      <div><button class="bf-back" onclick="bfScroll(1)">←</button><button class="bf-btn" id="bfN2" onclick="bfScroll(3)" disabled data-i18n="brief.next">Next →</button></div>
       <div class="bf-dots"><span></span><span></span><span class="act"></span><span></span></div>
     </div></div>
     <div class="bf-panel" id="bfP3"><div class="bf-panel-inner">
       <h3 class="st" style="font-size:clamp(1.5rem,3vw,2.2rem)" data-i18n="brief.q4">The details</h3>
       <div class="bf-form">
-        <div class="bf-row"><div><label data-i18n="brief.name">Your name</label><input id="bfName" placeholder="Name Surname"></div><div><label>Email</label><input id="bfEmail" type="email" placeholder="you@company.com"></div></div>
-        <div class="bf-row"><div><label>Company / Brand</label><input id="bfCo" placeholder="Your company name"></div><div><label>Website</label><input id="bfUrl" placeholder="https://"></div></div>
-        <div><label data-i18n="brief.desc">Project description</label><textarea id="bfDesc" placeholder="What do you want to build?"></textarea></div>
-        <div class="bf-row"><div><label>KPI</label><input id="bfKpi" placeholder="e.g. engagement, conversions, awareness"></div><div><label>Target</label><input id="bfTarget" placeholder="e.g. Gen Z, luxury consumers, B2B"></div></div>
-        <div class="bf-row"><div><label data-i18n="brief.timeline">Timeline</label><select id="bfTimeline"><option value="" disabled selected data-i18n="brief.timeline_ph">Select available time</option><option value="non so" data-i18n="brief.timeline_dk">I don't know</option><option value="2 settimane">2 settimane / 2 weeks</option><option value="4 settimane">4 settimane / 4 weeks</option><option value="8 settimane">8 settimane / 8 weeks</option><option value="12 settimane">12 settimane / 12 weeks</option><option value="oltre 12 settimane">Oltre 12 settimane / 12+ weeks</option></select></div><div><label>Budget</label><select id="bfBudget"><option value="" disabled selected>Select budget range</option><option value="non so" data-i18n="brief.budget_dk">I don't know</option><option value="5K-10K">€ 5.000 – 10.000</option><option value="10K-25K">€ 10.000 – 25.000</option><option value="25K-50K">€ 25.000 – 50.000</option><option value="50K-100K">€ 50.000 – 100.000</option><option value="100K-250K">€ 100.000 – 250.000</option><option value="250K-500K">€ 250.000 – 500.000</option><option value="500K+">€ 500.000+</option></select></div></div>
+        <div class="bf-row"><div><label data-i18n="brief.name">Your name</label><input id="bfName" data-ph-en="Name Surname" data-ph-it="Nome Cognome"></div><div><label>Email</label><input id="bfEmail" type="email" placeholder="you@company.com"></div></div>
+        <div class="bf-row"><div><label data-i18n="brief.company">Company / Brand</label><input id="bfCo" data-ph-en="Your company name" data-ph-it="Nome azienda"></div><div><label>Website</label><input id="bfUrl" placeholder="https://"></div></div>
+        <div><label data-i18n="brief.desc">Project description</label><textarea id="bfDesc" data-ph-en="What do you want to build?" data-ph-it="Cosa vuoi realizzare?"></textarea></div>
+        <div class="bf-row"><div><label>KPI</label><input id="bfKpi" data-ph-en="e.g. engagement, conversions, awareness" data-ph-it="es. engagement, conversioni, awareness"></div><div><label data-i18n="brief.target">Target</label><input id="bfTarget" data-ph-en="e.g. Gen Z, luxury consumers, B2B" data-ph-it="es. Gen Z, consumatori luxury, B2B"></div></div>
+        <div class="bf-row"><div><label data-i18n="brief.timeline">Timeline</label><select id="bfTimeline"><option value="" disabled selected data-i18n="brief.timeline_ph">Select available time</option><option value="non so" data-i18n="brief.timeline_dk">I don't know</option><option value="2 settimane" data-i18n-en="2 weeks" data-i18n-it="2 settimane">2 weeks</option><option value="4 settimane" data-i18n-en="4 weeks" data-i18n-it="4 settimane">4 weeks</option><option value="8 settimane" data-i18n-en="8 weeks" data-i18n-it="8 settimane">8 weeks</option><option value="12 settimane" data-i18n-en="12 weeks" data-i18n-it="12 settimane">12 weeks</option><option value="oltre 12 settimane" data-i18n-en="12+ weeks" data-i18n-it="Oltre 12 settimane">12+ weeks</option></select></div><div><label>Budget</label><select id="bfBudget"><option value="" disabled selected data-i18n="brief.budget_ph">Select budget range</option><option value="non so" data-i18n="brief.budget_dk">I don't know</option><option value="5K-10K">€ 5.000 – 10.000</option><option value="10K-25K">€ 10.000 – 25.000</option><option value="25K-50K">€ 25.000 – 50.000</option><option value="50K-100K">€ 50.000 – 100.000</option><option value="100K-250K">€ 100.000 – 250.000</option><option value="250K-500K">€ 250.000 – 500.000</option><option value="500K+">€ 500.000+</option></select></div></div>
       </div>
       <div><button class="bf-back" onclick="bfScroll(2)">←</button><button class="bf-btn" onclick="bfSubmit()" data-i18n="brief.submit">Generate workflow →</button></div>
       <div class="bf-dots"><span></span><span></span><span></span><span class="act"></span></div>
@@ -545,8 +545,12 @@ async function load(){
 function build(){
   if(!D)return;const l=lang;
   const bfCms=D.brief||{};const cl=D.clients_label||{};const ct=D.contact||{};
-  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':cl[l]||(l==='it'?'Ci hanno scelto':'Trusted by'),'team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':ct[l]?.label||(l==='it'?'Contatti':'Get in touch'),'contact.cta':ct[l]?.cta||(l==='it'?'Contattaci':'Contact us'),'brief.label':bfCms[l]?.label||(l==='it'?'Inizia un progetto':'Start a project'),'brief.title':bfCms[l]?.title||(l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.'),'brief.q1':bfCms[l]?.q1||(l==='it'?'Qual è il tuo mondo?':'What\'s your world?'),'brief.q2':bfCms[l]?.q2||(l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?'),'brief.q3':bfCms[l]?.q3||(l==='it'?'Perché?':'Why?'),'brief.q4':bfCms[l]?.q4||(l==='it'?'I dettagli':'The details'),'brief.name':bfCms[l]?.name||(l==='it'?'Il tuo nome':'Your name'),'brief.desc':bfCms[l]?.desc||(l==='it'?'Descrizione del progetto':'Project description'),'brief.submit':bfCms[l]?.submit||(l==='it'?'Genera workflow →':'Generate workflow →'),'nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':bfCms[l]?.label||(l==='it'?'Inizia un progetto':'Start a project')};
+  const m={'hero.pre':D.hero?.[l]?.pre,'hero.title':D.hero?.[l]?.title,'hero.sub':D.hero?.[l]?.sub?D.hero[l].sub.replace(/^([^.]+\.)/,'<mark>$1</mark>'):'','hero.cta':D.hero?.[l]?.cta,'manifesto.label':D.manifesto?.[l]?.label,'manifesto.text':D.manifesto?.[l]?.text,'services.label':D.services?.[l]?.label,'services.title':D.services?.[l]?.title,'work.label':D.work?.[l]?.label,'work.title':D.work?.[l]?.title,'clients.label':cl[l]||(l==='it'?'Ci hanno scelto':'Trusted by'),'team.label':D.team?.[l]?.label,'team.title':D.team?.[l]?.title,'contact.label':ct[l]?.label||(l==='it'?'Contatti':'Get in touch'),'contact.cta':ct[l]?.cta||(l==='it'?'Contattaci':'Contact us'),'brief.label':bfCms[l]?.label||(l==='it'?'Inizia un progetto':'Start a project'),'brief.title':bfCms[l]?.title||(l==='it'?'Costruiamo qualcosa insieme.':'Let\'s build something together.'),'brief.q1':bfCms[l]?.q1||(l==='it'?'Qual è il tuo mondo?':'What\'s your world?'),'brief.q2':bfCms[l]?.q2||(l==='it'?'Qual è il tuo obiettivo?':'What\'s your goal?'),'brief.q3':bfCms[l]?.q3||(l==='it'?'Perché?':'Why?'),'brief.q4':bfCms[l]?.q4||(l==='it'?'I dettagli':'The details'),'brief.name':bfCms[l]?.name||(l==='it'?'Il tuo nome':'Your name'),'brief.desc':bfCms[l]?.desc||(l==='it'?'Descrizione del progetto':'Project description'),'brief.submit':bfCms[l]?.submit||(l==='it'?'Genera workflow →':'Generate workflow →'),'brief.next':l==='it'?'Avanti →':'Next →','brief.company':l==='it'?'Azienda / Brand':'Company / Brand','brief.target':l==='it'?'Target':'Target','brief.timeline':l==='it'?'Tempistiche':'Timeline','brief.timeline_ph':l==='it'?'Seleziona tempo disponibile':'Select available time','brief.timeline_dk':l==='it'?'Non so':'I don\'t know','brief.budget_ph':l==='it'?'Seleziona budget':'Select budget range','brief.budget_dk':l==='it'?'Non so':'I don\'t know','nav.services':l==='it'?'Servizi':'Services','nav.work':l==='it'?'Lavori':'Work','nav.team':'Team','nav.brief':bfCms[l]?.label||(l==='it'?'Inizia un progetto':'Start a project')};
   document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(m[k])el.innerHTML=m[k];});
+  // Localize placeholders
+  document.querySelectorAll('[data-ph-'+l+']').forEach(el=>{el.placeholder=el.getAttribute('data-ph-'+l);});
+  // Localize option text with data-i18n-en/data-i18n-it
+  document.querySelectorAll('option[data-i18n-'+l+']').forEach(el=>{el.textContent=el.getAttribute('data-i18n-'+l);});
 
   const sv=D.services?.items||[];
   document.getElementById('sGrid').innerHTML=sv.map(s=>`<div class="sc rv"><div class="si2">${IC[s.icon]||IC.cube}</div><h3>${s[l].title}</h3><p>${s[l].desc}</p><div class="stg">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('');
@@ -910,6 +914,7 @@ function startWaitGame(){
       const pts=n.points*combo;
       score+=pts;
       combo=Math.min(combo+1,12);
+      if(combo>=4)SFX.combo();else SFX.catch();
       // Particle explosion
       const col=n.type==='fast'?[255,100,100]:n.type==='big'?[100,200,255]:n.type==='chain'?[255,200,50]:AC;
       explode(n.x,n.y,15+combo*2,col);
@@ -985,7 +990,7 @@ function startWaitGame(){
       n.life-=0.016;
       if(n.life<=0){
         // Missed!
-        missed++;combo=1;
+        missed++;combo=1;SFX.miss();
         document.getElementById('gMissed').textContent=missed;
         document.getElementById('gCombo').textContent='x1';
         explode(n.x,n.y,8,[100,50,50]);
@@ -1076,11 +1081,52 @@ function startWaitGame(){
 }
 
 function showGamePicker(){
+  SFX.click();
   const gp=document.getElementById('wfGamePicker');
   if(gp)gp.style.display=gp.style.display==='flex'?'none':'flex';
 }
 
 // Helper: replace game area keeping spinner status bar
+// === GAME SOUND ENGINE (Web Audio API) ===
+const SFX=(function(){
+  let ctx=null;
+  function getCtx(){if(!ctx)try{ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return ctx;}
+  function tone(freq,dur,type,vol){
+    const c=getCtx();if(!c)return;
+    const o=c.createOscillator(),g=c.createGain();
+    o.type=type||'sine';o.frequency.setValueAtTime(freq,c.currentTime);
+    g.gain.setValueAtTime(vol||0.15,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+    o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+dur);
+  }
+  return{
+    catch(){tone(880,0.15,'sine',0.12);setTimeout(()=>tone(1320,0.12,'sine',0.1),80);},
+    miss(){tone(220,0.25,'sawtooth',0.08);},
+    combo(){tone(660,0.1,'sine',0.1);setTimeout(()=>tone(880,0.1,'sine',0.1),60);setTimeout(()=>tone(1100,0.15,'sine',0.12),120);},
+    match(){tone(523,0.12,'sine',0.12);setTimeout(()=>tone(659,0.12,'sine',0.12),80);},
+    noMatch(){tone(200,0.2,'triangle',0.06);},
+    eat(){tone(440,0.08,'square',0.08);setTimeout(()=>tone(660,0.06,'square',0.06),50);},
+    die(){tone(300,0.15,'sawtooth',0.1);setTimeout(()=>tone(200,0.2,'sawtooth',0.08),100);setTimeout(()=>tone(120,0.3,'sawtooth',0.06),200);},
+    win(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'sine',0.12),i*100));},
+    click(){tone(600,0.05,'sine',0.06);}
+  };
+})();
+
+// "Play another game" button shown after game ends
+function showPlayAnother(container){
+  const it=lang==='it';
+  const div=document.createElement('div');
+  div.style.cssText='margin-top:1rem;display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap';
+  div.innerHTML=`<button onclick="startWaitGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Catch</button>
+    <button onclick="startMemoryGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Memory</button>
+    <button onclick="startSnakeGame()" style="background:rgba(200,255,0,.1);border:1px solid rgba(200,255,0,.2);color:var(--ac);padding:.5rem 1rem;font-size:.7rem;cursor:pointer;font-family:var(--f);font-weight:600">WHY Snake</button>`;
+  const label=document.createElement('p');
+  label.style.cssText='color:var(--g3);font-size:.7rem;margin-top:.8rem;text-align:center';
+  label.textContent=it?'Prova un altro gioco:':'Try another game:';
+  container.appendChild(label);
+  container.appendChild(div);
+}
+
 function replaceWithGame(gameHtml){
   const wfc=document.getElementById('wfContent');
   const it=lang==='it';
@@ -1111,6 +1157,7 @@ function startMemoryGame(){
 function memFlip(el){
   const m=window._mem;if(!m||m.lock)return;
   if(el.dataset.matched||m.flipped.includes(el))return;
+  SFX.click();
   // Reveal
   el.innerHTML=IC[el.dataset.icon]||'?';
   el.style.background='rgba(200,255,0,.15)';el.style.borderColor='var(--ac)';el.style.color='var(--ac)';
@@ -1120,12 +1167,13 @@ function memFlip(el){
     m.lock=true;
     const[a,b]=m.flipped;
     if(a.dataset.icon===b.dataset.icon){
-      a.dataset.matched=b.dataset.matched='1';
+      a.dataset.matched=b.dataset.matched='1';SFX.match();
       a.style.background='rgba(200,255,0,.25)';b.style.background='rgba(200,255,0,.25)';
       m.matched++;document.getElementById('memPairs').textContent=m.matched;
       m.flipped=[];m.lock=false;
-      if(m.matched===6){setTimeout(()=>{const it=lang==='it';document.getElementById('memBoard').insertAdjacentHTML('afterend',`<p style="color:var(--ac);font-weight:700;margin-top:.8rem">${it?'Completo! '+m.moves+' mosse':'Complete! '+m.moves+' moves'}</p>`);},300);}
+      if(m.matched===6){SFX.win();setTimeout(()=>{const it=lang==='it';const board=document.getElementById('memBoard');board.insertAdjacentHTML('afterend',`<p style="color:var(--ac);font-weight:700;margin-top:.8rem">${it?'Completo! '+m.moves+' mosse':'Complete! '+m.moves+' moves'}</p>`);showPlayAnother(board.parentElement);},300);}
     }else{
+      SFX.noMatch();
       setTimeout(()=>{a.innerHTML=b.innerHTML='?';a.style.background=b.style.background='rgba(200,255,0,.04)';a.style.borderColor=b.style.borderColor='var(--g2)';a.style.color=b.style.color='var(--bk)';m.flipped=[];m.lock=false;},700);
     }
   }
@@ -1166,13 +1214,14 @@ function startSnakeGame(){
     // Wrap around
     head.x=(head.x+G)%G;head.y=(head.y+G)%G;
     // Self collision
-    if(snake.some(s=>s.x===head.x&&s.y===head.y)){alive=false;clearInterval(interval);
+    if(snake.some(s=>s.x===head.x&&s.y===head.y)){alive=false;clearInterval(interval);SFX.die();
       ctx.fillStyle='rgba(5,5,5,.7)';ctx.fillRect(0,0,S,S);ctx.fillStyle='#c8ff00';ctx.font='bold 16px sans-serif';ctx.textAlign='center';
       ctx.fillText(it?'Game Over!':'Game Over!',S/2,S/2-10);ctx.font='13px sans-serif';ctx.fillStyle='#999';ctx.fillText((it?'Punti: ':'Score: ')+score,S/2,S/2+15);
       ctx.fillText(it?'Tap per ricominciare':'Tap to restart',S/2,S/2+35);
-      cvs.onclick=()=>{cvs.onclick=null;startSnakeGame();};return;}
+      cvs.onclick=()=>{cvs.onclick=null;startSnakeGame();};
+      showPlayAnother(cvs.parentElement);return;}
     snake.unshift(head);
-    if(food&&head.x===food.x&&head.y===food.y){score++;document.getElementById('snkScore').textContent=score;placeFood();}
+    if(food&&head.x===food.x&&head.y===food.y){score++;SFX.eat();document.getElementById('snkScore').textContent=score;placeFood();}
     else{snake.pop();}
     draw();
   }
@@ -1327,7 +1376,33 @@ async function bfSubmit(){
     showWfResult(d);
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }
-function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
+function closeWf(){
+  document.getElementById('wf-overlay').classList.remove('open');
+  // Replace brief with thank-you state if workflow was completed
+  if(wfDone){
+    const brief=document.getElementById('brief');
+    if(brief){
+      const it=lang==='it';
+      brief.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;text-align:center;padding:3rem 2rem">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;border:2px solid var(--ac);margin-bottom:1.5rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2.5" width="28" height="28"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3 style="font-family:var(--d);font-size:1.4rem;font-weight:700;margin-bottom:.8rem;color:var(--wh)">${it?'Grazie per aver provato il nostro workflow!':'Thanks for trying our workflow!'}</h3>
+        <p style="color:var(--g4);font-size:.9rem;line-height:1.8;max-width:440px;margin-bottom:2rem">${it?'Vuoi approfondire la proposta e trasformarla in un progetto reale?':'Want to dive deeper into the proposal and turn it into a real project?'}</p>
+        <div style="display:flex;flex-direction:column;gap:.8rem;align-items:center">
+          <button onclick="openCt()" class="hcta" style="border:0;cursor:pointer;font-size:.9rem;padding:1rem 2.5rem">${it?'Parliamone →':'Let\'s talk →'}</button>
+          <button onclick="resetBrief()" style="background:0;border:1px solid var(--g2);color:var(--g4);padding:.7rem 1.5rem;font-size:.8rem;cursor:pointer;font-family:var(--f);transition:all .3s">${it?'Crea un nuovo workflow':'Create a new workflow'}</button>
+        </div>
+      </div>`;
+    }
+    wfActive=false;
+  }
+}
+function resetBrief(){
+  wfActive=false;wfDone=false;wfLastResult=null;wfExitShown=false;
+  // Reload page to reset the brief form
+  location.reload();
+}
 
 // --- Exit intent: offer email delivery ---
 let wfExitShown=false;
