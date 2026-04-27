@@ -1370,7 +1370,9 @@ async function bfSubmit(){
   document.getElementById('wfTitle').textContent=lang==='it'?'Ecco come lo costruiremmo insieme.':'Here\'s how we\'d build it together.';
   document.getElementById('wfCta').innerHTML='';showSpinner();
   try{
-    const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    const wfAc=new AbortController();
+    const wfTimeout=setTimeout(()=>wfAc.abort(),120000);
+    const r=await fetch('/api/workflow',{method:'POST',headers:{'Content-Type':'application/json'},signal:wfAc.signal,body:JSON.stringify({
       name:document.getElementById('bfName').value,
       email:document.getElementById('bfEmail').value,
       sector:bf.sectors||bf.sector,goal:bf.goals||bf.goal,why:bf.whys||bf.why,
@@ -1383,11 +1385,12 @@ async function bfSubmit(){
       timeline:document.getElementById('bfTimeline').value,
       lang
     })});
+    clearTimeout(wfTimeout);
     const d=await r.json();
     wfLastResult=d;
     // Email is sent automatically server-side — just show results
     showWfResult(d);
-  }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
+  }catch(e){stopSpinner();const isTimeout=e.name==='AbortError';document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?(isTimeout?'Il server sta impiegando troppo. Riprova tra poco.':'Errore di connessione.'):(isTimeout?'The server is taking too long. Please try again shortly.':'Connection error.')}</p>`;}
 }
 function closeWf(){
   document.getElementById('wf-overlay').classList.remove('open');

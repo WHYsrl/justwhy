@@ -467,9 +467,12 @@ async function fetchClientLogo(websiteUrl) {
     let domain = websiteUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '');
     if (!domain || domain.length < 3) return null;
 
-    // Try Clearbit Logo API (free, no auth needed, returns PNG)
+    // Try Clearbit Logo API (free, no auth needed, returns PNG) — 5s timeout
     const logoUrl = `https://logo.clearbit.com/${domain}?size=400`;
-    const res = await fetch(logoUrl, { redirect: 'follow' });
+    const ac = new AbortController();
+    const logoTimeout = setTimeout(() => ac.abort(), 5000);
+    const res = await fetch(logoUrl, { redirect: 'follow', signal: ac.signal });
+    clearTimeout(logoTimeout);
     if (!res.ok) return null;
 
     const contentType = res.headers.get('content-type') || '';
