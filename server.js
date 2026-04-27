@@ -689,6 +689,79 @@ Respond ONLY with the JSON array.`;
   }
 });
 
+// --- Send workflow via email (Resend) ---
+app.post('/api/send-workflow-email', chatRateLimit, async (req, res) => {
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_KEY) return res.status(500).json({ error: 'Email not configured' });
+
+  const { email, name, workflow, image, lang } = req.body;
+  if (!email || !workflow) return res.status(400).json({ error: 'Missing email or workflow' });
+
+  const it = lang === 'it';
+  const greeting = name ? (it ? `Ciao ${name},` : `Hi ${name},`) : (it ? 'Ciao,' : 'Hi,');
+
+  // Build workflow HTML
+  const phasesHtml = workflow.map((p, i) => `
+    <tr>
+      <td style="padding:16px 20px;border-bottom:1px solid #1a1a1a">
+        <div style="color:#c8ff00;font-size:12px;font-weight:700;letter-spacing:2px;margin-bottom:4px">0${p.id} — ${p.duration || ''}</div>
+        <div style="font-size:16px;font-weight:700;color:#ffffff;margin-bottom:6px">${p.title}</div>
+        <div style="font-size:14px;color:#999;line-height:1.6">${p.description}</div>
+        ${p.tools && p.tools.length ? `<div style="margin-top:8px">${p.tools.map(t => `<span style="display:inline-block;font-size:11px;color:#c8ff00;border:1px solid rgba(200,255,0,.2);padding:2px 8px;margin:2px 4px 2px 0">${t}</span>`).join('')}</div>` : ''}
+      </td>
+    </tr>`).join('');
+
+  const imgBlock = image ? `<tr><td style="padding:20px"><img src="${image}" alt="Project visualization" style="width:100%;max-width:560px;display:block;margin:0 auto;border:1px solid #1a1a1a"></td></tr>` : '';
+
+  const htmlBody = `
+  <div style="background:#050505;padding:40px 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+    <div style="max-width:600px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:30px">
+        <div style="font-size:24px;font-weight:800;color:#ffffff;letter-spacing:2px">WHY</div>
+        <div style="font-size:11px;color:#666;letter-spacing:3px;margin-top:4px">CREATIVE TECHNOLOGY STUDIO</div>
+      </div>
+      <div style="background:#0a0a0a;border:1px solid #1a1a1a;padding:30px">
+        <p style="color:#ccc;font-size:15px;line-height:1.7;margin:0 0 10px">${greeting}</p>
+        <p style="color:#ccc;font-size:15px;line-height:1.7;margin:0 0 25px">${it ? 'Ecco il workflow personalizzato che abbiamo elaborato per il tuo progetto:' : 'Here\'s the custom workflow we\'ve crafted for your project:'}</p>
+        ${imgBlock}
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #1a1a1a;margin-top:10px">
+          ${phasesHtml}
+        </table>
+        <div style="text-align:center;margin-top:30px">
+          <a href="https://justwhy.it/#brief" style="display:inline-block;background:#c8ff00;color:#050505;font-weight:700;font-size:13px;letter-spacing:1px;padding:14px 32px;text-decoration:none;text-transform:uppercase">${it ? 'Parliamone →' : 'Let\'s talk →'}</a>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:20px">
+        <p style="color:#444;font-size:12px">WHY srl — Roma, Italia</p>
+        <a href="https://justwhy.it" style="color:#666;font-size:12px">justwhy.it</a>
+      </div>
+    </div>
+  </div>`;
+
+  try {
+    const resp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'WHY AI <ai@justwhy.it>',
+        to: [email],
+        subject: it ? 'Il tuo workflow personalizzato — WHY' : 'Your custom workflow — WHY',
+        html: htmlBody
+      })
+    });
+    const result = await resp.json();
+    if (resp.ok) {
+      res.json({ ok: true, id: result.id });
+    } else {
+      console.error('Resend error:', result);
+      res.status(500).json({ error: 'Email send failed', detail: result });
+    }
+  } catch (e) {
+    console.error('Resend fetch error:', e);
+    res.status(500).json({ error: 'Email service unavailable' });
+  }
+});
+
 // --- Submissions API (admin only) ---
 app.get('/api/submissions', requireAuth, async (req, res) => {
   try {

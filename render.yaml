@@ -24,3 +24,5 @@ services:
           property: connectionString
       - key: OPENAI_API_KEY
         sync: false
+      - key: RESEND_API_KEY
+        sync: false

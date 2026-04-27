@@ -602,18 +602,102 @@ function bfScroll(i){const t=document.getElementById('bfTrack');const p=document
 const spinMsgs={en:['Gathering information','Analyzing website','Analyzing context','Researching best solutions & technologies','Estimating effort','Generating visual','Generating output'],it:['Recupero informazioni','Analisi web site','Analisi del contesto','Ricerca delle migliori soluzioni e tecnologie','Stima effort','Generazione visual','Elaborazione output']};
 let spinInt=null,spinRaf=null,spinCleanup=null;
 
+let wfWantEmail=false,wfUserEmail='';
+
 function showSpinner(){
   const msgs=spinMsgs[lang]||spinMsgs.en;let idx=0;
   const it=lang==='it';
   const wfc=document.getElementById('wfContent');
-  wfc.innerHTML=`<div class="wf-spinner">
-    <div class="wf-game-hint" id="gameHint">${it?'Cattura i nodi prima che svaniscano!':'Catch the nodes before they vanish!'}</div>
-    <canvas id="spinCvs" width="400" height="400" style="cursor:crosshair;touch-action:none"></canvas>
-    <div class="wf-game-hud"><div>${it?'Punti':'Score'}: <span id="gScore">0</span></div><div>Combo: <span id="gCombo">x1</span></div><div>${it?'Mancati':'Missed'}: <span id="gMissed">0</span></div></div>
-    <div class="wf-spinner-msg" id="spinMsg">${msgs[0]}</div>
-    <div class="wf-spinner-sub" id="spinSub">1/${msgs.length}</div>
+  wfUserEmail=document.getElementById('bfEmail')?.value||'';
+
+  // --- INTRO SCREEN ---
+  wfc.innerHTML=`<div class="wf-wait-intro" style="text-align:center;max-width:520px;margin:0 auto;padding:2rem 0">
+    <div style="margin-bottom:2rem">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;border:2px solid var(--ac);margin-bottom:1.5rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" width="28" height="28"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
+      <h3 style="font-family:var(--d);font-size:1.4rem;font-weight:700;margin-bottom:.8rem">${it?'WHY AI sta elaborando la tua proposta':'WHY AI is crafting your proposal'}</h3>
+      <p style="color:var(--g4);font-size:.9rem;line-height:1.7;margin-bottom:.3rem">${it?'Stiamo analizzando le tue indicazioni e generando un workflow personalizzato con visual del progetto.':'We\'re analyzing your inputs and generating a custom workflow with project visuals.'}</p>
+      <p style="color:var(--g3);font-size:.8rem">${it?'Tempo stimato: <strong style="color:var(--ac)">2 — 5 minuti</strong>':'Estimated time: <strong style="color:var(--ac)">2 — 5 minutes</strong>'}</p>
+    </div>
+    <p style="color:var(--g3);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.5rem">${it?'Nel frattempo puoi:':'In the meantime you can:'}</p>
+    <div style="display:flex;flex-direction:column;gap:.8rem;max-width:380px;margin:0 auto">
+      <button onclick="startWaitGame()" class="wf-wait-btn" style="background:var(--ac);color:var(--bk);border:0;padding:1rem 1.5rem;font-weight:700;font-size:.85rem;cursor:pointer;font-family:var(--f);letter-spacing:.05em;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.6rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        ${it?'Gioca a WHY Catch':'Play WHY Catch'}
+      </button>
+      <button onclick="closeWfKeepAlive()" class="wf-wait-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);padding:.85rem 1.5rem;font-weight:600;font-size:.82rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.6rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        ${it?'Continua a navigare il sito':'Continue browsing the site'}
+      </button>
+      <button onclick="showEmailOption()" class="wf-wait-btn" style="background:0;border:1px solid var(--g2);color:var(--g4);padding:.85rem 1.5rem;font-weight:600;font-size:.82rem;cursor:pointer;font-family:var(--f);transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.6rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        ${it?'Ricevi il risultato via email':'Get results via email'}
+      </button>
+    </div>
+    <div id="wfEmailBox" style="display:none;margin-top:1.5rem;max-width:380px;margin-left:auto;margin-right:auto">
+      <p style="color:var(--g4);font-size:.82rem;margin-bottom:.8rem">${it?'Conferma la tua email — ti invieremo il workflow appena pronto:':'Confirm your email — we\'ll send the workflow as soon as it\'s ready:'}</p>
+      <div style="display:flex;gap:.5rem">
+        <input id="wfEmailInput" type="email" value="${wfUserEmail}" style="flex:1;background:rgba(255,255,255,.03);border:1px solid var(--g2);color:var(--wh);padding:.65rem .8rem;font-family:var(--f);font-size:.85rem;outline:none" placeholder="you@email.com">
+        <button onclick="confirmWfEmail()" style="background:var(--ac);color:var(--bk);border:0;padding:.65rem 1.2rem;font-weight:700;font-size:.78rem;cursor:pointer;font-family:var(--f);white-space:nowrap">${it?'Conferma':'Confirm'}</button>
+      </div>
+    </div>
+    <div id="wfEmailConfirmed" style="display:none;margin-top:1.5rem">
+      <p style="color:var(--ac);font-size:.85rem;font-weight:600">✓ ${it?'Ti invieremo il risultato a':'We\'ll send the result to'} <span id="wfEmailShow"></span></p>
+      <p style="color:var(--g3);font-size:.78rem;margin-top:.4rem">${it?'Puoi chiudere questa pagina.':'You can close this page.'}</p>
+    </div>
+    <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--g2)">
+      <div class="wf-spinner-msg" id="spinMsg" style="font-size:.85rem;color:var(--g3)">${msgs[0]}</div>
+      <div class="wf-spinner-sub" id="spinSub" style="font-size:.65rem;color:var(--g3);margin-top:.3rem">1/${msgs.length}</div>
+    </div>
   </div>`;
 
+  // --- Message rotation (starts immediately) ---
+  spinInt=setInterval(()=>{
+    idx=(idx+1)%msgs.length;
+    const el=document.getElementById('spinMsg');const sub=document.getElementById('spinSub');
+    if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}
+    if(sub)sub.textContent=`${idx+1}/${msgs.length}`;
+  },2500);
+}
+
+function showEmailOption(){
+  document.getElementById('wfEmailBox').style.display='block';
+  document.getElementById('wfEmailInput').focus();
+}
+function confirmWfEmail(){
+  const em=document.getElementById('wfEmailInput').value.trim();
+  if(!em||!em.includes('@')){document.getElementById('wfEmailInput').style.borderColor='#f44';return;}
+  wfWantEmail=true;wfUserEmail=em;
+  document.getElementById('wfEmailBox').style.display='none';
+  document.getElementById('wfEmailConfirmed').style.display='block';
+  document.getElementById('wfEmailShow').textContent=em;
+}
+function closeWfKeepAlive(){
+  document.getElementById('wf-overlay').classList.remove('open');
+  // workflow fetch continues in background — result shown when done
+}
+
+function startWaitGame(){
+  const it=lang==='it';
+  const wfc=document.getElementById('wfContent');
+  const introEl=wfc.querySelector('.wf-wait-intro');
+  // Replace intro with game, keep status bar at bottom
+  const statusHtml=`<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--g2);text-align:center">
+    <div class="wf-spinner-msg" id="spinMsg" style="font-size:.85rem;color:var(--g3)">${(spinMsgs[lang]||spinMsgs.en)[0]}</div>
+    <div class="wf-spinner-sub" id="spinSub" style="font-size:.65rem;color:var(--g3);margin-top:.3rem"></div>
+  </div>`;
+  const gameHtml=`<div class="wf-spinner" style="text-align:center">
+    <h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">${it?'WHY Catch':'WHY Catch'}</h3>
+    <div class="wf-game-hint" id="gameHint" style="margin-bottom:.8rem">${it?'Cattura i nodi prima che svaniscano!':'Catch the nodes before they vanish!'}</div>
+    <canvas id="spinCvs" width="400" height="400" style="cursor:crosshair;touch-action:none"></canvas>
+    <div class="wf-game-hud"><div>${it?'Punti':'Score'}: <span id="gScore">0</span></div><div>Combo: <span id="gCombo">x1</span></div><div>${it?'Mancati':'Missed'}: <span id="gMissed">0</span></div></div>
+    ${statusHtml}
+  </div>`;
+  if(introEl)introEl.outerHTML=gameHtml;
+  else wfc.innerHTML=gameHtml;
+
+  // Initialize game canvas
   const cvs=document.getElementById('spinCvs');if(!cvs)return;
   const ctx=cvs.getContext('2d');
   const dpr=window.devicePixelRatio||1;
@@ -862,14 +946,6 @@ function showSpinner(){
   }
   spinRaf=requestAnimationFrame(frame);
 
-  // Message rotation
-  spinInt=setInterval(()=>{
-    idx=(idx+1)%msgs.length;
-    const el=document.getElementById('spinMsg');const sub=document.getElementById('spinSub');
-    if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=msgs[idx];el.style.opacity='1';},300);}
-    if(sub)sub.textContent=`${idx+1}/${msgs.length}`;
-  },2500);
-
   spinCleanup={cvs,onMove,onLeave,onClick};
 }
 
@@ -885,7 +961,23 @@ function stopSpinner(){
   }
 }
 
+let wfPendingResult=null;
+
+function showWfResult(d){
+  stopSpinner();
+  const wfc=document.getElementById('wfContent');
+  const ov=document.getElementById('wf-overlay');
+  if(d.workflow){
+    const hint=lang==='it'?'← Scorri per esplorare le fasi →':'← Swipe to explore phases →';
+    const imgHtml=d.image?`<div class="wf-img"><img src="${d.image}" alt="Project visualization"></div>`:'';
+    wfc.innerHTML=`${imgHtml}<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${hint}</p>`;
+    document.getElementById('wfCta').innerHTML=`<button class="hcta" onclick="openCt()" style="border:0;cursor:pointer">${lang==='it'?'Parliamone →':'Let\'s talk →'}</button>`;
+    if(!ov.classList.contains('open')){ov.classList.add('open');} // reopen if user was browsing
+  }else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
+}
+
 async function bfSubmit(){
+  wfWantEmail=false;wfPendingResult=null;
   const ov=document.getElementById('wf-overlay');ov.classList.add('open');
   document.getElementById('wfTitle').textContent=lang==='it'?'Ecco come lo costruiremmo insieme.':'Here\'s how we\'d build it together.';
   document.getElementById('wfCta').innerHTML='';showSpinner();
@@ -902,13 +994,17 @@ async function bfSubmit(){
       budget:document.getElementById('bfBudget').value,
       lang
     })});
-    const d=await r.json();stopSpinner();const wfc=document.getElementById('wfContent');
-    if(d.workflow){
-      const hint=lang==='it'?'← Scorri per esplorare le fasi →':'← Swipe to explore phases →';
-      const imgHtml=d.image?`<div class="wf-img"><img src="${d.image}" alt="Project visualization"></div>`:'';
-      wfc.innerHTML=`${imgHtml}<div class="wf-track">${d.workflow.map((p,i)=>`<div class="wf-phase" style="animation-delay:${i*.15}s"><div class="num">0${p.id}</div><div class="dur">${p.duration}</div><h4>${p.title}</h4><p>${p.description}</p><div class="tools">${(p.tools||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`).join('')}</div><p class="wf-hint">${hint}</p>`;
-      document.getElementById('wfCta').innerHTML=`<button class="hcta" onclick="openCt()" style="border:0;cursor:pointer">${lang==='it'?'Parliamone →':'Let\'s talk →'}</button>`;
-    }else{wfc.innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore. Contattaci a info@justwhy.it':'Error. Contact us at info@justwhy.it'}</p>`;}
+    const d=await r.json();
+    // If user wants email, send it via API
+    if(wfWantEmail&&wfUserEmail&&d.workflow){
+      try{
+        await fetch('/api/send-workflow-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:wfUserEmail,name:document.getElementById('bfName').value,workflow:d.workflow,image:d.image,lang})});
+      }catch(e){console.error('Email send error:',e);}
+      // Also show results if overlay is still open
+      showWfResult(d);
+    }else{
+      showWfResult(d);
+    }
   }catch(e){stopSpinner();document.getElementById('wfContent').innerHTML=`<p style="color:var(--g3)">${lang==='it'?'Errore di connessione.':'Connection error.'}</p>`;}
 }
 function closeWf(){document.getElementById('wf-overlay').classList.remove('open');}
