@@ -545,49 +545,167 @@ function renderBriefQuestions(el) {
   `;
 }
 
+let _subsData = [];
+let _subsFilter = 'active';
+let _subsSearch = '';
+let _subsSelected = new Set();
+let _subsDetailId = null;
+
 async function renderSubmissions(el) {
   el.innerHTML = '<h2>Submissions</h2><p class="subtitle">Loading...</p>';
   try {
-    const res = await fetch('/api/submissions');
-    const subs = await res.json();
-    if (!subs.length) {
-      el.innerHTML = '<h2>Submissions</h2><p class="subtitle">No submissions yet.</p>';
-      return;
-    }
-    el.innerHTML = `
-      <h2>Submissions</h2>
-      <p class="subtitle">${subs.length} submission(s) received.</p>
-      ${subs.map(s => `<div class="card" style="position:relative">
-        <div style="display:flex;justify-content:space-between;align-items:start">
-          <div>
-            <h3>${s.name || s.company || 'Anonymous'} ${s.email ? '— ' + s.email : ''}</h3>
-            <p style="font-size:.75rem;color:var(--text2)">${new Date(s.created_at).toLocaleString()}</p>
-          </div>
-          <button class="btn btn-sm btn-danger" onclick="deleteSub(${s.id})">Delete</button>
-        </div>
-        <div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.85rem">
-          <div><strong>Sector:</strong> ${s.sector || '—'}</div>
-          <div><strong>Goal:</strong> ${s.goal || '—'}</div>
-          <div><strong>Why:</strong> ${s.why || '—'}</div>
-          <div><strong>Budget:</strong> ${s.budget || '—'}</div>
-          <div><strong>Company:</strong> ${s.company || '—'}</div>
-          <div><strong>Website:</strong> ${s.website ? '<a href="'+s.website+'" target="_blank" style="color:var(--accent)">'+s.website+'</a>' : '—'}</div>
-          <div style="grid-column:span 2"><strong>Description:</strong> ${s.description || '—'}</div>
-          <div><strong>KPI:</strong> ${s.kpi || '—'}</div>
-          <div><strong>Target:</strong> ${s.target || '—'}</div>
-        </div>
-        ${s.workflow ? `<details style="margin-top:1rem"><summary style="cursor:pointer;font-size:.8rem;color:var(--accent)">AI Workflow Output</summary><div style="margin-top:.75rem;display:flex;flex-direction:column;gap:.5rem">${(Array.isArray(s.workflow)?s.workflow:[]).map(p=>`<div style="padding:.5rem .75rem;border-left:2px solid var(--accent);font-size:.8rem"><strong>${p.title||''}</strong> — ${p.duration||''}<br><span style="color:var(--text2)">${p.description||''}</span></div>`).join('')}</div></details>` : ''}
-        ${s.image ? `<details style="margin-top:.75rem"><summary style="cursor:pointer;font-size:.8rem;color:var(--accent)">AI Generated Image</summary><div style="margin-top:.75rem"><img src="${s.image}" style="max-width:100%;border-radius:8px;border:1px solid rgba(200,255,0,.2)" alt="AI project visualization"></div></details>` : ''}
-      </div>`).join('')}
-    `;
+    const res = await fetch('/api/submissions?status=' + _subsFilter);
+    _subsData = await res.json();
+    _subsSelected.clear();
+    _subsDetailId = null;
+    renderSubsList(el);
   } catch(e) {
     el.innerHTML = '<h2>Submissions</h2><p class="subtitle">Error loading submissions.</p>';
   }
 }
 
-async function deleteSub(id) {
-  if (!confirm('Delete this submission?')) return;
-  await fetch('/api/submissions/' + id, { method: 'DELETE' });
+function renderSubsList(el) {
+  const q = _subsSearch.toLowerCase();
+  const filtered = q ? _subsData.filter(s =>
+    (s.name||'').toLowerCase().includes(q) ||
+    (s.email||'').toLowerCase().includes(q) ||
+    (s.company||'').toLowerCase().includes(q) ||
+    (s.sector||'').toLowerCase().includes(q) ||
+    (s.description||'').toLowerCase().includes(q)
+  ) : _subsData;
+
+  const selCount = _subsSelected.size;
+  const allChecked = filtered.length > 0 && filtered.every(s => _subsSelected.has(s.id));
+
+  el.innerHTML = `
+    <h2>Submissions</h2>
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div style="display:flex;border:1px solid var(--border);overflow:hidden;font-size:.75rem">
+        <button onclick="_subsFilter='active';renderSubmissions(document.getElementById('contentArea'))" style="padding:.45rem .8rem;border:0;cursor:pointer;font-family:var(--font);font-weight:600;${_subsFilter==='active'?'background:var(--accent);color:#000':'background:var(--surface);color:var(--text2)'}">Active</button>
+        <button onclick="_subsFilter='archived';renderSubmissions(document.getElementById('contentArea'))" style="padding:.45rem .8rem;border:0;border-left:1px solid var(--border);cursor:pointer;font-family:var(--font);font-weight:600;${_subsFilter==='archived'?'background:var(--accent);color:#000':'background:var(--surface);color:var(--text2)'}">Archived</button>
+        <button onclick="_subsFilter='all';renderSubmissions(document.getElementById('contentArea'))" style="padding:.45rem .8rem;border:0;border-left:1px solid var(--border);cursor:pointer;font-family:var(--font);font-weight:600;${_subsFilter==='all'?'background:var(--accent);color:#000':'background:var(--surface);color:var(--text2)'}">All</button>
+      </div>
+      <input type="text" placeholder="Search..." value="${_subsSearch}" oninput="_subsSearch=this.value;renderSubsList(document.getElementById('contentArea'))" style="flex:1;min-width:180px;margin-bottom:0;padding:.45rem .8rem;font-size:.8rem">
+      <span style="font-size:.75rem;color:var(--text2)">${filtered.length} result${filtered.length!==1?'s':''}</span>
+    </div>
+
+    ${selCount > 0 ? `<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;padding:.6rem 1rem;background:rgba(200,255,0,.05);border:1px solid rgba(200,255,0,.15)">
+      <span style="font-size:.8rem;font-weight:600;color:var(--accent)">${selCount} selected</span>
+      <button class="btn btn-sm" onclick="subsBulk('archive')" style="margin-left:auto;font-size:.7rem">${_subsFilter==='archived'?'Restore':'Archive'}</button>
+      <button class="btn btn-sm btn-danger" onclick="subsBulk('delete')" style="font-size:.7rem">Delete</button>
+    </div>` : ''}
+
+    ${filtered.length === 0 ? '<p class="subtitle" style="margin-top:1rem">No submissions found.</p>' : `
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);text-align:left">
+          <th style="padding:.6rem .4rem;width:32px"><input type="checkbox" ${allChecked?'checked':''} onchange="subsToggleAll(this.checked)" style="cursor:pointer"></th>
+          <th style="padding:.6rem .4rem;color:var(--text2);font-weight:600;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase">Name / Company</th>
+          <th style="padding:.6rem .4rem;color:var(--text2);font-weight:600;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase">Sector</th>
+          <th style="padding:.6rem .4rem;color:var(--text2);font-weight:600;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase">Budget</th>
+          <th style="padding:.6rem .4rem;color:var(--text2);font-weight:600;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase">Date</th>
+          <th style="padding:.6rem .4rem;color:var(--text2);font-weight:600;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;width:50px">WF</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filtered.map(s => `<tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''" onclick="subsShowDetail(${s.id},event)">
+          <td style="padding:.5rem .4rem" onclick="event.stopPropagation()"><input type="checkbox" ${_subsSelected.has(s.id)?'checked':''} onchange="subsToggle(${s.id},this.checked)" style="cursor:pointer"></td>
+          <td style="padding:.5rem .4rem"><strong style="color:var(--text)">${s.name||s.company||'Anonymous'}</strong>${s.email?'<br><span style="font-size:.7rem;color:var(--text2)">'+s.email+'</span>':''}</td>
+          <td style="padding:.5rem .4rem;color:var(--text2)">${s.sector||'—'}</td>
+          <td style="padding:.5rem .4rem;color:var(--text2)">${s.budget||'—'}</td>
+          <td style="padding:.5rem .4rem;color:var(--text2);font-size:.75rem;white-space:nowrap">${new Date(s.created_at).toLocaleDateString()}</td>
+          <td style="padding:.5rem .4rem;text-align:center">${s.workflow?'<span style="color:var(--accent);font-weight:700">✓</span>':'—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`}
+  `;
+}
+
+function subsToggle(id, checked) {
+  if (checked) _subsSelected.add(id); else _subsSelected.delete(id);
+  renderSubsList(document.getElementById('contentArea'));
+}
+function subsToggleAll(checked) {
+  const q = _subsSearch.toLowerCase();
+  const filtered = q ? _subsData.filter(s => (s.name||'').toLowerCase().includes(q)||(s.email||'').toLowerCase().includes(q)||(s.company||'').toLowerCase().includes(q)||(s.sector||'').toLowerCase().includes(q)||(s.description||'').toLowerCase().includes(q)) : _subsData;
+  _subsSelected.clear();
+  if (checked) filtered.forEach(s => _subsSelected.add(s.id));
+  renderSubsList(document.getElementById('contentArea'));
+}
+
+async function subsBulk(action) {
+  const ids = [..._subsSelected];
+  const realAction = (action === 'archive' && _subsFilter === 'archived') ? 'restore' : action;
+  const label = realAction === 'delete' ? 'permanently delete' : realAction;
+  if (!confirm(`${label} ${ids.length} submission(s)?`)) return;
+  await fetch('/api/submissions/bulk', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ ids, action: realAction }) });
+  renderSubmissions(document.getElementById('contentArea'));
+}
+
+function subsShowDetail(id, event) {
+  const s = _subsData.find(x => x.id === id);
+  if (!s) return;
+  const el = document.getElementById('contentArea');
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1.5rem">
+      <button class="btn btn-sm" onclick="renderSubsList(document.getElementById('contentArea'))" style="font-size:.75rem">← Back</button>
+      <h2 style="margin:0;font-size:1.2rem">${s.name||s.company||'Anonymous'}</h2>
+      <span style="font-size:.7rem;color:var(--text2);padding:.2rem .6rem;border:1px solid var(--border)">${(s.status||'active').toUpperCase()}</span>
+    </div>
+    <div class="card">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem .5rem;font-size:.85rem">
+        <div><label style="margin-bottom:.2rem">Name</label><p>${s.name||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Email</label><p>${s.email?'<a href="mailto:'+s.email+'" style="color:var(--accent)">'+s.email+'</a>':'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Company</label><p>${s.company||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Website</label><p>${s.website?'<a href="'+s.website+'" target="_blank" style="color:var(--accent)">'+s.website+'</a>':'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Sector</label><p>${s.sector||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Goal</label><p>${s.goal||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Why</label><p>${s.why||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Budget</label><p>${s.budget||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Timeline</label><p>${s.timeline||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">KPI</label><p>${s.kpi||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Target</label><p>${s.target||'—'}</p></div>
+        <div><label style="margin-bottom:.2rem">Date</label><p>${new Date(s.created_at).toLocaleString()}</p></div>
+        <div style="grid-column:span 2"><label style="margin-bottom:.2rem">Description</label><p style="line-height:1.6">${s.description||'—'}</p></div>
+      </div>
+    </div>
+
+    ${s.workflow ? `<div class="card" style="margin-top:1rem">
+      <h3 style="font-size:.9rem;margin-bottom:1rem;color:var(--accent)">AI Workflow</h3>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        ${(Array.isArray(s.workflow)?s.workflow:[]).map(p=>`<div style="padding:.6rem .8rem;border-left:2px solid var(--accent);background:rgba(200,255,0,.02)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <strong style="font-size:.85rem">${p.title||''}</strong>
+            <span style="font-size:.7rem;color:var(--accent);font-weight:600">${p.duration||''}</span>
+          </div>
+          <p style="font-size:.8rem;color:var(--text2);margin-top:.3rem;line-height:1.5">${p.description||''}</p>
+          ${p.tools?.length?'<div style="margin-top:.4rem;display:flex;gap:.3rem;flex-wrap:wrap">'+p.tools.map(t=>'<span style="font-size:.6rem;padding:.15rem .4rem;border:1px solid rgba(200,255,0,.2);color:var(--accent)">'+t+'</span>').join('')+'</div>':''}
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${s.image ? `<div class="card" style="margin-top:1rem">
+      <h3 style="font-size:.9rem;margin-bottom:1rem;color:var(--accent)">AI Generated Image</h3>
+      <img src="${s.image}" style="max-width:100%;border:1px solid rgba(200,255,0,.15)" alt="AI visualization">
+    </div>` : ''}
+
+    <div style="display:flex;gap:.5rem;margin-top:1.5rem">
+      ${(s.status||'active')==='active'
+        ? '<button class="btn btn-sm" onclick="subsSingleAction('+s.id+',\'archive\')">Archive</button>'
+        : '<button class="btn btn-sm" onclick="subsSingleAction('+s.id+',\'restore\')">Restore</button>'}
+      <button class="btn btn-sm btn-danger" onclick="subsSingleAction(${s.id},'delete')">Delete</button>
+    </div>
+  `;
+}
+
+async function subsSingleAction(id, action) {
+  const label = action === 'delete' ? 'permanently delete' : action;
+  if (!confirm(`${label} this submission?`)) return;
+  if (action === 'delete') {
+    await fetch('/api/submissions/' + id, { method: 'DELETE' });
+  } else {
+    await fetch('/api/submissions/bulk', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ ids: [id], action }) });
+  }
   renderSubmissions(document.getElementById('contentArea'));
 }
 

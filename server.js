@@ -53,6 +53,7 @@ async function initDB() {
     );
     ALTER TABLE submissions ADD COLUMN IF NOT EXISTS image TEXT;
     ALTER TABLE submissions ADD COLUMN IF NOT EXISTS timeline TEXT;
+    ALTER TABLE submissions ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active';
     CREATE TABLE IF NOT EXISTS particle_shapes (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -797,7 +798,12 @@ app.post('/api/send-workflow-email', chatRateLimit, async (req, res) => {
 // --- Submissions API (admin only) ---
 app.get('/api/submissions', requireAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM submissions ORDER BY created_at DESC LIMIT 100');
+    const status = req.query.status || 'active';
+    const q = status === 'all'
+      ? 'SELECT * FROM submissions ORDER BY created_at DESC LIMIT 200'
+      : 'SELECT * FROM submissions WHERE COALESCE(status,\'active\') = $1 ORDER BY created_at DESC LIMIT 200';
+    const params = status === 'all' ? [] : [status];
+    const { rows } = await pool.query(q, params);
     res.json(rows);
   } catch(e) {
     console.error('Submissions error:', e);
@@ -835,6 +841,26 @@ app.delete('/api/submissions/:id', requireAuth, async (req, res) => {
     res.json({ success: true });
   } catch(e) {
     res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// Bulk operations
+app.post('/api/submissions/bulk', requireAuth, async (req, res) => {
+  try {
+    const { ids, action } = req.body;
+    if (!ids?.length) return res.status(400).json({ error: 'No ids' });
+    if (action === 'delete') {
+      await pool.query('DELETE FROM submissions WHERE id = ANY($1::int[])', [ids]);
+    } else if (action === 'archive') {
+      await pool.query("UPDATE submissions SET status = 'archived' WHERE id = ANY($1::int[])", [ids]);
+    } else if (action === 'restore') {
+      await pool.query("UPDATE submissions SET status = 'active' WHERE id = ANY($1::int[])", [ids]);
+    } else {
+      return res.status(400).json({ error: 'Invalid action' });
+    }
+    res.json({ success: true, count: ids.length });
+  } catch(e) {
+    res.status(500).json({ error: 'Bulk operation failed' });
   }
 });
 
