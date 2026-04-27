@@ -166,7 +166,7 @@ section{padding:10rem 3rem;position:relative;z-index:1}
 .bf-bottom-edge{position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--ac),transparent);opacity:.3}
 
 /* WORKFLOW OVERLAY */
-#wf-overlay{position:fixed;inset:0;z-index:2000;background:var(--bk);overflow-y:auto;display:none;animation:fu .6s forwards}
+#wf-overlay{position:fixed;inset:0;z-index:2000;background:var(--bk);overflow-y:auto;overflow-x:hidden;display:none;animation:fu .6s forwards}
 #wf-overlay.open{display:block}
 #wf-overlay::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 100% 50% at 50% 0%,rgba(200,255,0,.04) 0%,transparent 60%);pointer-events:none;z-index:-1}
 .wf-wrap{max-width:100%;margin:0 auto;padding:6rem 2rem}
@@ -294,6 +294,29 @@ footer img{height:24px;opacity:.6;filter:brightness(3) contrast(1.3)}
   .chia button{padding:.7rem;font-size:.8rem;text-align:center}
   #chtgl{z-index:2001}
   #chtgl{bottom:1.5rem;right:1.5rem;width:46px;height:46px}#chtgl svg{width:20px;height:20px}
+  /* Workflow overlay mobile lock */
+  #wf-overlay{overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  .wf-wrap{padding:3rem 1rem 2rem;overflow-x:hidden}
+  .wf-wrap-header{padding:0 .5rem}
+  .wf-wrap-header .st{font-size:1.3rem}
+  .wf-logo{width:80px;margin-bottom:1rem}
+  .wf-carousel{max-width:calc(100vw - 2rem)}
+  .wf-carousel .wf-phase{padding:1.2rem;min-height:auto}
+  .wf-carousel .wf-phase .num{font-size:1.8rem;margin-bottom:.3rem}
+  .wf-carousel .wf-phase h4{font-size:.95rem}
+  .wf-carousel .wf-phase p{font-size:.78rem;line-height:1.5}
+  .wf-carousel .wf-phase .tools span{font-size:.5rem;padding:.15rem .4rem}
+  .wf-nav{margin-top:1rem;gap:1rem}
+  .wf-nav button{width:48px;height:48px;font-size:1.4rem}
+  .wf-progress{max-width:calc(100vw - 2rem)}
+  .wf-timeline{max-width:calc(100vw - 2rem);flex-wrap:wrap;gap:.3rem;justify-content:center}
+  .wf-img{margin:0 auto 1.5rem}
+  .wf-img img{max-height:35vh}
+  .wf-close{top:1rem;right:1rem;width:36px;height:36px;font-size:1rem}
+  /* Game canvas sizing */
+  #njCvs,#snkCvs{max-width:75vw;max-height:50vh;height:auto}
+  /* CTA closer on mobile */
+  #wfCta{margin-top:1.5rem !important}
 }
 @media(max-width:480px){.tg{grid-template-columns:1fr}.bf-cards{flex-direction:column}}
 </style>
@@ -834,7 +857,7 @@ function startWaitGame(){
   const gameHtml=`<div class="wf-spinner" style="text-align:center">
     <h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">${it?'WHY Catch':'WHY Catch'}</h3>
     <div class="wf-game-hint" id="gameHint" style="margin-bottom:.8rem">${it?'Cattura i nodi prima che svaniscano!':'Catch the nodes before they vanish!'}</div>
-    <canvas id="spinCvs" width="400" height="400" style="cursor:crosshair;touch-action:none"></canvas>
+    <canvas id="spinCvs" style="cursor:crosshair;touch-action:none;display:block;margin:0 auto"></canvas>
     <div class="wf-game-hud"><div>${it?'Punti':'Score'}: <span id="gScore">0</span></div><div>Combo: <span id="gCombo">x1</span></div><div>${it?'Mancati':'Missed'}: <span id="gMissed">0</span></div></div>
     ${statusHtml}
   </div>`;
@@ -846,7 +869,7 @@ function startWaitGame(){
   const cvs=document.getElementById('spinCvs');if(!cvs)return;
   const ctx=cvs.getContext('2d');
   const dpr=window.devicePixelRatio||1;
-  const CSS_W=400,CSS_H=400;
+  const CSS_W=Math.min(400,window.innerWidth-40),CSS_H=Math.min(CSS_W,window.innerHeight*0.45);
   cvs.width=CSS_W*dpr;cvs.height=CSS_H*dpr;
   cvs.style.width=CSS_W+'px';cvs.style.height=CSS_H+'px';
   ctx.scale(dpr,dpr);
@@ -1204,12 +1227,13 @@ function startNinjaGame(){
   const it=lang==='it';
   replaceWithGame(`<h3 style="font-family:var(--d);font-size:1.1rem;margin-bottom:.5rem">WHY Ninja</h3>
     <p class="wf-game-hint" style="margin-bottom:.8rem">${it?'Taglia i cubi con il dito!':'Slice the cubes with your finger!'}</p>
-    <canvas id="njCvs" width="300" height="400" style="touch-action:none;border:1px solid var(--g2)"></canvas>
+    <canvas id="njCvs" style="touch-action:none;border:1px solid var(--g2);display:block;margin:0 auto"></canvas>
     <div style="margin-top:.8rem;font-size:.8rem;color:var(--g3)">${it?'Punti':'Score'}: <span id="njScore">0</span> &nbsp; ${it?'Vite':'Lives'}: <span id="njLives">3</span></div>`);
   const cvs=document.getElementById('njCvs');if(!cvs)return;
   const ctx=cvs.getContext('2d');
   const dpr=window.devicePixelRatio||1;
-  const W=300,H=400;
+  const maxW=Math.min(300,window.innerWidth-40);
+  const W=maxW,H=Math.min(Math.round(maxW*1.33),window.innerHeight*0.45);
   cvs.width=W*dpr;cvs.height=H*dpr;cvs.style.width=W+'px';cvs.style.height=H+'px';ctx.scale(dpr,dpr);
 
   let score=0,lives=3,alive=true,cubes=[],sliceTrail=[],raf=null,lastSpawn=0;
@@ -1508,7 +1532,7 @@ function showWfResult(d){
     let sx=0;
     const track=document.getElementById('wfCarouselTrack');
     track.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
-    track.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50){wfSlide(dx<0?1:-1);}},{passive:true});
+    track.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>30){wfSlide(dx<0?1:-1);}},{passive:true});
 
     document.getElementById('wfCta').innerHTML=`<button class="hcta" onclick="openCt()" style="border:0;cursor:pointer">${it?'Parliamone →':'Let\'s talk →'}</button>`;
     if(!ov.classList.contains('open')){ov.classList.add('open');}

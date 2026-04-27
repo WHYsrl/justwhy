@@ -439,7 +439,7 @@ CRITICAL REQUIREMENTS:
 - If it's a game, show the game interface with players
 - If it's an AI system, show the interface/dashboard in use
 - The technologies from the workflow (${workflow ? workflow.flatMap(p=>p.tools||[]).filter((v,i,a)=>a.indexOf(v)===i).join(', ') : 'various'}) should be evident in the visual — show their output, not logos
-- ${briefData.company ? `The "${briefData.company}" brand must appear naturally in the scene (on screens, signage, UI, or product)` : 'No text in the image'}
+- ${briefData.company ? `The "${briefData.company}" brand must appear naturally in the scene (on screens, signage, UI, or product packaging)` : 'No text in the image'}
 - Dark, premium aesthetic: near-black background (#050505), electric lime (#c8ff00) for UI accents and highlights
 - Cinematic lighting, photorealistic, shot like a premium case study photograph
 - HUMAN ANATOMY: If people appear in the scene, pay extreme attention to correct human anatomy — proper number of fingers (5 per hand), natural proportions, realistic faces, correct body posture. No deformed hands, extra limbs, or uncanny features.
@@ -569,7 +569,28 @@ async function generateProjectImage(briefData, workflow) {
     });
 
     if (!imgRes.ok) {
-      console.error('Image generation error:', await imgRes.text());
+      const errText = await imgRes.text();
+      console.error('Image generation error:', errText);
+      // If content policy rejection (likely brand/trademark), retry with periphrasis
+      if (errText.includes('content_policy') || errText.includes('safety') || imgRes.status === 400) {
+        const brand = briefData.company || '';
+        const sector = briefData.sector || 'technology';
+        const periphrasis = `a leading ${sector} company`;
+        console.log(`Retrying image generation: replacing "${brand}" with "${periphrasis}"...`);
+        const cleanPrompt = finalPrompt
+          .replace(new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), periphrasis)
+          .replace(/"[^"]*" brand must appear/gi, `fictional branding for ${periphrasis} should appear`);
+        const retryRes = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_KEY}` },
+          body: JSON.stringify({ model: 'gpt-image-2', prompt: cleanPrompt, n: 1, size: '1536x1024', quality: 'medium' }),
+        });
+        if (retryRes.ok) {
+          const retryData = await retryRes.json();
+          const b64r = retryData.data?.[0]?.b64_json;
+          if (b64r) return `data:image/png;base64,${b64r}`;
+        }
+      }
       return null;
     }
 
