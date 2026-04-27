@@ -54,6 +54,7 @@ async function initDB() {
     ALTER TABLE submissions ADD COLUMN IF NOT EXISTS image TEXT;
     ALTER TABLE submissions ADD COLUMN IF NOT EXISTS timeline TEXT;
     ALTER TABLE submissions ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active';
+    ALTER TABLE contact_requests ADD COLUMN IF NOT EXISTS message TEXT;
     CREATE TABLE IF NOT EXISTS particle_shapes (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
