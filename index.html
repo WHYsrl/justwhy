@@ -1849,12 +1849,94 @@ async function submitCt(){
 }
 
 // PRIVACY
+const _privacyIt=`<h2 style="font-family:var(--d);font-size:1.8rem;margin-bottom:1.5rem">Informativa sulla Privacy</h2>
+<p style="color:var(--g3);font-size:.8rem;margin-bottom:2rem">Ai sensi del Regolamento (UE) 2016/679 (GDPR) e del D.Lgs. 196/2003 come modificato dal D.Lgs. 101/2018</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">1. Titolare del trattamento</h3>
+<p><strong>WHY srl</strong><br>Via Valadier, 42 — 00193 Roma (Italia)<br>C.F. e P.IVA: IT16348661006<br>Email: <a href="mailto:info@justwhy.it" style="color:var(--ac)">info@justwhy.it</a><br>Responsabile del trattamento dati: <strong>Filippo Maria Bonifati</strong></p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">2. Dati raccolti</h3>
+<p>Attraverso i form presenti sul sito ("Start a project" e "Let's talk") raccogliamo i seguenti dati personali forniti volontariamente dall'utente: nome, indirizzo email, numero di telefono o contatto preferito, nome dell'azienda, sito web, settore di appartenenza, descrizione del progetto, budget indicativo, timeline, obiettivi e motivazioni del progetto.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">3. Finalità del trattamento</h3>
+<p>I dati personali sono trattati per le seguenti finalità:</p>
+<p><strong>a)</strong> Rispondere alle richieste di contatto e fornire consulenza sui servizi offerti da WHY srl.<br>
+<strong>b)</strong> Generare un workflow personalizzato tramite intelligenza artificiale sulla base delle informazioni progettuali fornite.<br>
+<strong>c)</strong> Inviare via email il risultato del workflow elaborato, qualora richiesto dall'utente.<br>
+<strong>d)</strong> Gestione amministrativa e organizzazione interna delle richieste ricevute.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">4. Base giuridica</h3>
+<p>Il trattamento dei dati si fonda sul <strong>consenso espresso</strong> dell'interessato (art. 6, par. 1, lett. a GDPR), prestato mediante la selezione dell'apposita casella al momento dell'invio del form, nonché sull'<strong>esecuzione di misure precontrattuali</strong> adottate su richiesta dell'interessato (art. 6, par. 1, lett. b GDPR).</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">5. Modalità del trattamento</h3>
+<p>I dati sono trattati con strumenti elettronici e conservati su server sicuri. In particolare: i dati del form vengono memorizzati in un database PostgreSQL ospitato su infrastruttura cloud (Render.com, server in area UE/USA con garanzie adeguate); le informazioni progettuali vengono elaborate da sistemi di intelligenza artificiale (OpenAI) al solo fine di generare il workflow richiesto; l'invio delle email avviene tramite il servizio Resend. Non viene effettuata alcuna profilazione automatizzata né processi decisionali automatizzati con effetti giuridici sull'interessato.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">6. Comunicazione e diffusione dei dati</h3>
+<p>I dati personali non saranno diffusi. Potranno essere comunicati a: fornitori di servizi tecnici (hosting, email, AI) che agiscono in qualità di responsabili del trattamento ai sensi dell'art. 28 GDPR; consulenti e collaboratori di WHY srl, limitatamente a quanto necessario per le finalità indicate. Non è previsto il trasferimento di dati a Paesi terzi al di fuori dei casi coperti da decisioni di adeguatezza della Commissione Europea o da clausole contrattuali standard.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">7. Periodo di conservazione</h3>
+<p>I dati personali saranno conservati per il tempo strettamente necessario al perseguimento delle finalità per cui sono stati raccolti e, in ogni caso, per un periodo massimo di <strong>24 mesi</strong> dalla raccolta, salvo obblighi di legge che ne impongano una conservazione più lunga. Al termine del periodo di conservazione, i dati saranno cancellati o resi anonimi.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">8. Diritti dell'interessato</h3>
+<p>In conformità agli articoli 15-22 del GDPR, l'interessato ha il diritto di: accedere ai propri dati personali e ottenerne copia; rettificare dati inesatti o incompleti; ottenere la cancellazione dei dati ("diritto all'oblio"); limitare il trattamento; opporsi al trattamento; richiedere la portabilità dei dati; revocare il consenso in qualsiasi momento senza pregiudicare la liceità del trattamento basato sul consenso prestato prima della revoca.</p>
+<p>Per esercitare i propri diritti, è possibile contattare il Titolare del trattamento all'indirizzo <a href="mailto:info@justwhy.it" style="color:var(--ac)">info@justwhy.it</a>.</p>
+<p>L'interessato ha inoltre il diritto di proporre reclamo all'Autorità Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" style="color:var(--ac)">www.garanteprivacy.it</a>).</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">9. Cookie</h3>
+<p>Il sito utilizza cookie tecnici e, previo consenso, cookie analitici (Google Analytics) per analizzare la navigazione in forma aggregata e anonima. La gestione delle preferenze cookie avviene tramite il banner fornito da iubenda. Per maggiori informazioni, consultare la <a href="https://www.iubenda.com/privacy-policy/47256338/cookie-policy" target="_blank" style="color:var(--ac)">Cookie Policy</a>.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">10. Modifiche alla presente informativa</h3>
+<p>WHY srl si riserva il diritto di modificare la presente informativa in qualsiasi momento. Le eventuali modifiche saranno pubblicate su questa pagina con indicazione della data di ultimo aggiornamento.</p>
+
+<p style="color:var(--g3);font-size:.8rem;margin-top:2rem;border-top:1px solid var(--g2);padding-top:1rem">Ultimo aggiornamento: 28 aprile 2026</p>`;
+
+const _privacyEn=`<h2 style="font-family:var(--d);font-size:1.8rem;margin-bottom:1.5rem">Privacy Policy</h2>
+<p style="color:var(--g3);font-size:.8rem;margin-bottom:2rem">Pursuant to Regulation (EU) 2016/679 (GDPR)</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">1. Data Controller</h3>
+<p><strong>WHY srl</strong><br>Via Valadier, 42 — 00193 Rome (Italy)<br>Tax ID: IT16348661006<br>Email: <a href="mailto:info@justwhy.it" style="color:var(--ac)">info@justwhy.it</a><br>Data Protection Officer: <strong>Filippo Maria Bonifati</strong></p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">2. Data Collected</h3>
+<p>Through the forms on this website ("Start a project" and "Let's talk"), we collect the following personal data voluntarily provided by the user: name, email address, phone number or preferred contact method, company name, website, industry sector, project description, indicative budget, timeline, goals and motivations.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">3. Purpose of Processing</h3>
+<p>Personal data is processed for the following purposes:</p>
+<p><strong>a)</strong> Responding to contact requests and providing advice on services offered by WHY srl.<br>
+<strong>b)</strong> Generating a customized AI-powered workflow based on the project information provided.<br>
+<strong>c)</strong> Sending the workflow results via email, when requested by the user.<br>
+<strong>d)</strong> Internal administrative management and organization of received requests.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">4. Legal Basis</h3>
+<p>Data processing is based on the <strong>explicit consent</strong> of the data subject (Art. 6(1)(a) GDPR), given by selecting the appropriate checkbox when submitting the form, as well as on the <strong>performance of pre-contractual measures</strong> taken at the request of the data subject (Art. 6(1)(b) GDPR).</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">5. Processing Methods</h3>
+<p>Data is processed using electronic tools and stored on secure servers. Specifically: form data is stored in a PostgreSQL database hosted on cloud infrastructure (Render.com); project information is processed by artificial intelligence systems (OpenAI) solely to generate the requested workflow; emails are sent via the Resend service. No automated profiling or automated decision-making with legal effects on the data subject is carried out.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">6. Data Sharing</h3>
+<p>Personal data will not be publicly disclosed. It may be shared with: technical service providers (hosting, email, AI) acting as data processors pursuant to Art. 28 GDPR; WHY srl consultants and collaborators, limited to what is necessary for the stated purposes. No transfer of data to third countries is foreseen outside of cases covered by European Commission adequacy decisions or standard contractual clauses.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">7. Data Retention</h3>
+<p>Personal data will be retained for the time strictly necessary to achieve the purposes for which it was collected and, in any case, for a maximum period of <strong>24 months</strong> from collection, unless legal obligations require longer retention. At the end of the retention period, data will be deleted or anonymized.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">8. Data Subject Rights</h3>
+<p>In accordance with Articles 15-22 of the GDPR, the data subject has the right to: access their personal data and obtain a copy; rectify inaccurate or incomplete data; obtain erasure of data ("right to be forgotten"); restrict processing; object to processing; request data portability; withdraw consent at any time without affecting the lawfulness of processing based on consent given before withdrawal.</p>
+<p>To exercise these rights, please contact the Data Controller at <a href="mailto:info@justwhy.it" style="color:var(--ac)">info@justwhy.it</a>.</p>
+<p>The data subject also has the right to lodge a complaint with the Italian Data Protection Authority (<a href="https://www.garanteprivacy.it" target="_blank" style="color:var(--ac)">www.garanteprivacy.it</a>).</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">9. Cookies</h3>
+<p>This website uses technical cookies and, subject to consent, analytical cookies (Google Analytics) to analyze browsing in aggregate and anonymous form. Cookie preferences are managed through the banner provided by iubenda. For more information, please see the <a href="https://www.iubenda.com/privacy-policy/47256338/cookie-policy" target="_blank" style="color:var(--ac)">Cookie Policy</a>.</p>
+
+<h3 style="color:var(--ac);font-size:1rem;margin:1.5rem 0 .8rem">10. Changes to This Policy</h3>
+<p>WHY srl reserves the right to modify this policy at any time. Any changes will be published on this page with an indication of the last update date.</p>
+
+<p style="color:var(--g3);font-size:.8rem;margin-top:2rem;border-top:1px solid var(--g2);padding-top:1rem">Last updated: April 28, 2026</p>`;
+
 function showPrivacy(){
   const ov=document.getElementById('privacyOverlay');
   const ct=document.getElementById('privacyContent');
   const pp=D?.privacy_policy;
   if(pp && pp[lang]){ct.innerHTML=pp[lang];}
-  else{ct.innerHTML=lang==='it'?'<h2>Privacy Policy</h2><p>Informativa sulla privacy non ancora configurata. Contattaci per maggiori informazioni.</p>':'<h2>Privacy Policy</h2><p>Privacy policy not yet configured. Contact us for more information.</p>';}
+  else{ct.innerHTML=lang==='it'?_privacyIt:_privacyEn;}
   ov.classList.add('open');
 }
 
